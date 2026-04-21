@@ -25,26 +25,8 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Required: refreshes the auth token and writes it back to the response.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-  const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/signup");
-  const isProtected = pathname.startsWith("/account");
-
-  if (!user && isProtected) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  if (user && isAuthPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/account";
-    return NextResponse.redirect(url);
-  }
+  // Refreshes the access token and writes it back to the response cookies.
+  await supabase.auth.getUser();
 
   return response;
 }
