@@ -53,7 +53,7 @@ Run from the parent checkout once the PR has merged.
 | 2 | Profiles (buyer/dealer/seller + dealer edit) | 8 | amogh kuppa | team-2/profiles | in progress |
 | 4 | Search Intake (top controls, IntakeState) | 9 | athin shetty | team-4/search-intake | merged |
 | 5 | Four-Path Comparison | 10 | athin shetty | team-5/four-path | merged |
-| 6 | Decision & Gap (Best Path, See Where You Stand) | 11 | athin shetty | team-6/decision-gap | in progress |
+| 6 | Decision & Gap (Best Path, See Where You Stand) | 11 | athin shetty | team-6/decision-gap | merged |
 | 7 | Vehicle Detail | 12 | athin shetty | team-7/vehicle-detail | merged |
 | 8 | Garage | 13 | _(unclaimed)_ | — | not started |
 | 9 | Commit / Checkout (configurator, deposit) | 14 | _(unclaimed)_ | — | not started |
