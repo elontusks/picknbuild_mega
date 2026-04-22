@@ -50,7 +50,7 @@ Run from the parent checkout once the PR has merged.
 | 13 | Messaging + Notifications | 5 | _(unclaimed)_ | — | not started |
 | 14 | Payments Backend (Stripe, subs, refunds) | 6 | amogh kuppa | team-14/payments | merged |
 | 15 | Admin + Integrity (dashboard, logging, storage) | 7 | amogh kuppa | team-15/secure-storage | storage slice merged; admin UI pending |
-| 2 | Profiles (buyer/dealer/seller + dealer edit) | 8 | _(unclaimed)_ | — | not started |
+| 2 | Profiles (buyer/dealer/seller + dealer edit) | 8 | amogh kuppa | team-2/profiles | in progress |
 | 4 | Search Intake (top controls, IntakeState) | 9 | athin shetty | team-4/search-intake | merged |
 | 5 | Four-Path Comparison | 10 | athin shetty | team-5/four-path | in progress |
 | 6 | Decision & Gap (Best Path, See Where You Stand) | 11 | athin shetty | team-6/decision-gap | in progress |
