@@ -31,10 +31,10 @@ Merge into `main` in the order given in **Merge priority** (matches ARCHITECTURE
 | 14 | Payments Backend (Stripe, subs, refunds) | 6 | amogh kuppa | team-14/payments | merged |
 | 15 | Admin + Integrity (dashboard, logging, storage) | 7 | amogh kuppa | team-15/secure-storage | storage slice merged; admin UI pending |
 | 2 | Profiles (buyer/dealer/seller + dealer edit) | 8 | _(unclaimed)_ | — | not started |
-| 4 | Search Intake (top controls, IntakeState) | 9 | _(unclaimed)_ | — | not started |
+| 4 | Search Intake (top controls, IntakeState) | 9 | athin shetty | team-4/search-intake | merged |
 | 5 | Four-Path Comparison | 10 | _(unclaimed)_ | — | not started |
 | 6 | Decision & Gap (Best Path, See Where You Stand) | 11 | _(unclaimed)_ | — | not started |
-| 7 | Vehicle Detail | 12 | _(unclaimed)_ | — | not started |
+| 7 | Vehicle Detail | 12 | athin shetty | team-7/vehicle-detail | merged |
 | 8 | Garage | 13 | _(unclaimed)_ | — | not started |
 | 9 | Commit / Checkout (configurator, deposit) | 14 | _(unclaimed)_ | — | not started |
 | 10 | Post-Deposit Dashboard | 15 | _(unclaimed)_ | — | not started |
