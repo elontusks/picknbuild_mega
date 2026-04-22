@@ -39,29 +39,120 @@ export type Database = {
   }
   public: {
     Tables: {
+      authz_denials: {
+        Row: {
+          capability: string
+          created_at: string
+          id: number
+          principal_id: string | null
+          reason: string
+          request_path: string | null
+          resource_id: string | null
+          resource_type: string | null
+        }
+        Insert: {
+          capability: string
+          created_at?: string
+          id?: number
+          principal_id?: string | null
+          reason: string
+          request_path?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+        }
+        Update: {
+          capability?: string
+          created_at?: string
+          id?: number
+          principal_id?: string | null
+          reason?: string
+          request_path?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "authz_denials_principal_id_fkey"
+            columns: ["principal_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dealer_pages: {
+        Row: {
+          claimed: boolean
+          created_at: string
+          id: string
+          name: string | null
+          owner_id: string | null
+          subscription_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          claimed?: boolean
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_id?: string | null
+          subscription_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          claimed?: boolean
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_id?: string | null
+          subscription_active?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealer_pages_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          account_status: string
           avatar_url: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
+          phone: string | null
+          phone_verified_at: string | null
+          roles: string[]
           updated_at: string
         }
         Insert: {
+          account_status?: string
           avatar_url?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id: string
+          phone?: string | null
+          phone_verified_at?: string | null
+          roles?: string[]
           updated_at?: string
         }
         Update: {
+          account_status?: string
           avatar_url?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
+          phone?: string | null
+          phone_verified_at?: string | null
+          roles?: string[]
           updated_at?: string
         }
         Relationships: []
