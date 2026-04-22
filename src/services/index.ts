@@ -7,3 +7,4 @@ export * as Messaging from "./team-13-messaging";
 export * as Notifications from "./team-13-notifications";
 export * as Payments from "./team-14-payments";
 export * as Storage from "./team-15-storage";
+export * as Garage from "./team-08-garage";
