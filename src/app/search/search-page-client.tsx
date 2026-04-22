@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { IntakeState, ListingObject, User } from "@/contracts";
+import type { IntakeState, ListingObject, PathQuote, User } from "@/contracts";
 import {
   IntakeProvider,
   applyTitleFilter,
@@ -14,6 +14,11 @@ import {
   TopControlsBar,
 } from "@/components/intake";
 import { FourPathComparisonDisplay } from "@/components/compare";
+import {
+  SeeWhereYouStandPanel,
+  YourBestPathRightNow,
+} from "@/components/decision";
+import { quoteAllPaths } from "@/services/team-11-pricing";
 
 type Props = { user: User };
 
@@ -55,6 +60,7 @@ function TopControlsContainer({ user }: { user: User }) {
           onSelectListing={setActiveListing}
         />
         <ComparePane user={user} listing={activeListing} />
+        <DecisionSection listing={activeListing} user={user} />
       </div>
     </>
   );
@@ -95,6 +101,91 @@ function ComparePane({
         userId={user.id}
         bestFitPreference={user.preferences.bestFit}
       />
+    </section>
+  );
+}
+
+function DecisionSection({
+  listing,
+  user,
+}: {
+  listing: ListingObject | null;
+  user: User;
+}) {
+  const intake = useIntakeState();
+  const [quotes, setQuotes] = useState<PathQuote[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const intakeKey = useMemo(
+    () =>
+      JSON.stringify({
+        zip: intake.location.zip,
+        cash: intake.cash,
+        cs: intake.creditScore ?? null,
+        nc: intake.noCredit,
+        title: intake.titlePreference,
+        term: intake.selectedTerm ?? null,
+      }),
+    [intake],
+  );
+
+  useEffect(() => {
+    if (!listing) {
+      // Displayed quotes derive from `listing` below, so there's no stale-
+      // render risk leaving the cached `quotes` alone when focus clears.
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    quoteAllPaths(listing, intake)
+      .then((rows) => {
+        if (cancelled) return;
+        setQuotes(rows);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to price paths");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // intake captured via stable key; listing identity gates the fetch
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listing?.id, intakeKey]);
+
+  // Derive displayed quotes so that clearing focus instantly empties the
+  // decision surfaces without needing a setState-in-effect to clear `quotes`.
+  const displayedQuotes = listing ? quotes : [];
+
+  return (
+    <section
+      data-section="decision"
+      className="grid gap-4 lg:grid-cols-[1fr_2fr]"
+    >
+      <YourBestPathRightNow
+        quotes={displayedQuotes}
+        bestFit={user.preferences.bestFit}
+      />
+      <div className="flex flex-col gap-3">
+        {loading ? (
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Pricing all four paths…
+          </p>
+        ) : null}
+        {error ? (
+          <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>
+        ) : null}
+        <SeeWhereYouStandPanel
+          quotes={displayedQuotes}
+          listing={listing ?? undefined}
+        />
+      </div>
     </section>
   );
 }
@@ -145,6 +236,17 @@ function ListingsPreview({
     state.titlePreference,
   );
 
+  // Auto-select the first visible listing so the Compare + Decision panels
+  // always have a vehicle to render against on first load. Only fires when
+  // nothing is active yet — user clicks take precedence.
+  useEffect(() => {
+    if (activeListingId !== null) return;
+    const first = filtered[0];
+    if (first) onSelectListing(first);
+    // Identity-only changes from new fetches shouldn't re-trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered.map((l) => l.id).join(","), activeListingId]);
+
   return (
     <section className="flex flex-col gap-3" data-intake="listings-preview">
       <header className="flex items-center justify-between">
@@ -174,6 +276,7 @@ function ListingsPreview({
                   onClick={() => onSelectListing(l)}
                   data-testid={`listing-tile-${l.id}`}
                   data-active={active ? "true" : "false"}
+                  aria-pressed={active}
                   className={`flex w-full flex-col gap-1 rounded-xl border p-4 text-left text-sm transition ${
                     active
                       ? "border-emerald-400 bg-emerald-50 dark:border-emerald-500/60 dark:bg-emerald-950/30"
