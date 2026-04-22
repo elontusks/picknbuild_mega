@@ -23,7 +23,7 @@ Merge into `main` in the order given in **Merge priority** (matches ARCHITECTURE
 
 | # | Team | Merge priority | Owner | Branch | Status |
 |---|------|---------------:|-------|--------|--------|
-| 1 | Foundations (auth, onboarding, User, shell) | 1 | athin shetty | team-1/foundations | ready for review |
+| 1 | Foundations (auth, onboarding, User, shell) | 1 | athin shetty | team-1/foundations | merged |
 | 3 | Supply / Data Plane (listing store, link parser, VIN) | 2 | _(unclaimed)_ | — | not started |
 | 11 | Pricing & Intelligence Backend | 3 | _(unclaimed)_ | — | not started |
 | 12 | Workflows Backend (conversion state, signals) | 4 | _(unclaimed)_ | — | not started |
