@@ -63,13 +63,28 @@ export const rowToListing = (row: ListingRow): ListingObject => ({
   ownerUserId: undefIfNull(row.owner_user_id),
 });
 
-export type ListingInsert = Partial<Omit<ListingRow, "id" | "photos">> & {
+export type ListingInsert = {
   source: string;
   source_url: string;
+  source_external_id?: string | null;
+  vin?: string | null;
   year: number;
   make: string;
   model: string;
+  trim?: string | null;
+  mileage?: number | null;
+  title_status?: string;
+  price?: number | null;
+  current_bid?: number | null;
+  bin_price?: number | null;
+  estimated_market_value?: number | null;
+  fees?: number | null;
   photos?: string[];
+  location_zip?: string | null;
+  source_updated_at?: string;
+  last_refreshed_at?: string;
+  status?: string;
+  owner_user_id?: string | null;
 };
 
 export const listingToInsert = (

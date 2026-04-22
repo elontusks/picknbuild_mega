@@ -118,6 +118,356 @@ export type Database = {
           },
         ]
       }
+      garage_action_events: {
+        Row: {
+          action: Database["public"]["Enums"]["garage_action_kind"]
+          created_at: string
+          id: number
+          item_id: number
+          user_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["garage_action_kind"]
+          created_at?: string
+          id?: number
+          item_id: number
+          user_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["garage_action_kind"]
+          created_at?: string
+          id?: number
+          item_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_action_events_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "garage_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_groups: {
+        Row: {
+          best_fit_item_id: number | null
+          best_total_item_id: number | null
+          created_at: string
+          description: string | null
+          fastest_item_id: number | null
+          id: number
+          inputs_hash: string | null
+          is_default: boolean
+          last_computed_at: string | null
+          lowest_monthly_item_id: number | null
+          lowest_risk_item_id: number | null
+          name: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          best_fit_item_id?: number | null
+          best_total_item_id?: number | null
+          created_at?: string
+          description?: string | null
+          fastest_item_id?: number | null
+          id?: number
+          inputs_hash?: string | null
+          is_default?: boolean
+          last_computed_at?: string | null
+          lowest_monthly_item_id?: number | null
+          lowest_risk_item_id?: number | null
+          name: string
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          best_fit_item_id?: number | null
+          best_total_item_id?: number | null
+          created_at?: string
+          description?: string | null
+          fastest_item_id?: number | null
+          id?: number
+          inputs_hash?: string | null
+          is_default?: boolean
+          last_computed_at?: string | null
+          lowest_monthly_item_id?: number | null
+          lowest_risk_item_id?: number | null
+          name?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_groups_best_fit_fk"
+            columns: ["best_fit_item_id"]
+            isOneToOne: false
+            referencedRelation: "garage_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_groups_best_total_fk"
+            columns: ["best_total_item_id"]
+            isOneToOne: false
+            referencedRelation: "garage_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_groups_fastest_fk"
+            columns: ["fastest_item_id"]
+            isOneToOne: false
+            referencedRelation: "garage_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_groups_lowest_monthly_fk"
+            columns: ["lowest_monthly_item_id"]
+            isOneToOne: false
+            referencedRelation: "garage_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_groups_lowest_risk_fk"
+            columns: ["lowest_risk_item_id"]
+            isOneToOne: false
+            referencedRelation: "garage_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_items: {
+        Row: {
+          archived_at: string | null
+          garage_group_id: number | null
+          id: number
+          last_viewed_at: string | null
+          note: string | null
+          saved_at: string
+          saved_path: Database["public"]["Enums"]["vehicle_source_type"]
+          user_id: string
+          vehicle_id: number
+        }
+        Insert: {
+          archived_at?: string | null
+          garage_group_id?: number | null
+          id?: number
+          last_viewed_at?: string | null
+          note?: string | null
+          saved_at?: string
+          saved_path: Database["public"]["Enums"]["vehicle_source_type"]
+          user_id: string
+          vehicle_id: number
+        }
+        Update: {
+          archived_at?: string | null
+          garage_group_id?: number | null
+          id?: number
+          last_viewed_at?: string | null
+          note?: string | null
+          saved_at?: string
+          saved_path?: Database["public"]["Enums"]["vehicle_source_type"]
+          user_id?: string
+          vehicle_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_items_garage_group_id_fkey"
+            columns: ["garage_group_id"]
+            isOneToOne: false
+            referencedRelation: "garage_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garage_items_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_user_preferences: {
+        Row: {
+          available_cash: number | null
+          buyer_zip: string | null
+          created_at: string
+          credit_score: number | null
+          no_credit: boolean
+          priorities: Json
+          title_preference: Database["public"]["Enums"]["garage_title_preference"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_cash?: number | null
+          buyer_zip?: string | null
+          created_at?: string
+          credit_score?: number | null
+          no_credit?: boolean
+          priorities?: Json
+          title_preference?: Database["public"]["Enums"]["garage_title_preference"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_cash?: number | null
+          buyer_zip?: string | null
+          created_at?: string
+          credit_score?: number | null
+          no_credit?: boolean
+          priorities?: Json
+          title_preference?: Database["public"]["Enums"]["garage_title_preference"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      listings: {
+        Row: {
+          bin_price: number | null
+          created_at: string
+          current_bid: number | null
+          estimated_market_value: number | null
+          fees: number | null
+          id: string
+          last_refreshed_at: string
+          location_zip: string | null
+          make: string
+          mileage: number | null
+          model: string
+          owner_user_id: string | null
+          photos: string[]
+          price: number | null
+          source: string
+          source_external_id: string | null
+          source_updated_at: string
+          source_url: string
+          status: string
+          title_status: string
+          trim: string | null
+          updated_at: string
+          vin: string | null
+          year: number
+        }
+        Insert: {
+          bin_price?: number | null
+          created_at?: string
+          current_bid?: number | null
+          estimated_market_value?: number | null
+          fees?: number | null
+          id?: string
+          last_refreshed_at?: string
+          location_zip?: string | null
+          make: string
+          mileage?: number | null
+          model: string
+          owner_user_id?: string | null
+          photos?: string[]
+          price?: number | null
+          source: string
+          source_external_id?: string | null
+          source_updated_at?: string
+          source_url: string
+          status?: string
+          title_status?: string
+          trim?: string | null
+          updated_at?: string
+          vin?: string | null
+          year: number
+        }
+        Update: {
+          bin_price?: number | null
+          created_at?: string
+          current_bid?: number | null
+          estimated_market_value?: number | null
+          fees?: number | null
+          id?: string
+          last_refreshed_at?: string
+          location_zip?: string | null
+          make?: string
+          mileage?: number | null
+          model?: string
+          owner_user_id?: string | null
+          photos?: string[]
+          price?: number | null
+          source?: string
+          source_external_id?: string | null
+          source_updated_at?: string
+          source_url?: string
+          status?: string
+          title_status?: string
+          trim?: string | null
+          updated_at?: string
+          vin?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          account_status: string
+          avatar_url: string | null
+          budget: number | null
+          created_at: string
+          credit_score: number | null
+          display_name: string | null
+          email: string
+          full_name: string | null
+          id: string
+          no_credit: boolean
+          onboarded_at: string | null
+          phone: string | null
+          phone_verified_at: string | null
+          preferences: Json
+          roles: string[]
+          updated_at: string
+          zip: string | null
+        }
+        Insert: {
+          account_status?: string
+          avatar_url?: string | null
+          budget?: number | null
+          created_at?: string
+          credit_score?: number | null
+          display_name?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          no_credit?: boolean
+          onboarded_at?: string | null
+          phone?: string | null
+          phone_verified_at?: string | null
+          preferences?: Json
+          roles?: string[]
+          updated_at?: string
+          zip?: string | null
+        }
+        Update: {
+          account_status?: string
+          avatar_url?: string | null
+          budget?: number | null
+          created_at?: string
+          credit_score?: number | null
+          display_name?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          no_credit?: boolean
+          onboarded_at?: string | null
+          phone?: string | null
+          phone_verified_at?: string | null
+          preferences?: Json
+          roles?: string[]
+          updated_at?: string
+          zip?: string | null
+        }
+        Relationships: []
+      }
       secure_records: {
         Row: {
           bucket: string
@@ -181,152 +531,78 @@ export type Database = {
         }
         Relationships: []
       }
-      listings: {
+      vehicles: {
         Row: {
-          bin_price: number | string | null
+          auction_end_time: string | null
+          city: string
           created_at: string
-          current_bid: number | string | null
-          estimated_market_value: number | string | null
-          fees: number | string | null
-          id: string
-          last_refreshed_at: string
-          location_zip: string | null
+          current_bid: number | null
+          effort_level: Database["public"]["Enums"]["vehicle_effort_level"]
+          id: number
+          images: Json
+          latitude: number | null
+          longitude: number | null
           make: string
-          mileage: number | null
+          mileage: number
           model: string
-          owner_user_id: string | null
-          photos: string[]
-          price: number | string | null
-          source: string
-          source_external_id: string | null
-          source_updated_at: string
-          source_url: string
-          status: string
-          title_status: string
+          price: number
+          risk_level: Database["public"]["Enums"]["vehicle_risk_level"]
+          source_type: Database["public"]["Enums"]["vehicle_source_type"]
+          state: string
+          status: Database["public"]["Enums"]["vehicle_status"]
+          title_status: Database["public"]["Enums"]["vehicle_title_status"]
           trim: string | null
           updated_at: string
-          vin: string | null
           year: number
+          zip_code: string
         }
         Insert: {
-          bin_price?: number | string | null
+          auction_end_time?: string | null
+          city: string
           created_at?: string
-          current_bid?: number | string | null
-          estimated_market_value?: number | string | null
-          fees?: number | string | null
-          id?: string
-          last_refreshed_at?: string
-          location_zip?: string | null
+          current_bid?: number | null
+          effort_level?: Database["public"]["Enums"]["vehicle_effort_level"]
+          id?: number
+          images?: Json
+          latitude?: number | null
+          longitude?: number | null
           make: string
-          mileage?: number | null
+          mileage: number
           model: string
-          owner_user_id?: string | null
-          photos?: string[]
-          price?: number | string | null
-          source: string
-          source_external_id?: string | null
-          source_updated_at?: string
-          source_url: string
-          status?: string
-          title_status?: string
+          price: number
+          risk_level?: Database["public"]["Enums"]["vehicle_risk_level"]
+          source_type: Database["public"]["Enums"]["vehicle_source_type"]
+          state: string
+          status?: Database["public"]["Enums"]["vehicle_status"]
+          title_status?: Database["public"]["Enums"]["vehicle_title_status"]
           trim?: string | null
           updated_at?: string
-          vin?: string | null
           year: number
+          zip_code: string
         }
         Update: {
-          bin_price?: number | string | null
+          auction_end_time?: string | null
+          city?: string
           created_at?: string
-          current_bid?: number | string | null
-          estimated_market_value?: number | string | null
-          fees?: number | string | null
-          id?: string
-          last_refreshed_at?: string
-          location_zip?: string | null
+          current_bid?: number | null
+          effort_level?: Database["public"]["Enums"]["vehicle_effort_level"]
+          id?: number
+          images?: Json
+          latitude?: number | null
+          longitude?: number | null
           make?: string
-          mileage?: number | null
+          mileage?: number
           model?: string
-          owner_user_id?: string | null
-          photos?: string[]
-          price?: number | string | null
-          source?: string
-          source_external_id?: string | null
-          source_updated_at?: string
-          source_url?: string
-          status?: string
-          title_status?: string
+          price?: number
+          risk_level?: Database["public"]["Enums"]["vehicle_risk_level"]
+          source_type?: Database["public"]["Enums"]["vehicle_source_type"]
+          state?: string
+          status?: Database["public"]["Enums"]["vehicle_status"]
+          title_status?: Database["public"]["Enums"]["vehicle_title_status"]
           trim?: string | null
           updated_at?: string
-          vin?: string | null
           year?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "listings_owner_user_id_fkey"
-            columns: ["owner_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          account_status: string
-          avatar_url: string | null
-          budget: number | null
-          created_at: string
-          credit_score: number | null
-          display_name: string | null
-          email: string
-          full_name: string | null
-          id: string
-          no_credit: boolean
-          onboarded_at: string | null
-          phone: string | null
-          phone_verified_at: string | null
-          preferences: Json
-          roles: string[]
-          updated_at: string
-          zip: string | null
-        }
-        Insert: {
-          account_status?: string
-          avatar_url?: string | null
-          budget?: number | null
-          created_at?: string
-          credit_score?: number | null
-          display_name?: string | null
-          email: string
-          full_name?: string | null
-          id: string
-          no_credit?: boolean
-          onboarded_at?: string | null
-          phone?: string | null
-          phone_verified_at?: string | null
-          preferences?: Json
-          roles?: string[]
-          updated_at?: string
-          zip?: string | null
-        }
-        Update: {
-          account_status?: string
-          avatar_url?: string | null
-          budget?: number | null
-          created_at?: string
-          credit_score?: number | null
-          display_name?: string | null
-          email?: string
-          full_name?: string | null
-          id?: string
-          no_credit?: boolean
-          onboarded_at?: string | null
-          phone?: string | null
-          phone_verified_at?: string | null
-          preferences?: Json
-          roles?: string[]
-          updated_at?: string
-          zip?: string | null
+          zip_code?: string
         }
         Relationships: []
       }
@@ -338,7 +614,18 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      garage_action_kind:
+        | "start_picknbuild"
+        | "talk_to_someone"
+        | "contact_dealer"
+        | "message_seller"
+        | "compare_all_paths"
+      garage_title_preference: "any" | "clean_only" | "clean_or_rebuilt"
+      vehicle_effort_level: "low" | "medium" | "high"
+      vehicle_risk_level: "low" | "medium" | "high"
+      vehicle_source_type: "dealer" | "auction" | "picknbuild" | "individual"
+      vehicle_status: "active" | "sold" | "inactive"
+      vehicle_title_status: "clean" | "rebuilt" | "salvage"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -468,6 +755,20 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      garage_action_kind: [
+        "start_picknbuild",
+        "talk_to_someone",
+        "contact_dealer",
+        "message_seller",
+        "compare_all_paths",
+      ],
+      garage_title_preference: ["any", "clean_only", "clean_or_rebuilt"],
+      vehicle_effort_level: ["low", "medium", "high"],
+      vehicle_risk_level: ["low", "medium", "high"],
+      vehicle_source_type: ["dealer", "auction", "picknbuild", "individual"],
+      vehicle_status: ["active", "sold", "inactive"],
+      vehicle_title_status: ["clean", "rebuilt", "salvage"],
+    },
   },
 } as const
