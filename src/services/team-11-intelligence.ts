@@ -1,121 +1,169 @@
-import {
-  makeFixtureListingObject,
-  type IntakeState,
-  type ListingObject,
-  type PathKind,
-  type PathQuote,
+import type {
+  BestFitPreference,
+  IntakeState,
+  ListingObject,
+  PathKind,
+  PathQuote,
 } from "@/contracts";
+import { listListings } from "./team-03-supply";
+import {
+  recommendBestPath as recommendBestPathCore,
+  type RecommendationOutput,
+} from "@/lib/pricing/recommendation";
+import {
+  getPricingGuidance as getPricingGuidanceCore,
+  type PricingGuidance,
+  type PricingGuidanceVerdict,
+} from "@/lib/pricing/guidance";
+import {
+  evaluateInspection,
+  routeInspection,
+  type InspectionIssue,
+  type InspectionRecommendation,
+  type InspectionResult,
+  type InspectionStatus,
+} from "@/lib/pricing/inspection";
+import { matchListings as matchListingsCore } from "@/lib/pricing/match-mode";
+import {
+  buildChecklist,
+  setChecklistItem,
+  type ChecklistItem,
+  type ChecklistStage,
+} from "@/lib/pricing/checklist";
 
-export type RecommendationOutput = {
-  recommendedPath: PathKind;
-  reason: string;
-  supportingBullets: string[];
-  alternatives: PathKind[];
-  primaryCta: { label: string; href: string };
+export type {
+  RecommendationOutput,
+  PricingGuidance,
+  PricingGuidanceVerdict,
+  InspectionIssue,
+  InspectionRecommendation,
+  InspectionResult,
+  InspectionStatus,
+  ChecklistItem,
+  ChecklistStage,
 };
 
 export const recommendBestPath = async (input: {
   intake: IntakeState;
   quotes: PathQuote[];
-}): Promise<RecommendationOutput> => {
-  const pick = input.quotes.reduce<PathQuote | null>((best, q) => {
-    if (q.approvedBool === false) return best;
-    if (!best) return q;
-    return q.total < best.total ? q : best;
-  }, null);
-  const path = pick?.path ?? "picknbuild";
-  return {
-    recommendedPath: path,
-    reason:
-      path === "picknbuild"
-        ? "Your credit + cash line up cleanly with our Standard package."
-        : `Lowest all-in total among the four paths for your profile.`,
-    supportingBullets: [
-      "Meets your cash-on-hand",
-      "Matches your title preference",
-      "Approved under your credit tier",
-    ],
-    alternatives: input.quotes.map((q) => q.path).filter((p) => p !== path),
-    primaryCta: { label: "See Where You Stand", href: "#see-where-you-stand" },
-  };
-};
-
-export type PricingGuidanceVerdict = "low" | "fair" | "high";
-export type PricingGuidance = {
-  verdict: PricingGuidanceVerdict;
-  reasonLine: string;
-  marketRange?: [number, number];
-  negotiationAnchor?: number;
-};
+  bestFit?: BestFitPreference;
+}): Promise<RecommendationOutput> =>
+  recommendBestPathCore({
+    intake: input.intake,
+    quotes: input.quotes,
+    bestFit: input.bestFit,
+  });
 
 export const getPricingGuidance = async (input: {
   listing: ListingObject;
   path: PathKind;
-}): Promise<PricingGuidance> => ({
-  verdict: "fair",
-  reasonLine: "Priced within $400 of comparable listings in your area.",
-  marketRange: [
-    Math.round((input.listing.price ?? 20000) * 0.9),
-    Math.round((input.listing.price ?? 20000) * 1.1),
-  ],
-  negotiationAnchor: Math.round((input.listing.price ?? 20000) * 0.94),
-});
+}): Promise<PricingGuidance> => getPricingGuidanceCore(input);
 
-export type InspectionResult = {
-  status: "pending" | "completed";
-  conditionSummary?: string;
-  issues?: { severity: "low" | "med" | "high"; note: string }[];
-  recommendation?: "proceed" | "negotiate" | "walk-away";
-};
+const INSPECTION_STORE: Map<string, InspectionResult> = new Map();
 
 export const requestInspection = async (input: {
+  listing?: ListingObject;
   listingId: string;
-}): Promise<InspectionResult> => ({ status: "pending" });
+}): Promise<InspectionResult> => {
+  const existing = INSPECTION_STORE.get(input.listingId);
+  if (existing) return existing;
+  if (input.listing) {
+    const routed = routeInspection(input.listing);
+    INSPECTION_STORE.set(input.listingId, routed);
+    return routed;
+  }
+  const stub: InspectionResult = {
+    listingId: input.listingId,
+    status: "pending",
+    partnerName: "Remote Review Partner (photo+video)",
+  };
+  INSPECTION_STORE.set(input.listingId, stub);
+  return stub;
+};
 
 export const getInspectionResult = async (input: {
   listingId: string;
-}): Promise<InspectionResult> => ({
-  status: "completed",
-  conditionSummary: "Overall good. Minor cosmetic wear, runs clean.",
-  issues: [{ severity: "low", note: "Small dent in rear quarter panel." }],
-  recommendation: "proceed",
-});
+}): Promise<InspectionResult> => {
+  const stored = INSPECTION_STORE.get(input.listingId);
+  if (!stored) {
+    return {
+      listingId: input.listingId,
+      status: "pending",
+      partnerName: "Remote Review Partner (photo+video)",
+    };
+  }
+  return evaluateInspection(stored);
+};
+
+export const submitInspectionResult = async (input: {
+  listingId: string;
+  status: InspectionStatus;
+  conditionSummary?: string;
+  issues?: InspectionIssue[];
+  partnerName?: string;
+}): Promise<InspectionResult> => {
+  const result: InspectionResult = evaluateInspection({
+    listingId: input.listingId,
+    status: input.status,
+    conditionSummary: input.conditionSummary,
+    issues: input.issues,
+    partnerName: input.partnerName,
+    confidence: input.status === "completed" ? "med" : undefined,
+  });
+  INSPECTION_STORE.set(input.listingId, result);
+  return result;
+};
 
 export const matchListings = async (
   intake: IntakeState,
 ): Promise<ListingObject[]> => {
-  // Filter to listings that fit the cash+credit+title+location reality.
-  return Array.from({ length: 6 }, () =>
-    makeFixtureListingObject({
-      make: intake.make ?? "Honda",
-      model: intake.model ?? "Accord",
-      titleStatus:
-        intake.titlePreference === "both" ? "clean" : intake.titlePreference,
-    }),
-  );
+  const enabled = { ...intake, matchMode: true };
+  const pool = await listListings({
+    make: intake.make,
+    model: intake.model,
+    yearRange: intake.yearRange,
+    titleStatus:
+      intake.titlePreference === "both" ? undefined : intake.titlePreference,
+    locationZip: intake.location.zip,
+    limit: 24,
+  });
+  return matchListingsCore(pool, enabled);
 };
 
-export type ChecklistItem = {
-  id: string;
-  label: string;
-  stage: string;
-  completed: boolean;
-};
+const CHECKLIST_STORE: Map<string, ChecklistItem[]> = new Map();
+
+const checklistKey = (userId: string, listingId: string, path: PathKind) =>
+  `${userId}:${listingId}:${path}`;
 
 export const getChecklist = async (input: {
   path: PathKind;
   listingId: string;
   userId: string;
-}): Promise<ChecklistItem[]> => [
-  { id: "c1", label: "Review listing details", stage: "discover", completed: true },
-  { id: "c2", label: "Compare all four paths", stage: "compare", completed: false },
-  { id: "c3", label: "Run pricing guidance", stage: "compare", completed: false },
-  { id: "c4", label: "Request inspection (if offered)", stage: "verify", completed: false },
-  { id: "c5", label: "Commit to a path", stage: "commit", completed: false },
-];
+}): Promise<ChecklistItem[]> => {
+  const key = checklistKey(input.userId, input.listingId, input.path);
+  const existing = CHECKLIST_STORE.get(key);
+  if (existing) return existing;
+  const fresh = buildChecklist(input);
+  CHECKLIST_STORE.set(key, fresh);
+  return fresh;
+};
 
 export const updateChecklistItem = async (input: {
   userId: string;
   itemId: string;
   completed: boolean;
-}): Promise<{ ok: true }> => ({ ok: true });
+}): Promise<{ ok: true }> => {
+  for (const [key, list] of CHECKLIST_STORE.entries()) {
+    if (!key.startsWith(`${input.userId}:`)) continue;
+    if (list.some((it) => it.id === input.itemId)) {
+      CHECKLIST_STORE.set(key, setChecklistItem(list, input.itemId, input.completed));
+      return { ok: true };
+    }
+  }
+  return { ok: true };
+};
+
+export const _resetIntelligenceStoresForTests = () => {
+  INSPECTION_STORE.clear();
+  CHECKLIST_STORE.clear();
+};

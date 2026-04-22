@@ -1,151 +1,95 @@
-import {
-  makeFixturePathQuote,
-  type IntakeState,
-  type ListingObject,
-  type PathKind,
-  type PathQuote,
-  type Term,
+import type {
+  IntakeState,
+  ListingObject,
+  PathKind,
+  PathQuote,
+  TitleStatus,
 } from "@/contracts";
+import {
+  resolveCreditBand,
+  resolveDownPaymentPercentage,
+  type CreditTierInput,
+} from "@/lib/pricing/credit-tier";
+import {
+  isFinancedTerm,
+  termToBiweeklyCount,
+  termToMonths,
+  type FinancedTerm,
+} from "@/lib/pricing/term-cadence";
+import {
+  computePicknbuildPrice,
+  type PicknbuildPriceInputs,
+  type PicknbuildPriceOutputs,
+} from "@/lib/pricing/picknbuild-quote";
+import {
+  computeDealerApr,
+  type DealerAprInputs,
+  type DealerAprOutputs,
+} from "@/lib/pricing/dealer-quote";
+import {
+  quoteAllPathsForListing,
+  quotePathForListing,
+} from "@/lib/pricing/all-paths";
+import { estimateTradeIn } from "@/lib/pricing/trade-in";
+import {
+  estimateAlreadyHaveACar as estimateAlreadyHaveACarCore,
+  type AlreadyHaveACarInputs,
+  type AlreadyHaveACarResult,
+} from "@/lib/pricing/already-have-a-car";
 
-export type CreditTierInput = { creditScore?: number; noCredit?: boolean };
-
-export const resolveDownPaymentPercentage = ({
-  creditScore,
-  noCredit,
-}: CreditTierInput): number => {
-  if (noCredit) return 0.4;
-  if (creditScore === undefined) return 0.3;
-  if (creditScore >= 720) return 0.15;
-  if (creditScore >= 660) return 0.2;
-  if (creditScore >= 580) return 0.3;
-  return 0.35;
+export type {
+  CreditTierInput,
+  FinancedTerm,
+  PicknbuildPriceInputs,
+  PicknbuildPriceOutputs,
+  DealerAprInputs,
+  DealerAprOutputs,
 };
 
-export const termToBiweeklyCount = (term: Exclude<Term, "cash">): number => {
-  const map: Record<Exclude<Term, "cash">, number> = {
-    "1y": 26,
-    "2y": 52,
-    "3y": 78,
-    "4y": 104,
-    "5y": 130,
-  };
-  return map[term];
-};
+export { resolveCreditBand };
 
-export type PicknbuildPriceInputs = {
-  basePrice: number;
-  tax?: number;
-  fees?: number;
-  customizationsTotal?: number;
-  titleStatus: "clean" | "rebuilt";
-  creditScore?: number;
-  noCredit?: boolean;
-  tradeInValue?: number;
-  term: Exclude<Term, "cash">;
-};
+export const resolveDownPayment = (input: CreditTierInput) =>
+  resolveDownPaymentPercentage(input);
 
-export type PicknbuildPriceOutputs = {
-  total: number;
-  down: number;
-  remaining: number;
-  biweekly: number;
-};
+// Back-compat alias for prior callers
+export { resolveDownPaymentPercentage };
 
-export const computePicknbuildPrice = (
-  input: PicknbuildPriceInputs,
-): PicknbuildPriceOutputs => {
-  const rebuiltDiscount = input.titleStatus === "rebuilt" ? 0.9 : 1;
-  const base = input.basePrice * rebuiltDiscount;
-  const subtotal = base + (input.tax ?? 0) + (input.fees ?? 0) + (input.customizationsTotal ?? 0);
-  const afterTrade = Math.max(0, subtotal - (input.tradeInValue ?? 0));
-  const downPct = resolveDownPaymentPercentage(input);
-  const down = Math.round(afterTrade * downPct);
-  const remaining = afterTrade - down;
-  const biweekly = Math.round(remaining / termToBiweeklyCount(input.term));
-  return { total: afterTrade, down, remaining, biweekly };
-};
+export { termToBiweeklyCount, termToMonths, isFinancedTerm };
 
-export type DealerAprInputs = {
-  creditScore?: number;
-  noCredit?: boolean;
-  listingPrice: number;
-  term: Exclude<Term, "cash">;
-};
-
-export type DealerAprOutputs = {
-  apr: number;
-  monthly: number;
-  totalPaid: number;
-  interestPaid: number;
-  approvedBool: boolean;
-};
-
-export const computeDealerApr = (input: DealerAprInputs): DealerAprOutputs => {
-  if (input.noCredit) {
-    return { apr: 0, monthly: 0, totalPaid: 0, interestPaid: 0, approvedBool: false };
-  }
-  const score = input.creditScore ?? 0;
-  const apr = score >= 720 ? 0.12 : score >= 660 ? 0.195 : 0.27;
-  const years = parseInt(input.term, 10);
-  const months = years * 12;
-  const monthlyRate = apr / 12;
-  const monthly = Math.round(
-    (input.listingPrice * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months)),
-  );
-  const totalPaid = monthly * months;
-  return {
-    apr,
-    monthly,
-    totalPaid,
-    interestPaid: totalPaid - input.listingPrice,
-    approvedBool: score >= 580,
-  };
-};
+export { computePicknbuildPrice };
+export { computeDealerApr };
 
 export const quotePath = async (
   path: PathKind,
   listing: ListingObject,
   intake: IntakeState,
-): Promise<PathQuote> => {
-  return makeFixturePathQuote({
-    path,
-    titleStatus: listing.titleStatus,
-    term: intake.selectedTerm,
-    total: listing.price ?? listing.currentBid ?? 20000,
-  });
-};
+): Promise<PathQuote> => quotePathForListing(path, listing, intake);
 
 export const quoteAllPaths = async (
   listing: ListingObject,
   intake: IntakeState,
-): Promise<PathQuote[]> => {
-  const paths: PathKind[] = ["dealer", "auction", "picknbuild", "private"];
-  return Promise.all(paths.map((p) => quotePath(p, listing, intake)));
-};
+): Promise<PathQuote[]> => quoteAllPathsForListing(listing, intake);
 
 export const estimateTradeInValue = async (input: {
   vin: string;
-  titleStatus: "clean" | "rebuilt";
-}): Promise<{ estimatedTradeInValue: number }> => ({
-  estimatedTradeInValue: input.titleStatus === "clean" ? 8500 : 5500,
-});
+  titleStatus: Extract<TitleStatus, "clean" | "rebuilt">;
+  year?: number;
+  mileage?: number;
+}): Promise<{ estimatedTradeInValue: number }> => {
+  const { estimatedTradeInValue } = estimateTradeIn(input);
+  return { estimatedTradeInValue };
+};
 
 export type AlreadyHaveACarEstimate =
   | { ok: true; estimate: number; assumptions: string[] }
   | { ok: false; reason: "quote-required" };
 
-export const estimateAlreadyHaveACar = async (input: {
-  vin?: string;
-  fallback?: {
-    year: number;
-    make: string;
-    model: string;
-    mileage?: number;
-    trim?: string;
-  };
-  requestedWork: string[];
-}): Promise<AlreadyHaveACarEstimate> => ({
-  ok: true,
-  estimate: 4500,
-  assumptions: ["Parts availability stable", "No frame damage"],
-});
+export const estimateAlreadyHaveACar = async (
+  input: AlreadyHaveACarInputs,
+): Promise<AlreadyHaveACarEstimate> => {
+  const result: AlreadyHaveACarResult = estimateAlreadyHaveACarCore(input);
+  if (result.ok) {
+    return { ok: true, estimate: result.estimate, assumptions: result.assumptions };
+  }
+  return { ok: false, reason: result.reason };
+};
