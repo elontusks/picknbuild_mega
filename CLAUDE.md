@@ -8,7 +8,8 @@ You are working on the PicknBuild vehicle marketplace. The product is split into
 
 1. **`docs/requirements/ARCHITECTURE.md`** — cross-cutting rules (§2), shared data contracts (§3), the 16-team split (§4), per-team charters (§5), the ordered unblock list of contracts to stub first (§6), and the authoritative list of dropped items (§7). Everything in §2 overrides anything in a legacy spec file.
 2. **`docs/requirements/COMPONENTS.md`** — one row per component with Name / Type / Owner / Inputs / Outputs / **Talks to** / Source docs. Your team's section names everything you own; the "Talks to" lines point at your seams with other teams.
-3. **`docs/requirements/chud/`** and **`docs/requirements/original-spec/`** — the legacy spec files. Kept as behavior/copy references that ARCHITECTURE and COMPONENTS point back into. **`chud/DROPPED.md` is still authoritative for what was cut and why** — don't re-implement anything listed there.
+3. **`docs/BUILD_PLAN.md`** — human coordination layer: two-person split, batch plan, Max 5x realities, per-section agent prompts, claim protocol, troubleshooting. Read this before running agents.
+4. **`docs/requirements/chud/`** and **`docs/requirements/original-spec/`** — the legacy spec files. Kept as behavior/copy references that ARCHITECTURE and COMPONENTS point back into. **`chud/DROPPED.md` is still authoritative for what was cut and why** — don't re-implement anything listed there.
 
 If an instruction in this file disagrees with ARCHITECTURE.md §2, ARCHITECTURE wins.
 

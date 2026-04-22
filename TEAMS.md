@@ -45,4 +45,4 @@ Merge into `main` in the order given in **Merge priority** (matches ARCHITECTURE
 - **Person A — pre-deposit funnel:** Teams 1, 3, 4, 5, 6, 7, 11, 16.
 - **Person B — post-selection + services:** Teams 2, 8, 9, 10, 12, 13, 14, 15.
 
-See `CLAUDE.md` for the batch-by-batch order on Max 5x plans.
+Full batch plan, daily rhythm, agent prompts, Max 5x concurrency limits, and troubleshooting: [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md).
