@@ -72,49 +72,104 @@ Expected total: **5–7 calendar days** end-to-end, including integration.
 
 ---
 
-## 5. Per-machine setup (one-time)
+## 5. Per-machine setup
 
-Each machine clones the repo once and (optionally) creates worktrees per team so parallel agents don't fight over `node_modules`, ports, and `.env`.
+Each machine keeps **one parent checkout on `main` plus one ephemeral worktree per active team**. The parent checkout never gets a feature branch checked out on it — it's reserved for coordination (pulling, editing `TEAMS.md`, reviewing PRs, ad-hoc queries). All coding happens inside a team worktree at `../pnb-team-N/`.
+
+### One-time (first clone)
 
 ```bash
 git clone https://github.com/elontusks/picknbuild_mega.git
 cd picknbuild_mega
-npm install
-
-# Optional — only if you're running subagents in parallel on this machine
-for team in 1 3 4 5 6 7 11 16; do            # ← Person A's teams
-  git worktree add ../pnb-team-$team -b team-$team/main origin/main
-done
+npm install   # populates node_modules in the parent so the first worktree install is quick
 ```
 
-On Person B's machine substitute `2 8 9 10 12 13 14 15`.
+### Per team (when you claim one)
 
-Worktrees are local — they don't need to be shared, and the branches only matter once you push them. If the worktree overhead feels like too much, skip it and just use branches in one checkout. The cost: subagents in the same checkout share `node_modules`/dev-server ports.
+Steps 1–3 in the parent, 4+ in the new worktree. Full claim protocol in §6.
+
+```bash
+# --- in the parent checkout ---
+git pull origin main
+# ...edit TEAMS.md, commit+push the claim (see §6)...
+git worktree add ../pnb-team-N -b team-N/<slug> origin/main
+
+# --- in the worktree ---
+cd ../pnb-team-N
+npm install            # first spawn only; persists in the worktree
+PORT=30NN npm run dev  # see port table below
+```
+
+### Port table (dev server per team)
+
+| Team | Port | Team | Port |
+|-----:|------|-----:|------|
+| 1 | 3001 | 9  | 3009 |
+| 2 | 3002 | 10 | 3010 |
+| 3 | 3003 | 11 | 3011 |
+| 4 | 3004 | 12 | 3012 |
+| 5 | 3005 | 13 | 3013 |
+| 6 | 3006 | 14 | 3014 |
+| 7 | 3007 | 15 | 3015 |
+| 8 | 3008 | 16 | 3016 |
+
+Port `3000` stays free on the parent checkout so you can boot an integration smoke-test server there without shutting down your team worktrees.
+
+### Retire a worktree (after the PR merges)
+
+```bash
+git worktree remove ../pnb-team-N
+git branch -d team-N/<slug>   # remote branch auto-cleans when you merge with `gh pr merge --delete-branch`
+```
+
+### Why worktrees
+
+- **No branch-switch thrash.** Two terminals never yank the tree out from under each other; each worktree has its own branch checked out permanently.
+- **No untracked-file leakage.** Files created by one team can't accidentally be staged into another team's commit.
+- **Concurrent dev servers.** Each worktree has its own `.next/` cache and runs on its own port.
+- **Per-worktree Claude memory.** `~/.claude/projects/<encoded-path>/` is keyed off the worktree path, so each agent gets its own memory store.
+
+Tradeoffs:
+
+- Each worktree needs its own `node_modules` (npm doesn't share across worktrees). Costs ~30–60s per `npm install`. Optimization if you're disciplined: `ln -s ../picknbuild_mega/node_modules node_modules` — works until your branch changes deps.
+- Supabase is **shared** across every worktree. Two teams running `supabase db push` at the same time will collide. Coordinate in the batch plan (§4) — usually only one team in a batch touches migrations.
 
 ---
 
 ## 6. Claiming a team — the TEAMS.md protocol
 
-`TEAMS.md` at the repo root is your lock. You must claim before you start so the other human can't accidentally pick up the same team.
+`TEAMS.md` at the repo root is your lock. You must claim before you start so the other human can't accidentally pick up the same team. All claim/retire operations happen in the **parent** checkout (on `main`); coding happens in the **worktree** (on your team branch).
 
-```
+### Claim
+
+```bash
+# in the parent checkout
 git pull origin main
-# Edit TEAMS.md: set your Owner, branch (team-N/<slug>), status "in progress"
+# Edit TEAMS.md: set your Owner, branch (team-N/<slug>), Status "in progress"
 git add TEAMS.md
 git commit -m "claim: team N"
 git push origin main
-git checkout -b team-N/<slug>
+git worktree add ../pnb-team-N -b team-N/<slug> origin/main
+
+# in the new worktree
+cd ../pnb-team-N
+npm install            # first spawn only
+PORT=30NN npm run dev  # team-N's dev server port (see §5 table)
 ```
 
-Then start the agent with the prompt from §8.
+Then start the agent with the prompt from §8, with its CWD inside `../pnb-team-N/`.
 
-When the team lands:
+### Retire (after the PR merges)
 
-```
-# update TEAMS.md: status "merged"
+```bash
+# in the parent checkout
+git pull origin main
+# Edit TEAMS.md: flip your row to Status "merged"
 git add TEAMS.md
 git commit -m "merged: team N"
 git push origin main
+git worktree remove ../pnb-team-N
+git branch -d team-N/<slug>
 ```
 
 ---
@@ -223,9 +278,12 @@ Tell me when it's ready to merge before moving on.
 
 ## 9. What NOT to touch without coordination
 
+- **The parent `picknbuild_mega` checkout** — stays on `main`. Don't check out a feature branch there, don't run `next dev` there, don't edit feature code there. All coding happens inside a team worktree (`../pnb-team-N/`). If you find yourself editing files in the parent, stop — you skipped the claim/retire ritual.
 - **`src/contracts/`** — frozen after the Phase 0 commit. A contract change is a coordinated PR that lands before any consumer imports the new shape. If you think something is wrong, stop and message the other human.
 - **Another team's service signature in `src/services/team-*.ts`** — you can replace the body of a stub you own, and add new functions if you need them, but don't rename or change the argument/return shape of a function another team imports.
+- **Supabase migrations across parallel worktrees** — the DB is shared. Don't run `supabase db push` while another team in your batch is mid-migration. Coordinate via TEAMS.md or Slack.
 - **`main` force-push or reset** — never. If you pushed bad history, revert via new commits, don't rewrite.
+- **Deleting someone else's worktree or branch** — only retire your own. Use `git worktree list` to see what's live before running any `git worktree remove` / `git branch -d`.
 - **`package.json` major dep changes without the other human's sign-off** — upgrades that touch Next.js, React, Supabase, or Stripe affect every team.
 
 ---
@@ -250,3 +308,6 @@ If a batch slips, the slip compounds — the next batch can't start until its de
 - **Tests pass locally but fail in PR review:** both of you are on the same Next version (see AGENTS.md) — if CI diverges, it's usually a missing migration or env var, not a code problem.
 - **Typecheck breaks after a merge:** re-run `./node_modules/.bin/tsc --noEmit`. If a contract type narrowed, the consumer needs to handle the narrower case. Don't widen the contract to fix the consumer.
 - **Two agents edited the same file on different branches:** resolve normally. If you're *often* hitting this, your team split is too fine — talk to the other human about coarser ownership.
+- **`git worktree add` says "branch already checked out":** another worktree already owns that branch. Run `git worktree list` to find it. If it's a stale worktree you forgot to retire, `git worktree remove <path>` then try again.
+- **Two dev servers fought over :3000:** one of them didn't set `PORT=30NN`. Kill both, restart each with the port from §5's table.
+- **Agent committed into the parent checkout by mistake:** `git -C picknbuild_mega log main..HEAD` will show orphan commits on main. Cherry-pick them onto the intended team branch from the worktree, then `git reset --hard origin/main` in the parent **only** after the cherry-pick PR merges — and coordinate with the other human first.

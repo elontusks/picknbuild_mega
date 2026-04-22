@@ -1,18 +1,38 @@
 # Team Claim Board
 
-Before you start work on a team, edit this file to put your name in the **Owner** column and set **Status** to `in progress`. Commit + push TEAMS.md *first*, then start coding in a branch named `team-NN/<slug>`. This file is your lock — if Owner is already filled, the team is taken.
+Before you start work on a team, edit this file to put your name in the **Owner** column and set **Status** to `in progress`. Commit + push TEAMS.md *first*, then spin up a **worktree** for your team and do all coding there. This file is your lock — if Owner is already filled, the team is taken.
 
 Merge into `main` in the order given in **Merge priority** (matches ARCHITECTURE §6). Lower numbers unblock higher ones.
 
+## Working tree layout
+
+Every active team lives in its **own git worktree** sibling to this checkout. The parent checkout (`picknbuild_mega/`) stays permanently on `main` and is reserved for coordination: pulling, editing this file, reviewing PRs. All coding happens inside a team worktree at `../pnb-team-N/`.
+
+- Worktrees are created fresh when you claim a team and destroyed when the PR merges.
+- Each worktree runs its own dev server on port `3000 + N` (Team 1 → 3001, Team 7 → 3007, Team 16 → 3016) so parallel worktrees never collide on :3000.
+- Full setup + port table + troubleshooting: `docs/BUILD_PLAN.md` §5–§6.
+
 ## How to claim
 
+Run steps 1–3 from the **parent checkout** (on `main`), then 4+ from the new worktree.
+
 1. `git pull origin main`
-2. Edit your row: set **Owner**, set **Branch** (e.g. `team-1/foundations`), set **Status** to `in progress`.
+2. Edit your row: set **Owner**, **Branch** (e.g. `team-1/foundations`), **Status** = `in progress`.
 3. `git add TEAMS.md && git commit -m "claim: team N" && git push origin main`
-4. Create your branch: `git checkout -b team-N/<slug>`
-5. Read `CLAUDE.md` → `docs/requirements/ARCHITECTURE.md` → `docs/requirements/COMPONENTS.md`, then start your team's work using the prompt template in `CLAUDE.md`.
-6. When done, open a PR against `main`. The *other* human reviews.
-7. When merged, update your row: **Status** = `merged`.
+4. Spawn the worktree: `git worktree add ../pnb-team-N -b team-N/<slug> origin/main`
+5. `cd ../pnb-team-N && npm install` (first spawn only; `node_modules/` persists in the worktree afterwards).
+6. Read `CLAUDE.md` → `docs/requirements/ARCHITECTURE.md` → `docs/requirements/COMPONENTS.md`, then run your agent inside the worktree using the prompt template in `CLAUDE.md`. Dev server: `PORT=30NN npm run dev`.
+7. When done, open a PR against `main` from the worktree. The *other* human reviews.
+
+## How to retire
+
+Run from the parent checkout once the PR has merged.
+
+1. `git pull origin main`
+2. Edit your row: **Status** = `merged`.
+3. `git add TEAMS.md && git commit -m "merged: team N" && git push origin main`
+4. `git worktree remove ../pnb-team-N`
+5. `git branch -d team-N/<slug>` (the remote branch auto-cleans if you used `gh pr merge --delete-branch`).
 
 ## Do not touch without coordination
 

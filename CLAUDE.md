@@ -23,6 +23,17 @@ If an instruction in this file disagrees with ARCHITECTURE.md §2, ARCHITECTURE 
 
 `src/services/README.md` maps each service file to its owning team.
 
+## Working tree layout
+
+The repo runs as **a parent checkout plus one ephemeral worktree per active team**:
+
+- `picknbuild_mega/` — always on `main`. No coding here. Reserved for `git pull`, editing `TEAMS.md`, reviewing PRs, and running ad-hoc queries.
+- `../pnb-team-N/` (sibling to the parent) — where the agent for team N actually works. Created with `git worktree add ../pnb-team-N -b team-N/<slug> origin/main` when the team is claimed, removed with `git worktree remove ../pnb-team-N` once the PR merges.
+
+Dev servers run on port `3000 + N` inside each worktree (3001 for Team 1, 3007 for Team 7, etc.) so parallel worktrees never fight over `:3000`. `:3000` stays free on the parent checkout for integration smoke tests.
+
+When you're running as an agent, your CWD is the team worktree — not the parent. Full claim/retire protocol: `TEAMS.md` and `docs/BUILD_PLAN.md` §5–§6.
+
 ## Scrapers are black boxes
 
 Auction scrapers (Copart/IAAI), Craigslist scrapers, and any other external source are assumed to exist upstream. **Do not implement or wire up a scraper.** Everything consumes `ListingObject` rows emitted by ingestion — that shape is in `src/contracts/listing-object.ts`. If you find yourself writing scraper code, stop.
@@ -107,6 +118,8 @@ Person B:
 ```
 You are Team {N} for the PicknBuild build.
 
+You are running inside a git worktree at ../pnb-team-{N}/ that is already on branch team-{N}/<slug>. The parent checkout at picknbuild_mega/ stays on main — don't cd up and commit there. Run your dev server with `PORT=30{NN} npm run dev` (e.g. PORT=3007 for Team 7) so you don't collide with other worktrees.
+
 Read in this order:
 1. CLAUDE.md (this file) — overall plan + constraints
 2. docs/requirements/ARCHITECTURE.md §2 — cross-cutting rules (these override anything else)
@@ -136,6 +149,7 @@ Start now with Team {N}.
 - Next.js in this repo is the new version — see AGENTS.md. Read `node_modules/next/dist/docs/` for anything you're unsure about. Do not assume old APIs.
 - Strict TypeScript is on (`strict: true`, `noUncheckedIndexedAccess: true`). Handle possibly-undefined array access explicitly.
 - Tests live in `src/__tests__/` under Vitest. `pnpm vitest run` works; this repo uses npm for install (`npm install`) but Vitest scripts are wired in `package.json`.
-- Supabase client lives in `src/lib/supabase/`. Teams that need a database table add a migration in `supabase/migrations/`.
+- Supabase client lives in `src/lib/supabase/`. Teams that need a database table add a migration in `supabase/migrations/`. The DB is shared across every worktree — coordinate before running `supabase db push`.
+- Do not code or run `next dev` in the parent `picknbuild_mega` checkout. That tree stays on `main`. All feature work lives in the team worktree (`../pnb-team-N/`). Dev server: `PORT=30NN npm run dev` inside the worktree.
 - Do not push to `origin/main` without a merged PR. Local commits are fine.
-- Do not run `git push --force`, `reset --hard`, or delete branches without the other human's sign-off.
+- Do not run `git push --force`, `reset --hard`, or delete worktrees/branches without the other human's sign-off.
