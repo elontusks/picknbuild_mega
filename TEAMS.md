@@ -29,7 +29,7 @@ Merge into `main` in the order given in **Merge priority** (matches ARCHITECTURE
 | 12 | Workflows Backend (conversion state, signals) | 4 | _(unclaimed)_ | — | not started |
 | 13 | Messaging + Notifications | 5 | _(unclaimed)_ | — | not started |
 | 14 | Payments Backend (Stripe, subs, refunds) | 6 | _(unclaimed)_ | — | not started |
-| 15 | Admin + Integrity (dashboard, logging, storage) | 7 | _(unclaimed)_ | — | not started |
+| 15 | Admin + Integrity (dashboard, logging, storage) | 7 | amogh kuppa | team-15/secure-storage | in progress (storage slice) |
 | 2 | Profiles (buyer/dealer/seller + dealer edit) | 8 | _(unclaimed)_ | — | not started |
 | 4 | Search Intake (top controls, IntakeState) | 9 | _(unclaimed)_ | — | not started |
 | 5 | Four-Path Comparison | 10 | _(unclaimed)_ | — | not started |
