@@ -1,3 +1,4 @@
+export * as Auth from "./team-01-auth";
 export * as Supply from "./team-03-supply";
 export * as Pricing from "./team-11-pricing";
 export * as Intelligence from "./team-11-intelligence";

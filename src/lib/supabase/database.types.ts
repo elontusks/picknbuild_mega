@@ -122,38 +122,59 @@ export type Database = {
         Row: {
           account_status: string
           avatar_url: string | null
+          budget: number | null
           created_at: string
+          credit_score: number | null
+          display_name: string | null
           email: string
           full_name: string | null
           id: string
+          no_credit: boolean
+          onboarded_at: string | null
           phone: string | null
           phone_verified_at: string | null
+          preferences: Json
           roles: string[]
           updated_at: string
+          zip: string | null
         }
         Insert: {
           account_status?: string
           avatar_url?: string | null
+          budget?: number | null
           created_at?: string
+          credit_score?: number | null
+          display_name?: string | null
           email: string
           full_name?: string | null
           id: string
+          no_credit?: boolean
+          onboarded_at?: string | null
           phone?: string | null
           phone_verified_at?: string | null
+          preferences?: Json
           roles?: string[]
           updated_at?: string
+          zip?: string | null
         }
         Update: {
           account_status?: string
           avatar_url?: string | null
+          budget?: number | null
           created_at?: string
+          credit_score?: number | null
+          display_name?: string | null
           email?: string
           full_name?: string | null
           id?: string
+          no_credit?: boolean
+          onboarded_at?: string | null
           phone?: string | null
           phone_verified_at?: string | null
+          preferences?: Json
           roles?: string[]
           updated_at?: string
+          zip?: string | null
         }
         Relationships: []
       }

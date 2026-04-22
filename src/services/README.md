@@ -4,6 +4,7 @@ Every service listed in `docs/requirements/ARCHITECTURE.md` §6 is stubbed here 
 
 Files are named `team-NN-<area>.ts` so an agent can find their team's service surface in one look. The owning team per ARCHITECTURE.md §5:
 
+- `team-01-auth.ts` — Team 1 (loadSession, getCurrentUser, requireUser gate, phone-OTP signup, onboarding write, sign-out)
 - `team-03-supply.ts` — Team 3 (listing store, link parser, VIN lookup, refresh, idle sweep, user/dealer uploads)
 - `team-11-pricing.ts` — Team 11 (credit-tier, picknbuild total-price, bi-weekly, term-to-cadence, Dealer APR, trade-in, already-have-a-car)
 - `team-11-intelligence.ts` — Team 11 (recommendation, pricing guidance, inspection routing, match mode, checklist)
