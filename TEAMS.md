@@ -26,7 +26,7 @@ Merge into `main` in the order given in **Merge priority** (matches ARCHITECTURE
 | 1 | Foundations (auth, onboarding, User, shell) | 1 | athin shetty | team-1/foundations | merged |
 | 3 | Supply / Data Plane (listing store, link parser, VIN) | 2 | athin shetty | team-3/supply-data-plane | merged |
 | 11 | Pricing & Intelligence Backend | 3 | athin shetty | team-11/pricing-intelligence | merged |
-| 12 | Workflows Backend (conversion state, signals) | 4 | _(unclaimed)_ | — | not started |
+| 12 | Workflows Backend (conversion state, signals) | 4 | amogh kuppa | team-12/workflows | in progress |
 | 13 | Messaging + Notifications | 5 | _(unclaimed)_ | — | not started |
 | 14 | Payments Backend (Stripe, subs, refunds) | 6 | _(unclaimed)_ | — | not started |
 | 15 | Admin + Integrity (dashboard, logging, storage) | 7 | amogh kuppa | team-15/secure-storage | storage slice merged; admin UI pending |
