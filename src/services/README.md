@@ -11,7 +11,7 @@ Files are named `team-NN-<area>.ts` so an agent can find their team's service su
 - `team-12-workflows.ts` — Team 12 (conversion state machine, Build Started workflow, dealer-lead + private-seller-invite flows)
 - `team-13-messaging.ts` — Team 13 (threads, messages, socket transport)
 - `team-13-notifications.ts` — Team 13 (notification service, preferences, bell feed, email digest)
-- `team-14-payments.ts` — Team 14 (Stripe charge/refund/subscription, payment tracking, wire instructions)
+- `team-14-payments.ts` — Team 14 (Stripe charge/refund/subscription, payment tracking, wire instructions, webhook handler). **Real.** Persists `PaymentRecord` rows via `@/services/team-15-storage` (bucket `"payments"`); subscription state in bucket `"subscriptions"`; webhook idempotency in `"stripe_events"`. Stripe REST is fronted by `src/lib/payments/stripe-client.ts` — swap for tests with `setStripeClient(mock)`.
 - `team-15-storage.ts` — Team 15 (secure storage layer abstraction, sponsor catalog)
 
 Every stub is called via its typed function signature. Do not redefine the shape at the call site. If a shape is wrong, fix `src/contracts/` (coordinated — see root `CLAUDE.md`).
