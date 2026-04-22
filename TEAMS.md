@@ -34,7 +34,7 @@ Merge into `main` in the order given in **Merge priority** (matches ARCHITECTURE
 | 4 | Search Intake (top controls, IntakeState) | 9 | _(unclaimed)_ | — | not started |
 | 5 | Four-Path Comparison | 10 | _(unclaimed)_ | — | not started |
 | 6 | Decision & Gap (Best Path, See Where You Stand) | 11 | _(unclaimed)_ | — | not started |
-| 7 | Vehicle Detail | 12 | _(unclaimed)_ | — | not started |
+| 7 | Vehicle Detail | 12 | athin shetty | team-7/vehicle-detail | in progress |
 | 8 | Garage | 13 | _(unclaimed)_ | — | not started |
 | 9 | Commit / Checkout (configurator, deposit) | 14 | _(unclaimed)_ | — | not started |
 | 10 | Post-Deposit Dashboard | 15 | _(unclaimed)_ | — | not started |
