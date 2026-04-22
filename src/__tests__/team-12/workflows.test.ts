@@ -63,9 +63,11 @@ describe("conversion state machine", () => {
   const ctx = { userId: "u1", listingId: "L1", path: "picknbuild" as const };
 
   test("getConversionState defaults to 'decided' when no record exists", async () => {
-    await expect(
-      Workflows.getConversionState({ userId: "u1", listingId: "L1" }),
-    ).resolves.toBe<ConversionState>("decided");
+    const state: ConversionState = await Workflows.getConversionState({
+      userId: "u1",
+      listingId: "L1",
+    });
+    expect(state).toBe("decided");
   });
 
   test("recordDecision persists a new decided-state record", async () => {
@@ -177,7 +179,8 @@ describe("onDepositReceived", () => {
       pricing: { total: 22000, down: 1000, biweekly: 200, term: "3y" },
     });
 
-    expect(deal.status).toBe<DealStatus>("build-started");
+    const status: DealStatus = deal.status;
+    expect(status).toBe("build-started");
     expect(deal.package).toBe("premium");
     expect(deal.listingId).toBe("L1");
     expect(deal.committedSpec.makeModelYearRange).toBe("2019-2021 Honda Accord");
