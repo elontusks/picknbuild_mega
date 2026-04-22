@@ -118,6 +118,80 @@ export type Database = {
           },
         ]
       }
+      secure_records: {
+        Row: {
+          bucket: string
+          created_at: string
+          id: string
+          owner_id: string | null
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          bucket: string
+          created_at?: string
+          id: string
+          owner_id?: string | null
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          bucket?: string
+          created_at?: string
+          id?: string
+          owner_id?: string | null
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "secure_records_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_blocks: {
+        Row: {
+          active: boolean
+          body_html: string
+          created_at: string
+          cta_href: string | null
+          cta_label: string | null
+          id: string
+          path: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          body_html?: string
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          id: string
+          path: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          body_html?: string
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          id?: string
+          path?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_status: string
