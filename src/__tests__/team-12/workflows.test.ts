@@ -371,6 +371,23 @@ describe("dealer-lead flow", () => {
     );
   });
 
+  test("createDealerLead returns even if the notification channel throws (fire-and-forget)", async () => {
+    emitNotification.mockImplementationOnce(async () => {
+      throw new Error("transport down");
+    });
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const lead = await Workflows.createDealerLead({
+      userId: "u",
+      dealerId: "d",
+      listingId: "L",
+    });
+    expect(lead.status).toBe("sent");
+    // Give the rejection handler a tick to fire.
+    await new Promise((r) => setImmediate(r));
+    expect(errSpy).toHaveBeenCalled();
+    errSpy.mockRestore();
+  });
+
   test("advanceDealerLead walks sent → unlocked → responded → closed", async () => {
     const lead = await Workflows.createDealerLead({
       userId: "u",

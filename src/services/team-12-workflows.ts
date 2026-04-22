@@ -50,6 +50,18 @@ const newId = (prefix: string) => {
   return `${prefix}_${rand}`;
 };
 
+// Notifications are side-effects — callers shouldn't block on Team 13's
+// transport (socket / email fan-out). Fire-and-forget with an error trap so
+// a flaky channel doesn't surface as an unhandled rejection or fail the
+// workflow it was meant to announce.
+const fireNotification = (
+  input: Parameters<typeof Notifications.emitNotification>[0],
+): void => {
+  Notifications.emitNotification(input).catch((err: unknown) => {
+    console.error("[team-12-workflows] emitNotification failed", err);
+  });
+};
+
 // -- conversion state machine --------------------------------------------
 
 export type ConversionContext = {
@@ -265,7 +277,7 @@ export const onDepositReceived = async (input: {
     }
   }
 
-  await Notifications.emitNotification({
+  fireNotification({
     userId: input.userId,
     category: "deal-status",
     payload: {
@@ -353,7 +365,7 @@ export const advanceBuildStartedWorkflow = async (input: {
     timeline: [...deal.timeline, entry],
   };
   await Storage.putRecord(DEAL_BUCKET, deal.id, next);
-  await Notifications.emitNotification({
+  fireNotification({
     userId: deal.userId,
     category: "deal-status",
     payload: { dealId: deal.id, status: input.toStatus },
@@ -398,7 +410,7 @@ export const createDealerLead = async (input: {
     updatedAt: now,
   };
   await Storage.putRecord(DEALER_LEAD_BUCKET, lead.id, lead);
-  await Notifications.emitNotification({
+  fireNotification({
     userId: input.dealerId,
     category: "dealer-response",
     payload: {
@@ -469,7 +481,7 @@ export const createSellerInvite = async (input: {
     updatedAt: now,
   };
   await Storage.putRecord(SELLER_INVITE_BUCKET, invite.id, invite);
-  await Notifications.emitNotification({
+  fireNotification({
     userId: input.userId,
     category: "system",
     payload: {
