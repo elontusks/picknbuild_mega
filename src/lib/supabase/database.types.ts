@@ -181,6 +181,95 @@ export type Database = {
         }
         Relationships: []
       }
+      listings: {
+        Row: {
+          bin_price: number | string | null
+          created_at: string
+          current_bid: number | string | null
+          estimated_market_value: number | string | null
+          fees: number | string | null
+          id: string
+          last_refreshed_at: string
+          location_zip: string | null
+          make: string
+          mileage: number | null
+          model: string
+          owner_user_id: string | null
+          photos: string[]
+          price: number | string | null
+          source: string
+          source_external_id: string | null
+          source_updated_at: string
+          source_url: string
+          status: string
+          title_status: string
+          trim: string | null
+          updated_at: string
+          vin: string | null
+          year: number
+        }
+        Insert: {
+          bin_price?: number | string | null
+          created_at?: string
+          current_bid?: number | string | null
+          estimated_market_value?: number | string | null
+          fees?: number | string | null
+          id?: string
+          last_refreshed_at?: string
+          location_zip?: string | null
+          make: string
+          mileage?: number | null
+          model: string
+          owner_user_id?: string | null
+          photos?: string[]
+          price?: number | string | null
+          source: string
+          source_external_id?: string | null
+          source_updated_at?: string
+          source_url: string
+          status?: string
+          title_status?: string
+          trim?: string | null
+          updated_at?: string
+          vin?: string | null
+          year: number
+        }
+        Update: {
+          bin_price?: number | string | null
+          created_at?: string
+          current_bid?: number | string | null
+          estimated_market_value?: number | string | null
+          fees?: number | string | null
+          id?: string
+          last_refreshed_at?: string
+          location_zip?: string | null
+          make?: string
+          mileage?: number | null
+          model?: string
+          owner_user_id?: string | null
+          photos?: string[]
+          price?: number | string | null
+          source?: string
+          source_external_id?: string | null
+          source_updated_at?: string
+          source_url?: string
+          status?: string
+          title_status?: string
+          trim?: string | null
+          updated_at?: string
+          vin?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           account_status: string
