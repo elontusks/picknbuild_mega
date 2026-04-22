@@ -148,6 +148,11 @@ const persistBatch = async (records: Notification[]): Promise<void> => {
   const [first] = records;
   if (!first) return;
   const userId = first.userId;
+  // KNOWN: concurrent emitNotification calls for the same userId will
+  // race on this read-modify-write and can drop ids. Safe within a
+  // single call (batched), not safe across calls. Fix requires an
+  // atomic appendToList(bucket, id, value) primitive from Team 15;
+  // tracked in TEAMS.md under the Team 15 follow-ups note.
   const existing =
     (await Storage.getRecord<string[]>(
       NOTIFICATIONS_INDEX_BUCKET,
@@ -267,9 +272,12 @@ export const markAllAsRead = async (
 
 // -- digest --------------------------------------------------------------
 
-// Assembles a digest of "digest"-channel rows (plus any unread in-app
-// rollup) since `since` and emails it. Designed to be called from a cron
-// or manual trigger — idempotent beyond marking what it sent as read.
+// Assembles a digest of "digest"-channel rows and emails it. Designed to
+// be called from a cron or manual trigger. Idempotent: after a successful
+// send, every included row is marked `readAt`, so a back-to-back call
+// filters them out via the normal unread path. `since` is an override —
+// when provided, it filters *in addition to* the unread check so an
+// operator can regenerate a bounded window by hand if needed.
 export const sendDigest = async (input: {
   userId: string;
   since?: string;
@@ -280,6 +288,7 @@ export const sendDigest = async (input: {
   const since = input.since;
   const candidates = all.filter((n) => {
     if (n.channel !== "digest") return false;
+    if (n.readAt) return false;
     if (since && n.createdAt <= since) return false;
     return true;
   });
@@ -302,6 +311,14 @@ export const sendDigest = async (input: {
     console.error("[team-13-notifications] digest send failed", err);
     return { sent: false, payload };
   }
+  // Watermark: mark everything we just shipped so the next call
+  // doesn't re-send. Row writes target distinct ids, safe to parallelize.
+  const readAt = nowIso();
+  await Promise.all(
+    candidates.map((n) =>
+      Storage.putRecord(NOTIFICATIONS_BUCKET, n.id, { ...n, readAt }),
+    ),
+  );
   return { sent: true, payload };
 };
 

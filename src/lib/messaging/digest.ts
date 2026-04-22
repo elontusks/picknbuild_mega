@@ -39,10 +39,11 @@ export const assembleDigest = (input: {
     .sort((a, b) => b.count - a.count);
 
   const total = input.notifications.length;
-  const subject =
-    total === 0
-      ? "Your PicknBuild digest (nothing new)"
-      : `Your PicknBuild digest — ${total} update${total === 1 ? "" : "s"}`;
+  // sendDigest short-circuits on empty input before sending, so only the
+  // non-empty subject line ever hits an inbox. The assembler still
+  // returns a valid payload for the empty case (empty sections, empty
+  // text) so callers that render a preview don't have to special-case.
+  const subject = `Your PicknBuild digest — ${total} update${total === 1 ? "" : "s"}`;
   const text = sections
     .map((s) => {
       const header = `${s.category} (${s.count})`;

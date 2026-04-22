@@ -60,6 +60,10 @@ Run from the parent checkout once the PR has merged.
 | 10 | Post-Deposit Dashboard | 15 | _(unclaimed)_ | — | not started |
 | 16 | Feed | 16 | _(unclaimed)_ | — | not started |
 
+## Follow-ups
+
+- **Team 15 — atomic list primitive.** Team 13's `notifications_by_user`, `threads_by_user`, and `thread_reads` buckets all do `getRecord → append → putRecord` to maintain per-user indexes. Concurrent callers (Team 12 workflows + Team 14 payments both emit notifications fire-and-forget) can race and drop ids. Before production cutover, Team 15 should expose an `appendToList(bucket, id, value)` storage primitive that performs the append atomically (e.g. jsonb array append inside a single UPDATE). The `// KNOWN:` comments in `src/services/team-13-messaging.ts` and `src/services/team-13-notifications.ts` point at this item.
+
 ## Suggested two-person split
 
 - **Person A — pre-deposit funnel:** Teams 1, 3, 4, 5, 6, 7, 11, 16.

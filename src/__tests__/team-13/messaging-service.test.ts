@@ -105,6 +105,49 @@ describe("messaging — threads", () => {
     });
     expect(b.id).not.toBe(a.id);
   });
+
+  test("openOrCreateThread rejects empty participants", async () => {
+    await expect(
+      Messaging.openOrCreateThread({
+        participants: [],
+        kind: "buyer-dealer",
+      }),
+    ).rejects.toThrow(/participants must be non-empty/);
+  });
+
+  test("markThreadRead persists a per-user lastReadAt and advances on repeat", async () => {
+    const thread = await Messaging.openOrCreateThread({
+      participants: ["u1", "u2"],
+      kind: "buyer-dealer",
+    });
+    const first = await Messaging.markThreadRead({
+      userId: "u1",
+      threadId: thread.id,
+    });
+    expect(first.ok).toBe(true);
+    expect(first.lastReadAt).toBeTruthy();
+    const stateA = await Messaging.getThreadReadState(thread.id);
+    expect(stateA.u1).toBe(first.lastReadAt);
+
+    // A second participant reading is additive, not overwriting.
+    const second = await Messaging.markThreadRead({
+      userId: "u2",
+      threadId: thread.id,
+    });
+    const stateB = await Messaging.getThreadReadState(thread.id);
+    expect(stateB.u1).toBe(first.lastReadAt);
+    expect(stateB.u2).toBe(second.lastReadAt);
+
+    // Same user re-marking advances their timestamp.
+    await new Promise((r) => setTimeout(r, 5));
+    const third = await Messaging.markThreadRead({
+      userId: "u1",
+      threadId: thread.id,
+    });
+    const stateC = await Messaging.getThreadReadState(thread.id);
+    expect(stateC.u1).toBe(third.lastReadAt);
+    expect(third.lastReadAt.localeCompare(first.lastReadAt)).toBeGreaterThan(0);
+  });
 });
 
 describe("messaging — messages", () => {
@@ -158,6 +201,33 @@ describe("messaging — messages", () => {
     const before = all[3]?.sentAt ?? "";
     const earlier = await Messaging.listMessages(thread.id, { before });
     expect(earlier.map((m) => m.body)).toEqual(["m0", "m1", "m2"]);
+  });
+
+  test("listMessages breaks sentAt ties by id for stable ordering", async () => {
+    // Two messages with identical sentAt must land in a deterministic
+    // order. Shove them directly into the bucket so we can pin the
+    // timestamp exactly; sending through the service can't repro this
+    // without hacking Date.
+    const sentAt = "2026-04-22T00:00:00.000Z";
+    const rows = [
+      {
+        id: "msg_b",
+        threadId: "T1",
+        senderId: "u1",
+        body: "b",
+        sentAt,
+      },
+      {
+        id: "msg_a",
+        threadId: "T1",
+        senderId: "u1",
+        body: "a",
+        sentAt,
+      },
+    ];
+    store.set("messages:T1", rows);
+    const listed = await Messaging.listMessages("T1");
+    expect(listed.map((m) => m.id)).toEqual(["msg_a", "msg_b"]);
   });
 });
 

@@ -25,10 +25,12 @@ import { EVENTS, threadTopic } from "@/lib/messaging/topics";
 //   message_threads  → MessageThread, keyed by threadId
 //   messages         → Message[],     keyed by threadId (per-thread log)
 //   threads_by_user  → string[]       of threadIds, keyed by userId
+//   thread_reads     → { [userId]: lastReadAt }, keyed by threadId
 
 const THREAD_BUCKET = "message_threads";
 const MESSAGES_BUCKET = "messages";
 const THREADS_BY_USER_BUCKET = "threads_by_user";
+const THREAD_READS_BUCKET = "thread_reads";
 
 const newId = (prefix: string): string => {
   const rand =
@@ -40,6 +42,11 @@ const newId = (prefix: string): string => {
 
 const nowIso = () => new Date().toISOString();
 
+// KNOWN: concurrent openOrCreateThread calls that land on the same
+// userId's index will race on this read-modify-write and can drop
+// thread ids. Safe within a single call, not safe across calls. Fix
+// requires an atomic appendToList(bucket, id, value) primitive from
+// Team 15; tracked in TEAMS.md under the Team 15 follow-ups note.
 const appendThreadIndex = async (userId: string, threadId: string) => {
   const existing =
     (await Storage.getRecord<string[]>(THREADS_BY_USER_BUCKET, userId)) ?? [];
@@ -74,6 +81,9 @@ export const openOrCreateThread = async (input: {
   kind: ThreadKind;
   listingId?: string;
 }): Promise<MessageThread> => {
+  if (input.participants.length === 0) {
+    throw new Error("openOrCreateThread: participants must be non-empty");
+  }
   // Dedupe: a (kind, sorted participants, optional listing) tuple collapses
   // to a single thread. Scan the first participant's index since every
   // thread lives under all of its participants' indexes.
@@ -125,7 +135,9 @@ export const listMessages = async (
   const all = await loadThreadMessages(threadId);
   const sorted = all
     .slice()
-    .sort((a, b) => a.sentAt.localeCompare(b.sentAt));
+    .sort(
+      (a, b) => a.sentAt.localeCompare(b.sentAt) || a.id.localeCompare(b.id),
+    );
   const before = opts?.before;
   const filtered = before
     ? sorted.filter((m) => m.sentAt < before)
@@ -184,16 +196,38 @@ export const sendMessage = async (input: {
   return message;
 };
 
-export const markThreadRead = async (_input: {
+// Per-user read state. `thread_reads` bucket holds one row per thread,
+// value is a `{ userId → lastReadAt }` map so every participant's read
+// marker for a given thread lives together and unreadCount queries are
+// one getRecord. The read-modify-write here has the same cross-call
+// race as the other user-keyed indexes (see appendThreadIndex); when a
+// single user hits "mark read" concurrently the latest call wins, which
+// is acceptable since markThreadRead is monotonic (always advancing to
+// `now`) and a lost write just means a slightly-older timestamp.
+export const markThreadRead = async (input: {
   userId: string;
   threadId: string;
-}): Promise<{ ok: true }> => {
-  // Per-user read state lives on the user side (client-visible timestamps
-  // in localStorage or a future User read-state record). We acknowledge
-  // the intent here so callers have a stable endpoint to hit without
-  // teaching them about the read-state strategy.
-  return { ok: true };
+}): Promise<{ ok: true; lastReadAt: string }> => {
+  const lastReadAt = nowIso();
+  const existing =
+    (await Storage.getRecord<Record<string, string>>(
+      THREAD_READS_BUCKET,
+      input.threadId,
+    )) ?? {};
+  await Storage.putRecord(THREAD_READS_BUCKET, input.threadId, {
+    ...existing,
+    [input.userId]: lastReadAt,
+  });
+  return { ok: true, lastReadAt };
 };
+
+export const getThreadReadState = async (
+  threadId: string,
+): Promise<Record<string, string>> =>
+  (await Storage.getRecord<Record<string, string>>(
+    THREAD_READS_BUCKET,
+    threadId,
+  )) ?? {};
 
 // -- socket transport -----------------------------------------------------
 

@@ -360,6 +360,46 @@ describe("notifications — digest", () => {
     expect(emailSpy.sent[0]?.text).toContain("dealer-response (1)");
   });
 
+  test("sendDigest is idempotent — a second back-to-back call does not re-send", async () => {
+    await Notifications.updatePreferences({
+      userId: "u1",
+      channels: { "in-app": true, email: true, digest: true },
+      categories: {
+        message: true,
+        "price-change": true,
+        "dealer-response": true,
+        payment: true,
+        "deal-status": true,
+        system: true,
+      },
+      email: "u1@example.com",
+    });
+    const emailSpy = makeEmailSpy();
+    setEmailClient(emailSpy.client);
+
+    await Notifications.emitNotification({
+      userId: "u1",
+      category: "price-change",
+      payload: { title: "drop 1" },
+      channels: ["digest"],
+    });
+    await Notifications.emitNotification({
+      userId: "u1",
+      category: "dealer-response",
+      payload: { title: "dealer replied" },
+      channels: ["digest"],
+    });
+
+    const first = await Notifications.sendDigest({ userId: "u1" });
+    expect(first.sent).toBe(true);
+    expect(emailSpy.sent).toHaveLength(1);
+
+    // Watermark should have marked the just-sent rows as read.
+    const second = await Notifications.sendDigest({ userId: "u1" });
+    expect(second.sent).toBe(false);
+    expect(emailSpy.sent).toHaveLength(1);
+  });
+
   test("sendDigest returns sent=false when there's nothing to send", async () => {
     await Notifications.updatePreferences({
       userId: "u1",
