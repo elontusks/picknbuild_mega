@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import { SubscriptionStatusDisplay } from "./subscription-status-display";
-import type {
-  Subscription,
-  SubscriptionPlan,
-} from "@/services/team-14-payments";
+import type { Subscription } from "@/services/team-14-payments";
 
 type Props = {
   initialSubscription: Subscription | null;
 };
+
+// Single dealer-basic plan per COMPONENTS.md §Team 14 ($99 / mo). When the
+// product adds tiers, expose the choice here and pass through to the POST.
+const DEFAULT_PLAN = "dealer-basic" as const;
 
 export function DealerSubscriptionManagementPanel({
   initialSubscription,
@@ -17,7 +18,6 @@ export function DealerSubscriptionManagementPanel({
   const [subscription, setSubscription] = useState<Subscription | null>(
     initialSubscription,
   );
-  const [plan, setPlan] = useState<SubscriptionPlan>("dealer-basic");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -28,7 +28,7 @@ export function DealerSubscriptionManagementPanel({
       const res = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan: DEFAULT_PLAN }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -93,20 +93,10 @@ export function DealerSubscriptionManagementPanel({
             : "Cancel at period end"}
         </button>
       ) : (
-        <div className="flex items-center gap-2">
-          <label className="text-sm">
-            Plan{" "}
-            <select
-              data-testid="subscription-plan-select"
-              value={plan}
-              onChange={(e) => setPlan(e.target.value as SubscriptionPlan)}
-              disabled={busy}
-              className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            >
-              <option value="dealer-basic">Basic ($99 / mo)</option>
-              <option value="dealer-pro">Pro ($198 / mo)</option>
-            </select>
-          </label>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-zinc-500">
+            Dealer plan — $99 / month
+          </span>
           <button
             type="button"
             data-testid="subscription-start"

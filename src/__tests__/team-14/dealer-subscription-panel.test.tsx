@@ -30,18 +30,14 @@ afterEach(() => {
 });
 
 describe("DealerSubscriptionManagementPanel", () => {
-  test("starts a subscription with the selected plan", async () => {
+  test("starts a subscription on the dealer-basic plan", async () => {
     const fetchMock = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({ subscription: fakeSub({ plan: "dealer-pro" }) }),
-        { status: 201 },
-      ),
+      new Response(JSON.stringify({ subscription: fakeSub() }), {
+        status: 201,
+      }),
     );
     render(<DealerSubscriptionManagementPanel initialSubscription={null} />);
-    fireEvent.change(screen.getByTestId("subscription-plan-select"), {
-      target: { value: "dealer-pro" },
-    });
     await act(async () => {
       fireEvent.click(screen.getByTestId("subscription-start"));
       await Promise.resolve();
@@ -50,7 +46,7 @@ describe("DealerSubscriptionManagementPanel", () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("/api/subscriptions");
     expect(init.method).toBe("POST");
-    expect(JSON.parse(String(init.body))).toEqual({ plan: "dealer-pro" });
+    expect(JSON.parse(String(init.body))).toEqual({ plan: "dealer-basic" });
     expect(screen.getByTestId("subscription-status")).toBeTruthy();
   });
 

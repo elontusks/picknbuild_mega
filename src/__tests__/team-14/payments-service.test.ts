@@ -25,6 +25,46 @@ vi.mock("@/services/team-15-storage", () => ({
   }),
 }));
 
+// Team 12 dispatch + Team 13 notifications are observed via spies. The real
+// fixture services aren't wrong to run, but we want assertions on the
+// edges that Architecture §5 specifies.
+const onDepositReceivedMock = vi.fn(
+  async (input: {
+    userId: string;
+    buildRecordId: string;
+    agreementId: string;
+    paymentId: string;
+  }) => ({
+    id: `deal_${input.paymentId}`,
+    userId: input.userId,
+    buildRecordId: input.buildRecordId,
+    listingId: undefined,
+    committedSpec: {
+      makeModelYearRange: "",
+      mileageRange: "",
+      titleType: "clean" as const,
+      customizations: [],
+      attachments: [],
+    },
+    package: "standard" as const,
+    pricing: { total: 0, down: 0, biweekly: 0, term: "3y" as const },
+    status: "build-started" as const,
+    timeline: [],
+    agreementId: input.agreementId,
+    createdAt: new Date().toISOString(),
+  }),
+);
+vi.mock("@/services/team-12-workflows", () => ({
+  onDepositReceived: (
+    ...args: Parameters<typeof onDepositReceivedMock>
+  ) => onDepositReceivedMock(...args),
+}));
+
+const emitNotificationMock = vi.fn(async () => []);
+vi.mock("@/services/team-13-notifications", () => ({
+  emitNotification: (...args: unknown[]) => emitNotificationMock(...(args as [])),
+}));
+
 import {
   cancelSubscription,
   chargeBalance,
@@ -147,6 +187,8 @@ let stripe: ReturnType<typeof makeMockStripe>;
 
 beforeEach(() => {
   buckets.clear();
+  onDepositReceivedMock.mockClear();
+  emitNotificationMock.mockClear();
   stripe = makeMockStripe();
   setStripeClient(stripe);
 });
@@ -277,7 +319,7 @@ describe("issueRefund", () => {
     expect(original?.status).toBe("refunded");
   });
 
-  test("partial refund honors the supplied amount", async () => {
+  test("partial refund honors the amount and leaves the original succeeded", async () => {
     const { record } = await createCharge({
       userId: "u1",
       amount: 1000,
@@ -286,6 +328,32 @@ describe("issueRefund", () => {
     });
     const refund = await issueRefund({ paymentId: record.id, amount: 250 });
     expect(refund.amount).toBe(250);
+    expect(refund.status).toBe("refunded");
+    // Original stays "succeeded" — the remaining $750 is still held, so the
+    // ledger shouldn't read "refunded" on the original row.
+    const original = await getPayment(record.id);
+    expect(original?.status).toBe("succeeded");
+  });
+
+  test("refund emits a payment-category notification", async () => {
+    const { record } = await createCharge({
+      userId: "u1",
+      amount: 1000,
+      kind: "deposit",
+      confirmNow: true,
+    });
+    emitNotificationMock.mockClear();
+    await issueRefund({ paymentId: record.id });
+    const call = emitNotificationMock.mock.calls[0] as unknown as [
+      {
+        userId: string;
+        category: string;
+        payload: { kind: string };
+      },
+    ];
+    expect(call[0].userId).toBe("u1");
+    expect(call[0].category).toBe("payment");
+    expect(call[0].payload.kind).toBe("refund");
   });
 
   test("throws when the payment is not found", async () => {
@@ -401,14 +469,14 @@ describe("subscriptions", () => {
     const cusSpy = vi.spyOn(stripe, "createCustomer");
     await startSubscription({
       userId: "u2",
-      plan: "dealer-pro",
+      plan: "dealer-basic",
       stripeCustomerId: "cus_existing",
     });
     expect(cusSpy).not.toHaveBeenCalled();
     const stored = await getSubscription("u2");
     expect(stored?.stripeCustomerId).toBe("cus_existing");
-    expect(stored?.plan).toBe("dealer-pro");
-    expect(stored?.amountUsd).toBe(198);
+    expect(stored?.plan).toBe("dealer-basic");
+    expect(stored?.amountUsd).toBe(99);
   });
 
   test("cancelSubscription defaults to cancel_at_period_end=true and keeps status active", async () => {
@@ -552,6 +620,193 @@ describe("handleWebhookEvent", () => {
     });
     expect(result.handled).toBe(false);
     expect(result.reason).toBe("unhandled-event-type");
+  });
+
+  test("deposit succeeded dispatches to Team 12 and backfills dealId", async () => {
+    const { record } = await createDepositCharge({
+      userId: "u1",
+      buildRecordId: "bld_w",
+      agreementId: "agr_w",
+    });
+    onDepositReceivedMock.mockClear();
+
+    const result = await handleWebhookEvent({
+      id: "evt_dep",
+      type: "payment_intent.succeeded",
+      created: 0,
+      data: {
+        object: {
+          id: record.stripeRef,
+          amount: 100000,
+          metadata: {
+            buildRecordId: "bld_w",
+            agreementId: "agr_w",
+            kind: "deposit",
+            userId: "u1",
+          },
+        } as unknown as Record<string, unknown>,
+      },
+    });
+
+    expect(onDepositReceivedMock).toHaveBeenCalledWith({
+      userId: "u1",
+      buildRecordId: "bld_w",
+      agreementId: "agr_w",
+      paymentId: record.id,
+    });
+    expect(result.dealId).toBe(`deal_${record.id}`);
+    const after = await getPayment(record.id);
+    expect(after?.dealId).toBe(`deal_${record.id}`);
+  });
+
+  test("succeeded webhook emits a payment notification for the user", async () => {
+    const { record } = await createCharge({
+      userId: "u1",
+      amount: 15,
+      kind: "lead-unlock",
+    });
+    emitNotificationMock.mockClear();
+    await handleWebhookEvent({
+      id: "evt_notif_ok",
+      type: "payment_intent.succeeded",
+      created: 0,
+      data: {
+        object: {
+          id: record.stripeRef,
+          amount: 1500,
+          metadata: {},
+        } as unknown as Record<string, unknown>,
+      },
+    });
+    const call = emitNotificationMock.mock.calls[0] as unknown as [
+      { userId: string; category: string; payload: { kind: string } },
+    ];
+    expect(call[0].userId).toBe("u1");
+    expect(call[0].category).toBe("payment");
+    expect(call[0].payload.kind).toBe("succeeded");
+  });
+
+  test("failed webhook emits a payment notification with kind=failed", async () => {
+    const { record } = await createCharge({
+      userId: "u1",
+      amount: 5,
+      kind: "listing-fee",
+    });
+    emitNotificationMock.mockClear();
+    await handleWebhookEvent({
+      id: "evt_notif_fail",
+      type: "payment_intent.payment_failed",
+      created: 0,
+      data: {
+        object: {
+          id: record.stripeRef,
+        } as unknown as Record<string, unknown>,
+      },
+    });
+    const call = emitNotificationMock.mock.calls[0] as unknown as [
+      { payload: { kind: string } },
+    ];
+    expect(call[0].payload.kind).toBe("failed");
+  });
+
+  test("notification-service outage does not break the webhook path", async () => {
+    const { record } = await createCharge({
+      userId: "u1",
+      amount: 5,
+      kind: "listing-fee",
+    });
+    emitNotificationMock.mockRejectedValueOnce(new Error("notif down"));
+    const result = await handleWebhookEvent({
+      id: "evt_notif_err",
+      type: "payment_intent.succeeded",
+      created: 0,
+      data: {
+        object: {
+          id: record.stripeRef,
+          amount: 500,
+          metadata: {},
+        } as unknown as Record<string, unknown>,
+      },
+    });
+    expect(result.handled).toBe(true);
+  });
+
+  test("non-deposit succeeded events do not call Team 12", async () => {
+    const { record } = await createCharge({
+      userId: "u1",
+      amount: 15,
+      kind: "lead-unlock",
+    });
+    onDepositReceivedMock.mockClear();
+    await handleWebhookEvent({
+      id: "evt_non_dep",
+      type: "payment_intent.succeeded",
+      created: 0,
+      data: {
+        object: {
+          id: record.stripeRef,
+          amount: 1500,
+          metadata: {},
+        } as unknown as Record<string, unknown>,
+      },
+    });
+    expect(onDepositReceivedMock).not.toHaveBeenCalled();
+  });
+
+  test("deposit succeeded without build/agreement metadata is still handled but skips dispatch", async () => {
+    const { record } = await createCharge({
+      userId: "u1",
+      amount: 1000,
+      kind: "deposit",
+    });
+    onDepositReceivedMock.mockClear();
+    const result = await handleWebhookEvent({
+      id: "evt_dep_no_meta",
+      type: "payment_intent.succeeded",
+      created: 0,
+      data: {
+        object: {
+          id: record.stripeRef,
+          amount: 100000,
+          metadata: {},
+        } as unknown as Record<string, unknown>,
+      },
+    });
+    expect(onDepositReceivedMock).not.toHaveBeenCalled();
+    expect(result.handled).toBe(true);
+    expect(result.dealId).toBeUndefined();
+  });
+});
+
+describe("synchronous confirm path", () => {
+  test("deposit charged with confirmNow dispatches to Team 12", async () => {
+    onDepositReceivedMock.mockClear();
+    const { record } = await createDepositCharge({
+      userId: "u1",
+      buildRecordId: "bld_s",
+      agreementId: "agr_s",
+      paymentMethodId: "pm_card_visa",
+    });
+    expect(onDepositReceivedMock).toHaveBeenCalledWith({
+      userId: "u1",
+      buildRecordId: "bld_s",
+      agreementId: "agr_s",
+      paymentId: record.id,
+    });
+    // The service re-saves the record with the dealId stamped in.
+    const stored = await getPayment(record.id);
+    expect(stored?.dealId).toBe(`deal_${record.id}`);
+  });
+
+  test("succeeded sync charge also emits a notification", async () => {
+    emitNotificationMock.mockClear();
+    await createCharge({
+      userId: "u1",
+      amount: 15,
+      kind: "lead-unlock",
+      confirmNow: true,
+    });
+    expect(emitNotificationMock).toHaveBeenCalled();
   });
 });
 

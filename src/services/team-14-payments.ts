@@ -21,6 +21,8 @@ import {
   type StripeWebhookEvent,
 } from "@/lib/payments/stripe-client";
 import * as Storage from "@/services/team-15-storage";
+import * as Workflows from "@/services/team-12-workflows";
+import * as Notifications from "@/services/team-13-notifications";
 
 // Team 14 — Payments backend.
 //
@@ -68,6 +70,60 @@ export const listPaymentsForDeal = async (
   return all
     .filter((p) => p.dealId === dealId)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+};
+
+// -------------------------------------------------------------------------
+// Notification fan-out. COMPONENTS.md has Stripe Integration + Failed Payment
+// Recovery both edged into Notification Service. We emit per category
+// "payment" with a compact payload; errors here are swallowed so a
+// notification-service outage never blocks a charge or webhook.
+
+type PaymentNotificationKind = "succeeded" | "failed" | "refund";
+
+const emitPaymentNotification = async (input: {
+  userId: string;
+  kind: PaymentNotificationKind;
+  payment: PaymentRecord;
+}): Promise<void> => {
+  try {
+    await Notifications.emitNotification({
+      userId: input.userId,
+      category: "payment",
+      payload: {
+        kind: input.kind,
+        paymentId: input.payment.id,
+        amount: input.payment.amount,
+        paymentKind: input.payment.kind,
+        dealId: input.payment.dealId,
+      },
+    });
+  } catch {
+    // Notification service is best-effort; payment path must not fail on it.
+  }
+};
+
+// A deposit succeeding is the one transition that unblocks Team 10's
+// post-deposit dashboard. We pull buildRecordId + agreementId out of the
+// Stripe PI metadata that createDepositCharge planted, then dispatch to
+// Team 12's state machine so a DealRecord is created. Safe to call from
+// both the webhook and the synchronous confirm path; returns the new
+// DealRecord id (or undefined when the metadata is missing, e.g. a
+// non-deposit charge replayed through here).
+
+const onDepositConfirmed = async (input: {
+  payment: PaymentRecord;
+  piMetadata: Record<string, string>;
+}): Promise<string | undefined> => {
+  const buildRecordId = input.piMetadata.buildRecordId;
+  const agreementId = input.piMetadata.agreementId;
+  if (!buildRecordId || !agreementId) return undefined;
+  const deal = await Workflows.onDepositReceived({
+    userId: input.payment.userId,
+    buildRecordId,
+    agreementId,
+    paymentId: input.payment.id,
+  });
+  return deal.id;
 };
 
 // -------------------------------------------------------------------------
@@ -123,7 +179,7 @@ export const createCharge = async (input: ChargeInput): Promise<ChargeResult> =>
     },
   });
 
-  const record: PaymentRecord = {
+  let record: PaymentRecord = {
     id: nextFixtureId("pay"),
     userId: input.userId,
     kind: input.kind,
@@ -135,6 +191,27 @@ export const createCharge = async (input: ChargeInput): Promise<ChargeResult> =>
     ...(input.dealId ? { dealId: input.dealId } : {}),
   };
   await savePaymentRecord(record);
+
+  // Synchronous confirm path (card-on-file): mirror the side effects the
+  // webhook fires on payment_intent.succeeded so both entry points behave
+  // identically downstream.
+  if (record.status === "succeeded") {
+    if (record.kind === "deposit") {
+      const dealId = await onDepositConfirmed({
+        payment: record,
+        piMetadata: intent.metadata ?? {},
+      });
+      if (dealId) {
+        record = { ...record, dealId };
+        await savePaymentRecord(record);
+      }
+    }
+    await emitPaymentNotification({
+      userId: record.userId,
+      kind: "succeeded",
+      payment: record,
+    });
+  }
 
   return {
     record,
@@ -240,11 +317,12 @@ export const issueRefund = async (input: {
     reason: input.reason,
   });
 
+  const refundedAmount = input.amount ?? original.amount;
   const refundRecord: PaymentRecord = {
     id: nextFixtureId("pay"),
     userId: original.userId,
     kind: "refund",
-    amount: input.amount ?? original.amount,
+    amount: refundedAmount,
     currency: "USD",
     stripeRef: refund.id,
     status: refund.status === "succeeded" ? "refunded" : "pending",
@@ -253,10 +331,19 @@ export const issueRefund = async (input: {
   };
   await savePaymentRecord(refundRecord);
 
-  // Flip the original record's status so the ledger reflects it.
-  if (refund.status === "succeeded") {
+  // Only flip the original to "refunded" on a full refund. A partial refund
+  // leaves the original "succeeded" so the ledger reads
+  // "succeeded, partial refund issued" instead of "refunded while most of
+  // the money is still held" — which would surprise Team 15's activity log.
+  if (refund.status === "succeeded" && refundedAmount >= original.amount) {
     await savePaymentRecord({ ...original, status: "refunded" });
   }
+
+  await emitPaymentNotification({
+    userId: original.userId,
+    kind: "refund",
+    payment: refundRecord,
+  });
 
   return refundRecord;
 };
@@ -290,8 +377,12 @@ export const retryFailedPayment = async (input: {
 
 // -------------------------------------------------------------------------
 // Subscriptions — state stored via Storage.putRecord("subscriptions", userId).
+//
+// COMPONENTS.md §Team 14 specifies a single $99/mo dealer subscription. The
+// plan type stays a string union so future tiers can be added without
+// churning call sites, but today it has exactly one member.
 
-export type SubscriptionPlan = "dealer-basic" | "dealer-pro";
+export type SubscriptionPlan = "dealer-basic";
 
 export type Subscription = {
   id: string;
@@ -310,13 +401,10 @@ export type Subscription = {
 const PRICE_ID_BY_PLAN: Record<SubscriptionPlan, string> = {
   "dealer-basic":
     process.env.STRIPE_PRICE_DEALER_BASIC ?? "price_dealer_basic_stub",
-  "dealer-pro":
-    process.env.STRIPE_PRICE_DEALER_PRO ?? "price_dealer_pro_stub",
 };
 
 const AMOUNT_BY_PLAN: Record<SubscriptionPlan, number> = {
   "dealer-basic": DEALER_SUBSCRIPTION_AMOUNT_USD,
-  "dealer-pro": DEALER_SUBSCRIPTION_AMOUNT_USD * 2,
 };
 
 const subscriptionStatusFromStripe = (
@@ -446,6 +534,7 @@ type WebhookResult = {
   reason?: string;
   payment?: PaymentRecord;
   subscription?: Subscription;
+  dealId?: string;
 };
 
 const findPaymentByStripeRef = async (
@@ -470,13 +559,37 @@ export const handleWebhookEvent = async (
       const pi = event.data.object as StripePaymentIntent;
       const record = await findPaymentByStripeRef(pi.id);
       if (!record) return { handled: false, reason: "no-matching-payment" };
-      const updated: PaymentRecord = {
+      let updated: PaymentRecord = {
         ...record,
         status: "succeeded",
         amount: fromStripeAmountCents(pi.amount),
       };
       await savePaymentRecord(updated);
-      return { handled: true, payment: updated };
+
+      let dealId: string | undefined;
+      if (updated.kind === "deposit") {
+        // Dispatch to Team 12's state machine so a DealRecord is created
+        // and Team 10's post-deposit dashboard has something to render.
+        dealId = await onDepositConfirmed({
+          payment: updated,
+          piMetadata: pi.metadata ?? {},
+        });
+        if (dealId) {
+          updated = { ...updated, dealId };
+          await savePaymentRecord(updated);
+        }
+      }
+
+      await emitPaymentNotification({
+        userId: updated.userId,
+        kind: "succeeded",
+        payment: updated,
+      });
+      return {
+        handled: true,
+        payment: updated,
+        ...(dealId ? { dealId } : {}),
+      };
     }
     case "payment_intent.payment_failed": {
       const pi = event.data.object as StripePaymentIntent;
@@ -484,6 +597,11 @@ export const handleWebhookEvent = async (
       if (!record) return { handled: false, reason: "no-matching-payment" };
       const updated: PaymentRecord = { ...record, status: "failed" };
       await savePaymentRecord(updated);
+      await emitPaymentNotification({
+        userId: updated.userId,
+        kind: "failed",
+        payment: updated,
+      });
       return { handled: true, payment: updated };
     }
     case "customer.subscription.updated":

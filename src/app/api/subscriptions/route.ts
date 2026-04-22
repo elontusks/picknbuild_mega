@@ -12,7 +12,7 @@ type StartBody = {
   stripeCustomerId?: string;
 };
 
-const VALID_PLANS: SubscriptionPlan[] = ["dealer-basic", "dealer-pro"];
+const VALID_PLANS: SubscriptionPlan[] = ["dealer-basic"];
 
 export async function POST(req: NextRequest) {
   const principal = await loadPrincipal();
