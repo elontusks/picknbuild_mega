@@ -1,7 +1,6 @@
 import type { ListingObject } from "@/contracts";
 import {
   DealerSubscriptionManagementPanel,
-  LeadUnlockPurchaseInterface,
   ListingPriceModalTrigger,
 } from "./payment-panels";
 import { DealerListingForm } from "./dealer-listing-form";
@@ -13,21 +12,13 @@ type Props = {
   listings: ListingObject[];
   subscription: Subscription | null;
   userZip?: string;
-  leadId?: string;
 };
 
-/**
- * Dealer-only authoring surface. Rendered by the Dealer Profile page when the
- * signed-in viewer is the owning dealer. Embeds Team 14's subscription,
- * lead-unlock, and listing-price panels alongside the Team 3 dealer-posted
- * listing writes.
- */
 export function DealerPageEditPanel({
   dealerId,
   listings,
   subscription,
   userZip,
-  leadId,
 }: Props) {
   return (
     <section
@@ -72,15 +63,7 @@ export function DealerPageEditPanel({
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <DealerSubscriptionManagementPanel initialSubscription={subscription} />
-        {leadId ? (
-          <div className="space-y-2 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-            <h3 className="text-base font-semibold">Unlock a lead</h3>
-            <LeadUnlockPurchaseInterface leadId={leadId} />
-          </div>
-        ) : null}
-      </div>
+      <DealerSubscriptionManagementPanel initialSubscription={subscription} />
 
       {listings.length > 0 ? (
         <div className="space-y-2 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">

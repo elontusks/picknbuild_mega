@@ -3,20 +3,13 @@
 import { useState } from "react";
 import {
   DealerSubscriptionManagementPanel as BaseSubscriptionPanel,
-  LeadUnlockPurchaseInterface as BaseLeadUnlock,
   ListingPriceModal,
 } from "@/components/payments";
 
 export const DealerSubscriptionManagementPanel = BaseSubscriptionPanel;
-export const LeadUnlockPurchaseInterface = BaseLeadUnlock;
 
 type TriggerProps = { listingId: string };
 
-/**
- * Client wrapper around the Team 14 ListingPriceModal so we can host the
- * open/closed state inside the dealer edit panel without the panel itself
- * becoming a client component.
- */
 export function ListingPriceModalTrigger({ listingId }: TriggerProps) {
   const [open, setOpen] = useState(false);
   return (

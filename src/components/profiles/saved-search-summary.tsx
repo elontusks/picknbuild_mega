@@ -35,22 +35,11 @@ const summarize = (s: IntakeState): string[] => {
 };
 
 export function SavedSearchSummary({ userId }: Props) {
-  const [state, setState] = useState<IntakeState | null | undefined>(undefined);
+  const [state, setState] = useState<IntakeState | null>(null);
 
   useEffect(() => {
     setState(loadPersistedIntake(userId));
   }, [userId]);
-
-  if (state === undefined) {
-    return (
-      <p
-        data-testid="saved-search-loading"
-        className="text-sm text-zinc-500 dark:text-zinc-400"
-      >
-        Loading saved search…
-      </p>
-    );
-  }
 
   if (state === null) {
     return (

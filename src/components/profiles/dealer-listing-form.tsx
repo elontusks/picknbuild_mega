@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import type { ListingObject } from "@/contracts";
 import {
   saveDealerListing,
@@ -23,9 +23,9 @@ export function DealerListingForm({ listing, onSaved }: Props) {
   const [state, formAction, pending] = useActionState(saveDealerListing, INITIAL);
   const [resetKey, setResetKey] = useState(0);
 
-  if (state.status === "ok" && onSaved) {
-    onSaved(state.listingId);
-  }
+  useEffect(() => {
+    if (state.status === "ok") onSaved?.(state.listingId);
+  }, [state, onSaved]);
 
   return (
     <form

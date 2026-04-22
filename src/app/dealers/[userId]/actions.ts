@@ -9,6 +9,7 @@ import {
   upsertDealerListing,
 } from "@/services/team-03-supply";
 import { openOrCreateThread } from "@/services/team-13-messaging";
+import { loadUserById } from "@/lib/profiles/load-user";
 import type { TitleStatus } from "@/contracts";
 
 export type DealerListingFormState =
@@ -107,8 +108,13 @@ export async function openDealerThread(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const dealerId = parseString(formData.get("dealerId"));
   if (!dealerId) throw new Error("Missing dealerId.");
-  const listingId = parseString(formData.get("listingId"));
 
+  const target = await loadUserById(dealerId);
+  if (!target || target.role !== "dealer") {
+    throw new Error("Dealer not found.");
+  }
+
+  const listingId = parseString(formData.get("listingId"));
   const thread = await openOrCreateThread({
     kind: "buyer-dealer",
     participants: [viewer.id, dealerId],
