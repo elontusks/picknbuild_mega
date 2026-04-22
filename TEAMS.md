@@ -56,7 +56,7 @@ Run from the parent checkout once the PR has merged.
 | 6 | Decision & Gap (Best Path, See Where You Stand) | 11 | athin shetty | team-6/decision-gap | merged |
 | 7 | Vehicle Detail | 12 | athin shetty | team-7/vehicle-detail | merged |
 | 8 | Garage | 13 | amogh kuppa | team-8/garage | in progress |
-| 9 | Commit / Checkout (configurator, deposit) | 14 | _(unclaimed)_ | — | not started |
+| 9 | Commit / Checkout (configurator, deposit) | 14 | amogh kuppa | team-9/commit-checkout | in progress |
 | 10 | Post-Deposit Dashboard | 15 | _(unclaimed)_ | — | not started |
 | 16 | Feed | 16 | _(unclaimed)_ | — | not started |
 
