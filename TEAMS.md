@@ -47,7 +47,7 @@ Run from the parent checkout once the PR has merged.
 | 3 | Supply / Data Plane (listing store, link parser, VIN) | 2 | athin shetty | team-3/supply-data-plane | merged |
 | 11 | Pricing & Intelligence Backend | 3 | athin shetty | team-11/pricing-intelligence | merged |
 | 12 | Workflows Backend (conversion state, signals) | 4 | amogh kuppa | team-12/workflows | merged |
-| 13 | Messaging + Notifications | 5 | _(unclaimed)_ | — | not started |
+| 13 | Messaging + Notifications | 5 | amogh kuppa | team-13/messaging | in progress |
 | 14 | Payments Backend (Stripe, subs, refunds) | 6 | amogh kuppa | team-14/payments | merged |
 | 15 | Admin + Integrity (dashboard, logging, storage) | 7 | amogh kuppa | team-15/secure-storage | storage slice merged; admin UI pending |
 | 2 | Profiles (buyer/dealer/seller + dealer edit) | 8 | amogh kuppa | team-2/profiles | in progress |
