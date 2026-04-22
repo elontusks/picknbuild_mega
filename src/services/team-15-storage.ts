@@ -1,40 +1,91 @@
-// Team 15 — secure storage layer abstraction + sponsor catalog.
-//
-// Thin in-memory stub so feature teams can call `put` / `get` / `list` without
-// a real persistence layer wired up. Real implementation lives in Supabase.
+import "server-only";
 
-const store = new Map<string, unknown>();
+import { createAdminClient } from "@/lib/supabase/admin";
+
+// Team 15 — secure storage layer + sponsor catalog.
+//
+// Generic typed key-value persistence fronted by Supabase. Every consuming
+// team (comments, saved vehicles, agreements, messages, payments,
+// attachments, feed) writes through the same (bucket, id) shape. Each row
+// is a jsonb blob; the caller owns the interpretation.
+//
+// Runs server-side with the service-role client, which bypasses RLS.
+// Both tables below have non-service-role access denied at the database
+// (using (false)) so the service is the single supported entry point.
+// Per-user authorization is enforced above this layer (src/lib/authz).
+// Signatures are intentionally identical to the original stub so that
+// downstream teams can switch to the real implementation without a diff.
 
 export const putRecord = async <T>(
   bucket: string,
   id: string,
   value: T,
 ): Promise<void> => {
-  store.set(`${bucket}:${id}`, value);
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("secure_records").upsert(
+    {
+      bucket,
+      id,
+      value: value as never,
+    },
+    { onConflict: "bucket,id" },
+  );
+  if (error) {
+    throw new Error(
+      `[team-15-storage] putRecord(${bucket}/${id}) failed: ${error.message}`,
+    );
+  }
 };
 
 export const getRecord = async <T>(
   bucket: string,
   id: string,
 ): Promise<T | null> => {
-  const v = store.get(`${bucket}:${id}`);
-  return (v as T) ?? null;
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("secure_records")
+    .select("value")
+    .eq("bucket", bucket)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) {
+    throw new Error(
+      `[team-15-storage] getRecord(${bucket}/${id}) failed: ${error.message}`,
+    );
+  }
+  return (data?.value ?? null) as T | null;
 };
 
 export const listRecords = async <T>(bucket: string): Promise<T[]> => {
-  const prefix = `${bucket}:`;
-  const out: T[] = [];
-  for (const [k, v] of store.entries()) {
-    if (k.startsWith(prefix)) out.push(v as T);
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("secure_records")
+    .select("value")
+    .eq("bucket", bucket)
+    .order("updated_at", { ascending: false });
+  if (error) {
+    throw new Error(
+      `[team-15-storage] listRecords(${bucket}) failed: ${error.message}`,
+    );
   }
-  return out;
+  return (data ?? []).map((row) => row.value as T);
 };
 
 export const removeRecord = async (
   bucket: string,
   id: string,
 ): Promise<void> => {
-  store.delete(`${bucket}:${id}`);
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("secure_records")
+    .delete()
+    .eq("bucket", bucket)
+    .eq("id", id);
+  if (error) {
+    throw new Error(
+      `[team-15-storage] removeRecord(${bucket}/${id}) failed: ${error.message}`,
+    );
+  }
 };
 
 export type SponsorBlock = {
@@ -47,11 +98,29 @@ export type SponsorBlock = {
 
 export const getSponsorsForPath = async (
   path: SponsorBlock["path"],
-): Promise<SponsorBlock[]> => [
-  {
-    id: `sponsor-${path}-1`,
-    path,
-    title: `${path} partner slot`,
-    bodyHtml: "<p>Sponsor fixture.</p>",
-  },
-];
+): Promise<SponsorBlock[]> => {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("sponsor_blocks")
+    .select("id, path, title, body_html, cta_label, cta_href")
+    .eq("path", path)
+    .eq("active", true)
+    .order("sort_order", { ascending: true });
+  if (error) {
+    throw new Error(
+      `[team-15-storage] getSponsorsForPath(${path}) failed: ${error.message}`,
+    );
+  }
+  return (data ?? []).map((row) => {
+    const block: SponsorBlock = {
+      id: row.id,
+      path: row.path as SponsorBlock["path"],
+      title: row.title,
+      bodyHtml: row.body_html,
+    };
+    if (row.cta_label && row.cta_href) {
+      block.cta = { label: row.cta_label, href: row.cta_href };
+    }
+    return block;
+  });
+};
