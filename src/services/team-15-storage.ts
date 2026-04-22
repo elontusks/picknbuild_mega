@@ -9,8 +9,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // attachments, feed) writes through the same (bucket, id) shape. Each row
 // is a jsonb blob; the caller owns the interpretation.
 //
-// Runs server-side with the service-role client. Consumers that need
-// per-user authorization enforce it above this layer (see src/lib/authz).
+// Runs server-side with the service-role client, which bypasses RLS.
+// Both tables below have non-service-role access denied at the database
+// (using (false)) so the service is the single supported entry point.
+// Per-user authorization is enforced above this layer (src/lib/authz).
 // Signatures are intentionally identical to the original stub so that
 // downstream teams can switch to the real implementation without a diff.
 

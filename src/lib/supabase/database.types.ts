@@ -123,7 +123,6 @@ export type Database = {
           bucket: string
           created_at: string
           id: string
-          owner_id: string | null
           updated_at: string
           value: Json
         }
@@ -131,7 +130,6 @@ export type Database = {
           bucket: string
           created_at?: string
           id: string
-          owner_id?: string | null
           updated_at?: string
           value: Json
         }
@@ -139,19 +137,10 @@ export type Database = {
           bucket?: string
           created_at?: string
           id?: string
-          owner_id?: string | null
           updated_at?: string
           value?: Json
         }
-        Relationships: [
-          {
-            foreignKeyName: "secure_records_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       sponsor_blocks: {
         Row: {

@@ -3,12 +3,18 @@
 -- secure_records is the generic typed-key-value surface fronted by
 -- src/services/team-15-storage.ts. Every consuming team (comments, saved
 -- vehicles, agreements, messages, payments, attachments, feed) writes
--- through the same (bucket, id) -> jsonb shape. The service is called
--- server-side with the admin client; RLS still applies when a row carries
--- an owner_id so direct DB access stays constrained.
+-- through the same (bucket, id) -> jsonb shape.
+--
+-- Access model: the service is the single entry point and always runs
+-- server-side with the Supabase service-role client, which bypasses RLS.
+-- Per-user authorization is enforced one layer up (src/lib/authz). RLS
+-- on both tables is therefore set to `using (false)` for non-service
+-- roles so any direct anon/authenticated DB access fails loudly rather
+-- than silently hitting dead policies.
 --
 -- sponsor_blocks is the operator-curated sponsor catalog consumed by
--- Team 5's Path-Specific Sponsor Board, keyed by path.
+-- Team 5's Path-Specific Sponsor Board, keyed by path. Active rows are
+-- publicly readable; writes are service-role only.
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -24,7 +30,6 @@ create table public.secure_records (
   bucket text not null,
   id text not null,
   value jsonb not null,
-  owner_id uuid references public.profiles (id) on delete cascade,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   primary key (bucket, id)
@@ -32,27 +37,15 @@ create table public.secure_records (
 
 create index secure_records_bucket_idx
   on public.secure_records (bucket, updated_at desc);
-create index secure_records_owner_idx
-  on public.secure_records (owner_id, bucket);
 
 alter table public.secure_records enable row level security;
 
-create policy "Secure records readable by owner"
-  on public.secure_records for select
-  using (owner_id is not null and auth.uid() = owner_id);
-
-create policy "Secure records writable by owner"
-  on public.secure_records for insert
-  with check (owner_id is not null and auth.uid() = owner_id);
-
-create policy "Secure records updatable by owner"
-  on public.secure_records for update
-  using (owner_id is not null and auth.uid() = owner_id)
-  with check (owner_id is not null and auth.uid() = owner_id);
-
-create policy "Secure records deletable by owner"
-  on public.secure_records for delete
-  using (owner_id is not null and auth.uid() = owner_id);
+-- Non-service-role access is denied outright. The service-role key used
+-- by createAdminClient() bypasses RLS and is the only supported path.
+create policy "Secure records: service-role only"
+  on public.secure_records for all
+  using (false)
+  with check (false);
 
 create trigger secure_records_set_updated_at
   before update on public.secure_records
@@ -79,6 +72,22 @@ alter table public.sponsor_blocks enable row level security;
 create policy "Active sponsors are publicly readable"
   on public.sponsor_blocks for select
   using (active = true);
+
+-- Writes are service-role only. Explicit `using (false)` keeps future
+-- admin tooling from accidentally attempting an anon/authenticated write
+-- and getting a silent empty-result back.
+create policy "Sponsor blocks: service-role only writes (insert)"
+  on public.sponsor_blocks for insert
+  with check (false);
+
+create policy "Sponsor blocks: service-role only writes (update)"
+  on public.sponsor_blocks for update
+  using (false)
+  with check (false);
+
+create policy "Sponsor blocks: service-role only writes (delete)"
+  on public.sponsor_blocks for delete
+  using (false);
 
 create trigger sponsor_blocks_set_updated_at
   before update on public.sponsor_blocks
