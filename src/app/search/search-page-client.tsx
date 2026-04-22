@@ -13,6 +13,7 @@ import {
   SearchFilterControlPanel,
   TopControlsBar,
 } from "@/components/intake";
+import { FourPathComparisonDisplay } from "@/components/compare";
 import {
   SeeWhereYouStandPanel,
   YourBestPathRightNow,
@@ -31,11 +32,11 @@ export function SearchPageClient({ user }: Props) {
 
 function TopControlsContainer({ user }: { user: User }) {
   const [parsedListings, setParsedListings] = useState<ListingObject[]>([]);
-  const [focusedListing, setFocusedListing] = useState<ListingObject | null>(
-    null,
-  );
+  const [activeListing, setActiveListing] = useState<ListingObject | null>(null);
+
   const onParsed = useCallback((listing: ListingObject) => {
     setParsedListings((prev) => [listing, ...prev.filter((l) => l.id !== listing.id)]);
+    setActiveListing(listing);
   }, []);
 
   return (
@@ -55,12 +56,52 @@ function TopControlsContainer({ user }: { user: User }) {
         </section>
         <ListingsPreview
           parsedListings={parsedListings}
-          focusedListing={focusedListing}
-          onFocusListing={setFocusedListing}
+          activeListingId={activeListing?.id ?? null}
+          onSelectListing={setActiveListing}
         />
-        <DecisionSection listing={focusedListing} user={user} />
+        <ComparePane user={user} listing={activeListing} />
+        <DecisionSection listing={activeListing} user={user} />
       </div>
     </>
+  );
+}
+
+function ComparePane({
+  user,
+  listing,
+}: {
+  user: User;
+  listing: ListingObject | null;
+}) {
+  const intake = useIntakeState();
+  if (!listing) {
+    return (
+      <section
+        data-testid="compare-pane-empty"
+        className="rounded-md border border-dashed border-zinc-200 p-4 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400"
+      >
+        Paste a link or pick a listing above to compare all four paths.
+      </section>
+    );
+  }
+  return (
+    <section className="flex flex-col gap-3" data-testid="compare-pane">
+      <header className="flex items-baseline justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          Four-path comparison
+        </h2>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+          {listing.year} {listing.make} {listing.model}
+          {listing.trim ? ` ${listing.trim}` : ""}
+        </span>
+      </header>
+      <FourPathComparisonDisplay
+        listing={listing}
+        intake={intake}
+        userId={user.id}
+        bestFitPreference={user.preferences.bestFit}
+      />
+    </section>
   );
 }
 
@@ -151,12 +192,12 @@ function DecisionSection({
 
 function ListingsPreview({
   parsedListings,
-  focusedListing,
-  onFocusListing,
+  activeListingId,
+  onSelectListing,
 }: {
   parsedListings: ListingObject[];
-  focusedListing: ListingObject | null;
-  onFocusListing: (l: ListingObject | null) => void;
+  activeListingId: string | null;
+  onSelectListing: (listing: ListingObject) => void;
 }) {
   const state = useIntakeState();
   const [listings, setListings] = useState<ListingObject[]>([]);
@@ -195,22 +236,16 @@ function ListingsPreview({
     state.titlePreference,
   );
 
-  // Auto-focus the first available listing so the Decision panel always has
-  // a vehicle to render against. Clears focus when the result set empties.
+  // Auto-select the first visible listing so the Compare + Decision panels
+  // always have a vehicle to render against on first load. Only fires when
+  // nothing is active yet — user clicks take precedence.
   useEffect(() => {
-    if (filtered.length === 0) {
-      if (focusedListing !== null) onFocusListing(null);
-      return;
-    }
-    const stillVisible =
-      focusedListing && filtered.some((l) => l.id === focusedListing.id);
-    if (!stillVisible) {
-      const first = filtered[0];
-      if (first) onFocusListing(first);
-    }
+    if (activeListingId !== null) return;
+    const first = filtered[0];
+    if (first) onSelectListing(first);
     // Identity-only changes from new fetches shouldn't re-trigger
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered.map((l) => l.id).join(",")]);
+  }, [filtered.map((l) => l.id).join(","), activeListingId]);
 
   return (
     <section className="flex flex-col gap-3" data-intake="listings-preview">
@@ -233,17 +268,19 @@ function ListingsPreview({
       ) : (
         <ul className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((l) => {
-            const isFocused = focusedListing?.id === l.id;
+            const active = activeListingId === l.id;
             return (
               <li key={l.id} data-listing-id={l.id}>
                 <button
                   type="button"
-                  onClick={() => onFocusListing(l)}
-                  aria-pressed={isFocused}
-                  className={`flex w-full flex-col gap-1 rounded-xl border p-4 text-left text-sm transition-colors ${
-                    isFocused
+                  onClick={() => onSelectListing(l)}
+                  data-testid={`listing-tile-${l.id}`}
+                  data-active={active ? "true" : "false"}
+                  aria-pressed={active}
+                  className={`flex w-full flex-col gap-1 rounded-xl border p-4 text-left text-sm transition ${
+                    active
                       ? "border-emerald-400 bg-emerald-50 dark:border-emerald-500/60 dark:bg-emerald-950/30"
-                      : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900"
                   }`}
                 >
                   <div className="flex items-center justify-between">
