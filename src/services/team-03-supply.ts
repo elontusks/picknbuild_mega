@@ -1,102 +1,202 @@
+import "server-only";
+import type { ListingObject } from "@/contracts";
+import { nowIso } from "@/contracts";
 import {
-  makeFixtureListingObject,
-  type ListingObject,
-  type ListingSource,
-  type TitleStatus,
-} from "@/contracts";
+  getListing as getListingFromStore,
+  listListings as listListingsFromStore,
+  listListingsByVin,
+  runIdleSweep,
+  setListingStatus,
+  upsertListing,
+  type ListingFilter,
+} from "@/lib/listings/store";
+import { listingToInsert } from "@/lib/listings/mappers";
+import {
+  normalizeListingPayload,
+  type RawListingPayload,
+} from "@/lib/listings/normalizer";
+import { shouldRefresh } from "@/lib/listings/refresh";
+import {
+  parseLinkUrl,
+  parseManualFallback,
+  type LinkParseResult,
+  type ManualFallbackInput,
+} from "@/lib/listings/link-parser";
+import {
+  lookupVin as lookupVinInternal,
+  type VinLookupResponse,
+} from "@/lib/listings/vin-lookup";
+import { validateListingForm, type ListingFormInput } from "@/lib/listings/validate";
 
-export type ListingFilter = {
-  source?: ListingSource;
-  ownerUserId?: string;
-  make?: string;
-  model?: string;
-  yearRange?: [number, number];
-  titleStatus?: TitleStatus;
-  locationZip?: string;
-  limit?: number;
-};
+// --- Listing store reads ------------------------------------------------------
 
-export const listListings = async (
-  filter: ListingFilter = {},
-): Promise<ListingObject[]> => {
-  const limit = filter.limit ?? 8;
-  return Array.from({ length: limit }, (_, i) =>
-    makeFixtureListingObject({
-      make: filter.make ?? "Honda",
-      model: filter.model ?? "Accord",
-      year: (filter.yearRange?.[0] ?? 2018) + (i % 3),
-      source: filter.source ?? "dealer",
-      ownerUserId: filter.ownerUserId,
-    }),
-  );
-};
+export type { ListingFilter };
 
-export const getListing = async (id: string): Promise<ListingObject | null> => {
-  return makeFixtureListingObject({ id });
-};
+export const listListings = (filter: ListingFilter = {}): Promise<ListingObject[]> =>
+  listListingsFromStore(filter);
 
-export const refreshListing = async (id: string): Promise<ListingObject> => {
-  return makeFixtureListingObject({ id, lastRefreshedAt: new Date().toISOString() });
-};
+export const getListing = (id: string): Promise<ListingObject | null> =>
+  getListingFromStore(id);
 
-export const idleSweep = async (): Promise<{ marked: number }> => ({ marked: 0 });
+export const getListingsByVin = (vin: string): Promise<ListingObject[]> =>
+  listListingsByVin(vin);
 
-export type LinkParseSuccess = { ok: true; listing: ListingObject };
-export type LinkParseFailure = { ok: false; reason: string };
-export type LinkParseResult = LinkParseSuccess | LinkParseFailure;
+// --- Ingestion normalizer -----------------------------------------------------
 
-export const parseLink = async (url: string): Promise<LinkParseResult> => ({
-  ok: true,
-  listing: makeFixtureListingObject({ source: "parsed-link", sourceUrl: url }),
-});
+export type IngestResult =
+  | { ok: true; listing: ListingObject }
+  | { ok: false; reason: string };
 
-export const submitManualFallback = async (input: {
-  title: string;
-  price: number;
-  image?: string;
-}): Promise<ListingObject> =>
-  makeFixtureListingObject({
-    source: "parsed-link",
-    price: input.price,
-    photos: input.image ? [input.image] : [],
+/**
+ * Server-only entry the ingestion job calls for each normalized scraper row.
+ * Uses the admin client so scraper-sourced inserts (copart/iaai/craigslist)
+ * bypass RLS. Idempotent on (source, source_url).
+ */
+export async function ingestListing(payload: RawListingPayload): Promise<IngestResult> {
+  const normalized = normalizeListingPayload(payload);
+  if (!normalized.ok) return { ok: false, reason: normalized.reason };
+  const insert = listingToInsert(normalized.listing, normalized.sourceExternalId);
+  const listing = await upsertListing({ listing: insert, client: "admin" });
+  return { ok: true, listing };
+}
+
+// --- On-view refresh ----------------------------------------------------------
+
+export type RefreshResult =
+  | { ok: true; listing: ListingObject; refreshed: boolean; reason?: string }
+  | { ok: false; reason: string };
+
+/**
+ * Called when the buyer opens a Vehicle Detail view. If the listing's source
+ * has a cooldown and the cooldown has elapsed, we re-stamp lastRefreshedAt and
+ * (in a real system) kick a scraper refetch. For now we just bump the
+ * timestamp so downstream UIs see the row as "just looked at."
+ */
+export async function refreshListing(id: string): Promise<RefreshResult> {
+  const existing = await getListingFromStore(id);
+  if (!existing) return { ok: false, reason: "Listing not found" };
+
+  const decision = shouldRefresh(existing.source, existing.lastRefreshedAt);
+  if (!decision.refresh) {
+    return {
+      ok: true,
+      listing: existing,
+      refreshed: false,
+      reason: decision.reason,
+    };
+  }
+  const updated = await upsertListing({
+    listing: listingToInsert({ ...existing, lastRefreshedAt: nowIso() }),
+    client: "admin",
   });
+  return { ok: true, listing: updated, refreshed: true };
+}
 
-export type VinLookup = {
-  vin: string;
-  year: number;
-  make: string;
-  model: string;
-  trim?: string;
-  mileage?: number;
-  titleStatus?: TitleStatus;
-};
+// --- Idle sweep ---------------------------------------------------------------
 
-export const lookupVin = async (vin: string): Promise<VinLookup | null> => ({
-  vin,
-  year: 2019,
-  make: "Honda",
-  model: "Accord",
-  trim: "Sport",
-  mileage: 58000,
-  titleStatus: "clean",
-});
+export async function idleSweep(): Promise<{ marked: number }> {
+  const { marked } = await runIdleSweep();
+  return { marked };
+}
 
-export const uploadUserListing = async (input: {
+export async function markListingStatus(
+  id: string,
+  status: "active" | "stale" | "removed",
+): Promise<void> {
+  await setListingStatus(id, status);
+}
+
+// --- Link parser --------------------------------------------------------------
+
+export type LinkParseServiceResult =
+  | { ok: true; listing: ListingObject }
+  | { ok: false; reason: string };
+
+/**
+ * Parse a URL and persist the resulting skeleton ListingObject (with owner =
+ * current authenticated user). Returns the persisted row so the Search Intake
+ * can immediately render the four-path display.
+ */
+export async function parseLink(
+  url: string,
+  ownerUserId?: string,
+): Promise<LinkParseServiceResult> {
+  const result: LinkParseResult = parseLinkUrl(url);
+  if (!result.ok) return { ok: false, reason: result.reason };
+  const listing = { ...result.listing, ownerUserId };
+  const insert = listingToInsert(listing);
+  const persisted = await upsertListing({ listing: insert });
+  return { ok: true, listing: persisted };
+}
+
+export async function submitManualFallback(
+  input: ManualFallbackInput,
+  ownerUserId?: string,
+): Promise<LinkParseServiceResult> {
+  const result = parseManualFallback(input);
+  if (!result.ok) return { ok: false, reason: result.reason };
+  const listing = { ...result.listing, ownerUserId };
+  const insert = listingToInsert(listing);
+  const persisted = await upsertListing({ listing: insert });
+  return { ok: true, listing: persisted };
+}
+
+// --- VIN lookup ---------------------------------------------------------------
+
+export type VinLookup = VinLookupResponse;
+
+export const lookupVin = async (vin: string): Promise<VinLookup> =>
+  lookupVinInternal(vin);
+
+// --- User + dealer upload -----------------------------------------------------
+
+export type ListingSubmitResult =
+  | { ok: true; listing: ListingObject }
+  | { ok: false; reason: string; field?: string };
+
+type SubmitInput = {
   ownerUserId: string;
-  listing: Omit<ListingObject, "id" | "sourceUpdatedAt" | "lastRefreshedAt" | "status">;
-}): Promise<ListingObject> =>
-  makeFixtureListingObject({
-    ...input.listing,
-    ownerUserId: input.ownerUserId,
-    source: "user",
-  });
+  form: ListingFormInput;
+};
 
-export const upsertDealerListing = async (input: {
-  ownerUserId: string;
-  listing: Omit<ListingObject, "id" | "sourceUpdatedAt" | "lastRefreshedAt" | "status">;
-}): Promise<ListingObject> =>
-  makeFixtureListingObject({
-    ...input.listing,
-    ownerUserId: input.ownerUserId,
-    source: "dealer",
-  });
+async function submitOwnerListing(
+  source: "user" | "dealer",
+  { ownerUserId, form }: SubmitInput,
+): Promise<ListingSubmitResult> {
+  const validated = validateListingForm(form);
+  if (!validated.ok) {
+    return { ok: false, reason: validated.error, field: validated.field };
+  }
+  const v = validated.value;
+  const sourceUrl =
+    v.sourceUrl ??
+    `https://pickandbuild.example.com/${source}-post/${ownerUserId}/${v.year}-${v.make}-${v.model}`.toLowerCase();
+
+  const listing: Omit<ListingObject, "id"> = {
+    source,
+    sourceUrl,
+    vin: v.vin,
+    year: v.year,
+    make: v.make,
+    model: v.model,
+    trim: v.trim,
+    mileage: v.mileage,
+    titleStatus: v.titleStatus,
+    price: v.price,
+    photos: v.photos,
+    locationZip: v.locationZip,
+    sourceUpdatedAt: nowIso(),
+    lastRefreshedAt: nowIso(),
+    status: "active",
+    ownerUserId,
+  };
+
+  const persisted = await upsertListing({ listing: listingToInsert(listing) });
+  return { ok: true, listing: persisted };
+}
+
+export const uploadUserListing = (input: SubmitInput): Promise<ListingSubmitResult> =>
+  submitOwnerListing("user", input);
+
+export const upsertDealerListing = (input: SubmitInput): Promise<ListingSubmitResult> =>
+  submitOwnerListing("dealer", input);
