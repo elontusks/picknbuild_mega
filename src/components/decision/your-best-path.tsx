@@ -1,0 +1,171 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import type { BestFitPreference, PathKind, PathQuote } from "@/contracts";
+import {
+  recommendBestPath,
+  type RecommendationOutput,
+} from "@/services/team-11-intelligence";
+import { useIntakeState } from "@/lib/intake";
+
+const PATH_LABEL: Record<PathKind, string> = {
+  dealer: "Dealer",
+  picknbuild: "picknbuild",
+  auction: "Auction",
+  private: "Private seller",
+};
+
+type Props = {
+  quotes: PathQuote[];
+  bestFit?: BestFitPreference;
+  onSelectPath?: (p: PathKind) => void;
+};
+
+/**
+ * Your Best Path Right Now (ch/00, ch/06). Renders Team 11's recommendation
+ * for the current IntakeState + four PathQuotes. Sticky card surfaced above
+ * the See Where You Stand panel; the primary CTA points back into the
+ * recommended path's card / configurator entry.
+ */
+export function YourBestPathRightNow({
+  quotes,
+  bestFit,
+  onSelectPath,
+}: Props) {
+  const intake = useIntakeState();
+  const [output, setOutput] = useState<RecommendationOutput | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const quotesKey = useMemo(
+    () =>
+      quotes
+        .map(
+          (q) =>
+            `${q.path}:${q.total}:${q.down ?? "_"}:${q.biweekly ?? "_"}:${q.monthly ?? "_"}:${q.apr ?? "_"}:${q.term ?? "_"}:${q.approvedBool ?? "_"}:${q.titleStatus}`,
+        )
+        .join("|"),
+    [quotes],
+  );
+
+  const intakeKey = useMemo(
+    () =>
+      JSON.stringify({
+        cash: intake.cash,
+        c: intake.creditScore ?? null,
+        n: intake.noCredit,
+        t: intake.titlePreference,
+        bf: bestFit ?? null,
+      }),
+    [intake.cash, intake.creditScore, intake.noCredit, intake.titlePreference, bestFit],
+  );
+
+  useEffect(() => {
+    if (quotes.length === 0) {
+      // Render-time early-return handles the empty case; leaving a stale
+      // `output` cached is fine because it's never shown.
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    recommendBestPath({ intake, quotes, bestFit })
+      .then((res) => {
+        if (cancelled) return;
+        setOutput(res);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setOutput(null);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // intake/quotes/bestFit captured via memo keys so we don't thrash on
+    // identity-only changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quotesKey, intakeKey]);
+
+  if (quotes.length === 0) {
+    return (
+      <aside
+        data-decision="your-best-path"
+        data-testid="your-best-path-empty"
+        className="rounded-2xl border border-dashed border-zinc-200 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+      >
+        Pick a vehicle to see your best path right now.
+      </aside>
+    );
+  }
+
+  if (!output) {
+    return (
+      <aside
+        data-decision="your-best-path"
+        data-testid="your-best-path-loading"
+        aria-busy={loading}
+        className="rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+      >
+        Calculating your best path…
+      </aside>
+    );
+  }
+
+  return (
+    <aside
+      data-decision="your-best-path"
+      data-testid="your-best-path"
+      data-recommended-path={output.recommendedPath}
+      className="sticky top-2 z-10 flex flex-col gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 p-4 shadow-sm dark:border-emerald-700/60 dark:bg-emerald-950/40"
+    >
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+            Your best path right now
+          </p>
+          <h2
+            data-testid="best-path-name"
+            className="text-lg font-semibold text-zinc-900 dark:text-white"
+          >
+            {PATH_LABEL[output.recommendedPath]}
+          </h2>
+        </div>
+        <button
+          type="button"
+          data-testid="best-path-cta"
+          onClick={() => onSelectPath?.(output.recommendedPath)}
+          className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+        >
+          {output.primaryCta.label}
+        </button>
+      </header>
+      <p
+        data-testid="best-path-reason"
+        className="text-sm text-zinc-700 dark:text-zinc-200"
+      >
+        {output.reason}
+      </p>
+      {output.supportingBullets.length > 0 ? (
+        <ul
+          data-testid="best-path-bullets"
+          className="ml-4 list-disc text-xs text-zinc-700 dark:text-zinc-200"
+        >
+          {output.supportingBullets.map((b, i) => (
+            <li key={i}>{b}</li>
+          ))}
+        </ul>
+      ) : null}
+      {output.alternatives.length > 0 ? (
+        <p
+          data-testid="best-path-alternatives"
+          className="text-xs text-zinc-500 dark:text-zinc-400"
+        >
+          Also worth considering:{" "}
+          {output.alternatives.map((p) => PATH_LABEL[p]).join(" · ")}
+        </p>
+      ) : null}
+    </aside>
+  );
+}

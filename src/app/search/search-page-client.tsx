@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { IntakeState, ListingObject, User } from "@/contracts";
+import type { IntakeState, ListingObject, PathQuote, User } from "@/contracts";
 import {
   IntakeProvider,
   applyTitleFilter,
@@ -13,19 +13,27 @@ import {
   SearchFilterControlPanel,
   TopControlsBar,
 } from "@/components/intake";
+import {
+  SeeWhereYouStandPanel,
+  YourBestPathRightNow,
+} from "@/components/decision";
+import { quoteAllPaths } from "@/services/team-11-pricing";
 
 type Props = { user: User };
 
 export function SearchPageClient({ user }: Props) {
   return (
     <IntakeProvider user={user}>
-      <TopControlsContainer />
+      <TopControlsContainer user={user} />
     </IntakeProvider>
   );
 }
 
-function TopControlsContainer() {
+function TopControlsContainer({ user }: { user: User }) {
   const [parsedListings, setParsedListings] = useState<ListingObject[]>([]);
+  const [focusedListing, setFocusedListing] = useState<ListingObject | null>(
+    null,
+  );
   const onParsed = useCallback((listing: ListingObject) => {
     setParsedListings((prev) => [listing, ...prev.filter((l) => l.id !== listing.id)]);
   }, []);
@@ -45,16 +53,110 @@ function TopControlsContainer() {
             <DownPaymentTierTable />
           </div>
         </section>
-        <ListingsPreview parsedListings={parsedListings} />
+        <ListingsPreview
+          parsedListings={parsedListings}
+          focusedListing={focusedListing}
+          onFocusListing={setFocusedListing}
+        />
+        <DecisionSection listing={focusedListing} user={user} />
       </div>
     </>
   );
 }
 
+function DecisionSection({
+  listing,
+  user,
+}: {
+  listing: ListingObject | null;
+  user: User;
+}) {
+  const intake = useIntakeState();
+  const [quotes, setQuotes] = useState<PathQuote[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const intakeKey = useMemo(
+    () =>
+      JSON.stringify({
+        zip: intake.location.zip,
+        cash: intake.cash,
+        cs: intake.creditScore ?? null,
+        nc: intake.noCredit,
+        title: intake.titlePreference,
+        term: intake.selectedTerm ?? null,
+      }),
+    [intake],
+  );
+
+  useEffect(() => {
+    if (!listing) {
+      // Displayed quotes derive from `listing` below, so there's no stale-
+      // render risk leaving the cached `quotes` alone when focus clears.
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    quoteAllPaths(listing, intake)
+      .then((rows) => {
+        if (cancelled) return;
+        setQuotes(rows);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to price paths");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // intake captured via stable key; listing identity gates the fetch
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listing?.id, intakeKey]);
+
+  // Derive displayed quotes so that clearing focus instantly empties the
+  // decision surfaces without needing a setState-in-effect to clear `quotes`.
+  const displayedQuotes = listing ? quotes : [];
+
+  return (
+    <section
+      data-section="decision"
+      className="grid gap-4 lg:grid-cols-[1fr_2fr]"
+    >
+      <YourBestPathRightNow
+        quotes={displayedQuotes}
+        bestFit={user.preferences.bestFit}
+      />
+      <div className="flex flex-col gap-3">
+        {loading ? (
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Pricing all four paths…
+          </p>
+        ) : null}
+        {error ? (
+          <p className="text-xs text-rose-600 dark:text-rose-400">{error}</p>
+        ) : null}
+        <SeeWhereYouStandPanel
+          quotes={displayedQuotes}
+          listing={listing ?? undefined}
+        />
+      </div>
+    </section>
+  );
+}
+
 function ListingsPreview({
   parsedListings,
+  focusedListing,
+  onFocusListing,
 }: {
   parsedListings: ListingObject[];
+  focusedListing: ListingObject | null;
+  onFocusListing: (l: ListingObject | null) => void;
 }) {
   const state = useIntakeState();
   const [listings, setListings] = useState<ListingObject[]>([]);
@@ -93,6 +195,23 @@ function ListingsPreview({
     state.titlePreference,
   );
 
+  // Auto-focus the first available listing so the Decision panel always has
+  // a vehicle to render against. Clears focus when the result set empties.
+  useEffect(() => {
+    if (filtered.length === 0) {
+      if (focusedListing !== null) onFocusListing(null);
+      return;
+    }
+    const stillVisible =
+      focusedListing && filtered.some((l) => l.id === focusedListing.id);
+    if (!stillVisible) {
+      const first = filtered[0];
+      if (first) onFocusListing(first);
+    }
+    // Identity-only changes from new fetches shouldn't re-trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered.map((l) => l.id).join(",")]);
+
   return (
     <section className="flex flex-col gap-3" data-intake="listings-preview">
       <header className="flex items-center justify-between">
@@ -113,32 +232,42 @@ function ListingsPreview({
         </p>
       ) : (
         <ul className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((l) => (
-            <li
-              key={l.id}
-              data-listing-id={l.id}
-              className="flex flex-col gap-1 rounded-xl border border-zinc-200 bg-white p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-zinc-900 dark:text-white">
-                  {l.year || "—"} {l.make} {l.model}
-                </span>
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                  {l.source}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300">
-                {l.mileage !== undefined ? (
-                  <span>{l.mileage.toLocaleString()} mi</span>
-                ) : null}
-                {l.price !== undefined ? (
-                  <span>${l.price.toLocaleString()}</span>
-                ) : null}
-                {l.locationZip ? <span>ZIP {l.locationZip}</span> : null}
-                <span>Title: {l.titleStatus}</span>
-              </div>
-            </li>
-          ))}
+          {filtered.map((l) => {
+            const isFocused = focusedListing?.id === l.id;
+            return (
+              <li key={l.id} data-listing-id={l.id}>
+                <button
+                  type="button"
+                  onClick={() => onFocusListing(l)}
+                  aria-pressed={isFocused}
+                  className={`flex w-full flex-col gap-1 rounded-xl border p-4 text-left text-sm transition-colors ${
+                    isFocused
+                      ? "border-emerald-400 bg-emerald-50 dark:border-emerald-500/60 dark:bg-emerald-950/30"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-zinc-900 dark:text-white">
+                      {l.year || "—"} {l.make} {l.model}
+                    </span>
+                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                      {l.source}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300">
+                    {l.mileage !== undefined ? (
+                      <span>{l.mileage.toLocaleString()} mi</span>
+                    ) : null}
+                    {l.price !== undefined ? (
+                      <span>${l.price.toLocaleString()}</span>
+                    ) : null}
+                    {l.locationZip ? <span>ZIP {l.locationZip}</span> : null}
+                    <span>Title: {l.titleStatus}</span>
+                  </div>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
