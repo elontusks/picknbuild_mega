@@ -25,12 +25,21 @@ import { EVENTS, threadTopic } from "@/lib/messaging/topics";
 //   message_threads  → MessageThread, keyed by threadId
 //   messages         → Message[],     keyed by threadId (per-thread log)
 //   threads_by_user  → string[]       of threadIds, keyed by userId
-//   thread_reads     → { [userId]: lastReadAt }, keyed by threadId
+//   thread_reads     → { lastReadAt },  keyed by `${threadId}:${userId}`
 
 const THREAD_BUCKET = "message_threads";
 const MESSAGES_BUCKET = "messages";
 const THREADS_BY_USER_BUCKET = "threads_by_user";
 const THREAD_READS_BUCKET = "thread_reads";
+
+// Composite key: one record per (threadId, userId) pair instead of a
+// {userId → lastReadAt} map keyed by threadId. This lets each markThreadRead
+// be a single putRecord on a unique key, so concurrent calls from different
+// participants can't clobber each other's timestamps.
+const readStateId = (threadId: string, userId: string): string =>
+  `${threadId}:${userId}`;
+
+type ThreadReadRecord = { lastReadAt: string };
 
 const newId = (prefix: string): string => {
   const rand =
@@ -42,20 +51,8 @@ const newId = (prefix: string): string => {
 
 const nowIso = () => new Date().toISOString();
 
-// KNOWN: concurrent openOrCreateThread calls that land on the same
-// userId's index will race on this read-modify-write and can drop
-// thread ids. Safe within a single call, not safe across calls. Fix
-// requires an atomic appendToList(bucket, id, value) primitive from
-// Team 15; tracked in TEAMS.md under the Team 15 follow-ups note.
-const appendThreadIndex = async (userId: string, threadId: string) => {
-  const existing =
-    (await Storage.getRecord<string[]>(THREADS_BY_USER_BUCKET, userId)) ?? [];
-  if (existing.includes(threadId)) return;
-  await Storage.putRecord(THREADS_BY_USER_BUCKET, userId, [
-    ...existing,
-    threadId,
-  ]);
-};
+const appendThreadIndex = (userId: string, threadId: string) =>
+  Storage.appendToList(THREADS_BY_USER_BUCKET, userId, threadId);
 
 const loadThreadMessages = async (threadId: string): Promise<Message[]> =>
   (await Storage.getRecord<Message[]>(MESSAGES_BUCKET, threadId)) ?? [];
@@ -63,8 +60,12 @@ const loadThreadMessages = async (threadId: string): Promise<Message[]> =>
 // -- threads --------------------------------------------------------------
 
 export const listThreads = async (userId: string): Promise<MessageThread[]> => {
-  const ids =
+  const raw =
     (await Storage.getRecord<string[]>(THREADS_BY_USER_BUCKET, userId)) ?? [];
+  // appendToList is atomic but not deduping. Dedup defensively so that a
+  // double-append (e.g. replay of a fire-and-forget call) never renders
+  // the same thread twice.
+  const ids = Array.from(new Set(raw));
   const threads = await Promise.all(
     ids.map((id) => Storage.getRecord<MessageThread>(THREAD_BUCKET, id)),
   );
@@ -89,8 +90,9 @@ export const openOrCreateThread = async (input: {
   // thread lives under all of its participants' indexes.
   const [first] = input.participants;
   if (first) {
-    const ids =
+    const raw =
       (await Storage.getRecord<string[]>(THREADS_BY_USER_BUCKET, first)) ?? [];
+    const ids = Array.from(new Set(raw));
     const candidates = await Promise.all(
       ids.map((id) => Storage.getRecord<MessageThread>(THREAD_BUCKET, id)),
     );
@@ -196,38 +198,40 @@ export const sendMessage = async (input: {
   return message;
 };
 
-// Per-user read state. `thread_reads` bucket holds one row per thread,
-// value is a `{ userId → lastReadAt }` map so every participant's read
-// marker for a given thread lives together and unreadCount queries are
-// one getRecord. The read-modify-write here has the same cross-call
-// race as the other user-keyed indexes (see appendThreadIndex); when a
-// single user hits "mark read" concurrently the latest call wins, which
-// is acceptable since markThreadRead is monotonic (always advancing to
-// `now`) and a lost write just means a slightly-older timestamp.
+// Per-user read state. Each (threadId, userId) pair is its own row, so
+// markThreadRead is a single putRecord with no merge. No race even when
+// different participants mark the same thread read concurrently.
 export const markThreadRead = async (input: {
   userId: string;
   threadId: string;
 }): Promise<{ ok: true; lastReadAt: string }> => {
   const lastReadAt = nowIso();
-  const existing =
-    (await Storage.getRecord<Record<string, string>>(
-      THREAD_READS_BUCKET,
-      input.threadId,
-    )) ?? {};
-  await Storage.putRecord(THREAD_READS_BUCKET, input.threadId, {
-    ...existing,
-    [input.userId]: lastReadAt,
-  });
+  await Storage.putRecord<ThreadReadRecord>(
+    THREAD_READS_BUCKET,
+    readStateId(input.threadId, input.userId),
+    { lastReadAt },
+  );
   return { ok: true, lastReadAt };
 };
 
 export const getThreadReadState = async (
   threadId: string,
-): Promise<Record<string, string>> =>
-  (await Storage.getRecord<Record<string, string>>(
-    THREAD_READS_BUCKET,
-    threadId,
-  )) ?? {};
+): Promise<Record<string, string>> => {
+  const thread = await Storage.getRecord<MessageThread>(THREAD_BUCKET, threadId);
+  if (!thread) return {};
+  const entries = await Promise.all(
+    thread.participants.map(async (userId) => {
+      const row = await Storage.getRecord<ThreadReadRecord>(
+        THREAD_READS_BUCKET,
+        readStateId(threadId, userId),
+      );
+      return row ? ([userId, row.lastReadAt] as const) : null;
+    }),
+  );
+  return Object.fromEntries(
+    entries.filter((e): e is readonly [string, string] => e !== null),
+  );
+};
 
 // -- socket transport -----------------------------------------------------
 

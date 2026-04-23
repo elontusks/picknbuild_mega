@@ -1,35 +1,52 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Message } from "@/contracts";
 
-const { store, putRecord, getRecord, listRecords, removeRecord } = vi.hoisted(
-  () => {
-    const store = new Map<string, unknown>();
-    return {
-      store,
-      putRecord: vi.fn(async (bucket: string, id: string, value: unknown) => {
-        store.set(`${bucket}:${id}`, value);
-      }),
-      getRecord: vi.fn(async (bucket: string, id: string) => {
-        return store.get(`${bucket}:${id}`) ?? null;
-      }),
-      listRecords: vi.fn(async (bucket: string) => {
-        const prefix = `${bucket}:`;
-        return Array.from(store.entries())
-          .filter(([k]) => k.startsWith(prefix))
-          .map(([, v]) => v);
-      }),
-      removeRecord: vi.fn(async (bucket: string, id: string) => {
-        store.delete(`${bucket}:${id}`);
-      }),
-    };
-  },
-);
+const {
+  store,
+  putRecord,
+  getRecord,
+  listRecords,
+  removeRecord,
+  appendToList,
+} = vi.hoisted(() => {
+  const store = new Map<string, unknown>();
+  return {
+    store,
+    putRecord: vi.fn(async (bucket: string, id: string, value: unknown) => {
+      store.set(`${bucket}:${id}`, value);
+    }),
+    getRecord: vi.fn(async (bucket: string, id: string) => {
+      return store.get(`${bucket}:${id}`) ?? null;
+    }),
+    listRecords: vi.fn(async (bucket: string) => {
+      const prefix = `${bucket}:`;
+      return Array.from(store.entries())
+        .filter(([k]) => k.startsWith(prefix))
+        .map(([, v]) => v);
+    }),
+    removeRecord: vi.fn(async (bucket: string, id: string) => {
+      store.delete(`${bucket}:${id}`);
+    }),
+    // Mirrors the Postgres `secure_records_append_to_list` RPC: atomic
+    // append to an array value, creating the row as `[value]` if absent.
+    // The in-memory mock is trivially atomic because JS is single-threaded
+    // within a microtask tick, which is what we want for correctness tests.
+    appendToList: vi.fn(async (bucket: string, id: string, value: unknown) => {
+      const key = `${bucket}:${id}`;
+      const existing = store.get(key);
+      const arr = Array.isArray(existing) ? existing.slice() : [];
+      arr.push(value);
+      store.set(key, arr);
+    }),
+  };
+});
 
 vi.mock("@/services/team-15-storage", () => ({
   putRecord,
   getRecord,
   listRecords,
   removeRecord,
+  appendToList,
 }));
 
 import * as Messaging from "@/services/team-13-messaging";
@@ -147,6 +164,30 @@ describe("messaging — threads", () => {
     const stateC = await Messaging.getThreadReadState(thread.id);
     expect(stateC.u1).toBe(third.lastReadAt);
     expect(third.lastReadAt.localeCompare(first.lastReadAt)).toBeGreaterThan(0);
+  });
+
+  test("concurrent markThreadRead from different participants keeps every timestamp", async () => {
+    // The regression guard. Pre-fix, `thread_reads/{threadId}` was a
+    // {userId → lastReadAt} map updated via read-modify-write: parallel
+    // markThreadRead calls from different users dropped each other's
+    // writes. Now each (threadId, userId) pair is its own row, so
+    // concurrent puts land on distinct keys and nothing is clobbered.
+    const thread = await Messaging.openOrCreateThread({
+      participants: ["u_a", "u_b", "u_c", "u_d", "u_e"],
+      kind: "buyer-picknbuild",
+    });
+    const marks = await Promise.all(
+      thread.participants.map((userId) =>
+        Messaging.markThreadRead({ userId, threadId: thread.id }),
+      ),
+    );
+    const state = await Messaging.getThreadReadState(thread.id);
+    for (const [i, userId] of thread.participants.entries()) {
+      expect(state[userId]).toBe(marks[i]!.lastReadAt);
+    }
+    expect(Object.keys(state).sort()).toEqual(
+      [...thread.participants].sort(),
+    );
   });
 });
 
@@ -288,5 +329,59 @@ describe("messaging — topics", () => {
   test("thread topic matches the transport event format", () => {
     expect(threadTopic("t1")).toBe("thread:t1");
     expect(EVENTS.messageSent).toBe("message.sent");
+  });
+});
+
+describe("messaging — appendToList adoption", () => {
+  test("openOrCreateThread uses appendToList instead of read-modify-write", async () => {
+    appendToList.mockClear();
+    await Messaging.openOrCreateThread({
+      participants: ["u1", "u2", "u3"],
+      kind: "buyer-picknbuild",
+    });
+    // One atomic append per participant — no getRecord → push → putRecord
+    // dance. Guards against regressing back to the racy RMW.
+    expect(appendToList).toHaveBeenCalledTimes(3);
+    expect(appendToList.mock.calls.map((c) => c[0])).toEqual([
+      "threads_by_user",
+      "threads_by_user",
+      "threads_by_user",
+    ]);
+  });
+
+  test("concurrent openOrCreateThread calls for the same user keep every thread id", async () => {
+    // Fire N parallel creates. With the old RMW pattern, the last writer
+    // wins and most of the ids land only on their own participant's index.
+    // With appendToList each id is preserved on every participant's index.
+    const userId = "u_contested";
+    const peers = Array.from({ length: 10 }, (_, i) => `peer_${i}`);
+    const created = await Promise.all(
+      peers.map((peer) =>
+        Messaging.openOrCreateThread({
+          participants: [userId, peer],
+          kind: "buyer-dealer",
+        }),
+      ),
+    );
+    const createdIds = new Set(created.map((t) => t.id));
+    expect(createdIds.size).toBe(peers.length);
+
+    const visible = await Messaging.listThreads(userId);
+    const visibleIds = new Set(visible.map((t) => t.id));
+    expect(visibleIds).toEqual(createdIds);
+  });
+
+  test("listThreads dedupes if the same id appears twice in the index", async () => {
+    // Defense-in-depth: appendToList is atomic but not deduping, so a
+    // replayed/retried append shouldn't render the thread twice.
+    const thread = await Messaging.openOrCreateThread({
+      participants: ["dup_u"],
+      kind: "buyer-dealer",
+    });
+    // Force a duplicate in the index directly.
+    await appendToList("threads_by_user", "dup_u", thread.id);
+    const threads = await Messaging.listThreads("dup_u");
+    expect(threads).toHaveLength(1);
+    expect(threads[0]!.id).toBe(thread.id);
   });
 });

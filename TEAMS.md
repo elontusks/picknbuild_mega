@@ -62,7 +62,9 @@ Run from the parent checkout once the PR has merged.
 
 ## Follow-ups
 
-- **Team 13 — adopt `appendToList`.** Team 15 shipped `appendToList(bucket, id, value)` on `src/services/team-15-storage.ts` (atomic via the `secure_records_append_to_list` Postgres RPC). The `// KNOWN:` comments in `src/services/team-13-messaging.ts` and `src/services/team-13-notifications.ts` still point at their read-modify-write index updates — swap them to the new primitive to close the race Team 12 workflows + Team 14 payments can still trigger.
+_None. All Team 13 index/race follow-ups closed:_
+- `threads_by_user` and `notifications_by_user` switched to Team 15's atomic `appendToList`.
+- `thread_reads` shape changed from `{userId → lastReadAt}` keyed by threadId to one row per `(threadId, userId)` keyed by `${threadId}:${userId}`, so `markThreadRead` is a single `putRecord` with no merge. Concurrent writes from different participants can't clobber each other.
 
 ## Suggested two-person split
 

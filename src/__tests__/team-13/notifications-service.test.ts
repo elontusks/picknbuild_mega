@@ -1,34 +1,47 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-const { store, putRecord, getRecord, listRecords, removeRecord } = vi.hoisted(
-  () => {
-    const store = new Map<string, unknown>();
-    return {
-      store,
-      putRecord: vi.fn(async (bucket: string, id: string, value: unknown) => {
-        store.set(`${bucket}:${id}`, value);
-      }),
-      getRecord: vi.fn(async (bucket: string, id: string) => {
-        return store.get(`${bucket}:${id}`) ?? null;
-      }),
-      listRecords: vi.fn(async (bucket: string) => {
-        const prefix = `${bucket}:`;
-        return Array.from(store.entries())
-          .filter(([k]) => k.startsWith(prefix))
-          .map(([, v]) => v);
-      }),
-      removeRecord: vi.fn(async (bucket: string, id: string) => {
-        store.delete(`${bucket}:${id}`);
-      }),
-    };
-  },
-);
+const {
+  store,
+  putRecord,
+  getRecord,
+  listRecords,
+  removeRecord,
+  appendToList,
+} = vi.hoisted(() => {
+  const store = new Map<string, unknown>();
+  return {
+    store,
+    putRecord: vi.fn(async (bucket: string, id: string, value: unknown) => {
+      store.set(`${bucket}:${id}`, value);
+    }),
+    getRecord: vi.fn(async (bucket: string, id: string) => {
+      return store.get(`${bucket}:${id}`) ?? null;
+    }),
+    listRecords: vi.fn(async (bucket: string) => {
+      const prefix = `${bucket}:`;
+      return Array.from(store.entries())
+        .filter(([k]) => k.startsWith(prefix))
+        .map(([, v]) => v);
+    }),
+    removeRecord: vi.fn(async (bucket: string, id: string) => {
+      store.delete(`${bucket}:${id}`);
+    }),
+    appendToList: vi.fn(async (bucket: string, id: string, value: unknown) => {
+      const key = `${bucket}:${id}`;
+      const existing = store.get(key);
+      const arr = Array.isArray(existing) ? existing.slice() : [];
+      arr.push(value);
+      store.set(key, arr);
+    }),
+  };
+});
 
 vi.mock("@/services/team-15-storage", () => ({
   putRecord,
   getRecord,
   listRecords,
   removeRecord,
+  appendToList,
 }));
 
 import * as Notifications from "@/services/team-13-notifications";
@@ -419,5 +432,58 @@ describe("notifications — digest", () => {
     const result = await Notifications.sendDigest({ userId: "u1" });
     expect(result.sent).toBe(false);
     expect(emailSpy.sent).toHaveLength(0);
+  });
+});
+
+describe("notifications — appendToList adoption", () => {
+  test("emitNotification uses appendToList for the per-user index", async () => {
+    appendToList.mockClear();
+    await Notifications.emitNotification({
+      userId: "u1",
+      category: "payment",
+      payload: { ok: true },
+      channels: ["in-app"],
+    });
+    expect(appendToList).toHaveBeenCalledWith(
+      "notifications_by_user",
+      "u1",
+      expect.stringMatching(/^notif_/),
+    );
+  });
+
+  test("concurrent emitNotification for the same user keeps every id", async () => {
+    // This is the race Team 12 workflows + Team 14 payments can trigger
+    // (both fan out notifications fire-and-forget). The old RMW dropped
+    // ids; appendToList must preserve all of them.
+    const N = 12;
+    await Promise.all(
+      Array.from({ length: N }, (_, i) =>
+        Notifications.emitNotification({
+          userId: "u_race",
+          category: "system",
+          payload: { seq: i },
+          channels: ["in-app"],
+        }),
+      ),
+    );
+    const visible = await Notifications.listNotifications("u_race");
+    expect(visible).toHaveLength(N);
+    const seqs = visible
+      .map((n) => (n.payload as { seq: number }).seq)
+      .sort((a, b) => a - b);
+    expect(seqs).toEqual(Array.from({ length: N }, (_, i) => i));
+  });
+
+  test("listNotifications dedupes a duplicated index entry", async () => {
+    const [n] = await Notifications.emitNotification({
+      userId: "dup_u",
+      category: "system",
+      payload: {},
+      channels: ["in-app"],
+    });
+    await appendToList("notifications_by_user", "dup_u", n!.id);
+    const visible = await Notifications.listNotifications("dup_u");
+    expect(visible).toHaveLength(1);
+    expect(visible[0]!.id).toBe(n!.id);
   });
 });
