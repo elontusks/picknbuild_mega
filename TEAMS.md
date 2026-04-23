@@ -58,7 +58,7 @@ Run from the parent checkout once the PR has merged.
 | 8 | Garage | 13 | amogh kuppa | team-8/garage | merged |
 | 9 | Commit / Checkout (configurator, deposit) | 14 | amogh kuppa | team-9/commit-checkout | merged |
 | 10 | Post-Deposit Dashboard | 15 | amogh kuppa | team-10/post-deposit | merged |
-| 16 | Feed | 16 | amogh kuppa | team-16/feed | in progress |
+| 16 | Feed | 16 | amogh kuppa | team-16/feed | merged |
 
 ## Follow-ups
 
