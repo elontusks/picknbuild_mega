@@ -49,7 +49,7 @@ Run from the parent checkout once the PR has merged.
 | 12 | Workflows Backend (conversion state, signals) | 4 | amogh kuppa | team-12/workflows | merged |
 | 13 | Messaging + Notifications | 5 | amogh kuppa | team-13/messaging | merged |
 | 14 | Payments Backend (Stripe, subs, refunds) | 6 | amogh kuppa | team-14/payments | merged |
-| 15 | Admin + Integrity (dashboard, logging, storage) | 7 | amogh kuppa | team-15/admin-ui | storage slice merged; admin UI in progress |
+| 15 | Admin + Integrity (dashboard, logging, storage) | 7 | amogh kuppa | team-15/admin-ui | merged |
 | 2 | Profiles (buyer/dealer/seller + dealer edit) | 8 | amogh kuppa | team-2/profiles | merged |
 | 4 | Search Intake (top controls, IntakeState) | 9 | athin shetty | team-4/search-intake | merged |
 | 5 | Four-Path Comparison | 10 | athin shetty | team-5/four-path | merged |
