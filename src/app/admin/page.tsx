@@ -6,26 +6,35 @@ import { listAllUsers } from "@/lib/admin/users";
 import { listAllDealRequests } from "@/services/team-10-dashboard";
 import { getLatestIngestionRun } from "@/lib/admin/ingestion";
 import { countListings } from "@/lib/admin/listings";
+import { countFeedPosts } from "@/services/team-16-feed";
 import { AdminTile } from "@/components/admin/admin-tile";
 
 const DEAL_BUCKET = "deals";
 
-// Feed isn't wired up yet (Team 16 not live); we render a placeholder tile
-// rather than querying a non-existent bucket. If Team 16 lands, swap the
-// value for a count from their bucket.
-const FEED_LIVE = false;
+// Team 16 Feed is live — the tile shows the post count read from the feed
+// index bucket. Flip this to false only if the feed is temporarily dark.
+const FEED_LIVE = true;
 
 export default async function AdminOverviewPage() {
-  const [users, deals, payments, subscriptions, dealRequests, ingestion, listingsCount] =
-    await Promise.all([
-      listAllUsers(),
-      Storage.listRecords<DealRecord>(DEAL_BUCKET),
-      Storage.listRecords<PaymentRecord>(PAYMENTS_BUCKET),
-      Storage.listRecords<Subscription>(SUBSCRIPTIONS_BUCKET),
-      listAllDealRequests(),
-      getLatestIngestionRun(),
-      countListings(),
-    ]);
+  const [
+    users,
+    deals,
+    payments,
+    subscriptions,
+    dealRequests,
+    ingestion,
+    listingsCount,
+    feedPostCount,
+  ] = await Promise.all([
+    listAllUsers(),
+    Storage.listRecords<DealRecord>(DEAL_BUCKET),
+    Storage.listRecords<PaymentRecord>(PAYMENTS_BUCKET),
+    Storage.listRecords<Subscription>(SUBSCRIPTIONS_BUCKET),
+    listAllDealRequests(),
+    getLatestIngestionRun(),
+    countListings(),
+    FEED_LIVE ? countFeedPosts() : Promise.resolve(0),
+  ]);
 
   const pendingRequests = dealRequests.filter(
     (r) => r.status === "submitted",
@@ -77,8 +86,8 @@ export default async function AdminOverviewPage() {
         testId="tile-feed"
         href="/admin/monitoring"
         label="Feed activity"
-        value="—"
-        hint={FEED_LIVE ? "live" : "Feed not live (Team 16 pending)"}
+        value={FEED_LIVE ? String(feedPostCount) : "—"}
+        hint={FEED_LIVE ? "posts" : "Feed not live"}
       />
       <AdminTile
         testId="tile-ingestion"
