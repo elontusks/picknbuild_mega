@@ -165,6 +165,30 @@ describe("messaging — threads", () => {
     expect(stateC.u1).toBe(third.lastReadAt);
     expect(third.lastReadAt.localeCompare(first.lastReadAt)).toBeGreaterThan(0);
   });
+
+  test("concurrent markThreadRead from different participants keeps every timestamp", async () => {
+    // The regression guard. Pre-fix, `thread_reads/{threadId}` was a
+    // {userId → lastReadAt} map updated via read-modify-write: parallel
+    // markThreadRead calls from different users dropped each other's
+    // writes. Now each (threadId, userId) pair is its own row, so
+    // concurrent puts land on distinct keys and nothing is clobbered.
+    const thread = await Messaging.openOrCreateThread({
+      participants: ["u_a", "u_b", "u_c", "u_d", "u_e"],
+      kind: "buyer-picknbuild",
+    });
+    const marks = await Promise.all(
+      thread.participants.map((userId) =>
+        Messaging.markThreadRead({ userId, threadId: thread.id }),
+      ),
+    );
+    const state = await Messaging.getThreadReadState(thread.id);
+    for (const [i, userId] of thread.participants.entries()) {
+      expect(state[userId]).toBe(marks[i]!.lastReadAt);
+    }
+    expect(Object.keys(state).sort()).toEqual(
+      [...thread.participants].sort(),
+    );
+  });
 });
 
 describe("messaging — messages", () => {

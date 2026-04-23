@@ -25,12 +25,21 @@ import { EVENTS, threadTopic } from "@/lib/messaging/topics";
 //   message_threads  → MessageThread, keyed by threadId
 //   messages         → Message[],     keyed by threadId (per-thread log)
 //   threads_by_user  → string[]       of threadIds, keyed by userId
-//   thread_reads     → { [userId]: lastReadAt }, keyed by threadId
+//   thread_reads     → { lastReadAt },  keyed by `${threadId}:${userId}`
 
 const THREAD_BUCKET = "message_threads";
 const MESSAGES_BUCKET = "messages";
 const THREADS_BY_USER_BUCKET = "threads_by_user";
 const THREAD_READS_BUCKET = "thread_reads";
+
+// Composite key: one record per (threadId, userId) pair instead of a
+// {userId → lastReadAt} map keyed by threadId. This lets each markThreadRead
+// be a single putRecord on a unique key, so concurrent calls from different
+// participants can't clobber each other's timestamps.
+const readStateId = (threadId: string, userId: string): string =>
+  `${threadId}:${userId}`;
+
+type ThreadReadRecord = { lastReadAt: string };
 
 const newId = (prefix: string): string => {
   const rand =
@@ -189,37 +198,40 @@ export const sendMessage = async (input: {
   return message;
 };
 
-// KNOWN: `thread_reads/{threadId}` stores a `{userId → lastReadAt}` map, not
-// a list, so appendToList doesn't fit. When two DIFFERENT participants call
-// markThreadRead on the same thread concurrently, the second write can wipe
-// out the first user's lastReadAt entirely — worse than a monotonic single-
-// user race. Fix needs either (a) a shape change to one record per
-// (threadId,userId) keyed by `${threadId}:${userId}`, or (b) a new jsonbSet
-// atomic primitive from Team 15. Tracked in TEAMS.md follow-ups.
+// Per-user read state. Each (threadId, userId) pair is its own row, so
+// markThreadRead is a single putRecord with no merge. No race even when
+// different participants mark the same thread read concurrently.
 export const markThreadRead = async (input: {
   userId: string;
   threadId: string;
 }): Promise<{ ok: true; lastReadAt: string }> => {
   const lastReadAt = nowIso();
-  const existing =
-    (await Storage.getRecord<Record<string, string>>(
-      THREAD_READS_BUCKET,
-      input.threadId,
-    )) ?? {};
-  await Storage.putRecord(THREAD_READS_BUCKET, input.threadId, {
-    ...existing,
-    [input.userId]: lastReadAt,
-  });
+  await Storage.putRecord<ThreadReadRecord>(
+    THREAD_READS_BUCKET,
+    readStateId(input.threadId, input.userId),
+    { lastReadAt },
+  );
   return { ok: true, lastReadAt };
 };
 
 export const getThreadReadState = async (
   threadId: string,
-): Promise<Record<string, string>> =>
-  (await Storage.getRecord<Record<string, string>>(
-    THREAD_READS_BUCKET,
-    threadId,
-  )) ?? {};
+): Promise<Record<string, string>> => {
+  const thread = await Storage.getRecord<MessageThread>(THREAD_BUCKET, threadId);
+  if (!thread) return {};
+  const entries = await Promise.all(
+    thread.participants.map(async (userId) => {
+      const row = await Storage.getRecord<ThreadReadRecord>(
+        THREAD_READS_BUCKET,
+        readStateId(threadId, userId),
+      );
+      return row ? ([userId, row.lastReadAt] as const) : null;
+    }),
+  );
+  return Object.fromEntries(
+    entries.filter((e): e is readonly [string, string] => e !== null),
+  );
+};
 
 // -- socket transport -----------------------------------------------------
 

@@ -62,7 +62,9 @@ Run from the parent checkout once the PR has merged.
 
 ## Follow-ups
 
-- **Team 13 — `thread_reads` map-update race.** `src/services/team-13-messaging.ts:markThreadRead` still does a read-modify-write on a `Record<userId, lastReadAt>` stored at `thread_reads/{threadId}`. Two different participants calling markThreadRead on the same thread concurrently can wipe each other's lastReadAt. `appendToList` doesn't fit (it's a map, not a list). Fix needs either a shape change (one record per `(threadId,userId)` keyed by `${threadId}:${userId}`) or a `jsonbSetKey` atomic primitive from Team 15. The other two list-append sites (`threads_by_user`, `notifications_by_user`) now use Team 15's atomic `appendToList` — only this map-update case remains.
+_None. All Team 13 index/race follow-ups closed:_
+- `threads_by_user` and `notifications_by_user` switched to Team 15's atomic `appendToList`.
+- `thread_reads` shape changed from `{userId → lastReadAt}` keyed by threadId to one row per `(threadId, userId)` keyed by `${threadId}:${userId}`, so `markThreadRead` is a single `putRecord` with no merge. Concurrent writes from different participants can't clobber each other.
 
 ## Suggested two-person split
 
