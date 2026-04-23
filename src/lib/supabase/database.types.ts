@@ -611,7 +611,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      secure_records_append_to_list: {
+        Args: {
+          p_bucket: string
+          p_id: string
+          p_value: Json
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       garage_action_kind:
