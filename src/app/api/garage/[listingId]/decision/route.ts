@@ -1,0 +1,54 @@
+import { NextResponse } from "next/server";
+import { requireCap } from "@/lib/authz/server/require-cap";
+import { CAPABILITIES as C } from "@/lib/authz/capabilities";
+import {
+  updateDecision,
+  type GarageDecision,
+} from "@/services/team-08-garage";
+
+type Ctx = { params: Promise<{ listingId: string }> };
+
+const DECISIONS: ReadonlySet<GarageDecision> = new Set<GarageDecision>([
+  "pick",
+  "pass",
+  null,
+]);
+
+/**
+ * POST /api/garage/[listingId]/decision — flip the per-item pass/pick flag.
+ *
+ * Uses `C.garage.pick` for every decision value, including `null`. The
+ * pick/unpick capability split is about *adding the vehicle to the garage*
+ * (pick) vs *removing it* (unpick — DELETE on the parent resource). Flipping
+ * the pass/pick marker doesn't add or remove anything from the garage, so it
+ * stays on the pick side of the split. DELETE /api/garage/[listingId] is the
+ * unpick surface.
+ *
+ * No ownership resolver: the write is scoped to the principal by
+ * `updateDecision({ userId: principal.id, ... })`, mirroring how
+ * `/api/garage` handles the CRUD pair.
+ */
+export const POST = requireCap<Ctx>(C.garage.pick)(
+  async (req, ctx, principal) => {
+    const { listingId } = await ctx.params;
+    const body = (await req.json().catch(() => ({}))) as {
+      decision?: GarageDecision;
+    };
+    if (!DECISIONS.has(body.decision ?? null)) {
+      return NextResponse.json(
+        { error: "invalid decision" },
+        { status: 400 },
+      );
+    }
+    const decision: GarageDecision = body.decision ?? null;
+    const item = await updateDecision({
+      userId: principal.id,
+      listingId,
+      decision,
+    });
+    if (!item) {
+      return NextResponse.json({ error: "not saved" }, { status: 404 });
+    }
+    return NextResponse.json({ item });
+  },
+);
