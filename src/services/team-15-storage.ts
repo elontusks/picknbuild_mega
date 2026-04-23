@@ -88,6 +88,32 @@ export const removeRecord = async (
   }
 };
 
+// Atomic list-append primitive. Background: Team 13's notifications_by_user,
+// threads_by_user and thread_reads buckets all use a read-modify-write pattern
+// (getRecord → array.push → putRecord) that races under concurrent writes and
+// silently drops ids. This primitive wraps the append in a single Postgres
+// statement via the `secure_records_append_to_list` RPC so concurrent callers
+// can't clobber each other. Callers that opt in should switch from the
+// read-modify-write pattern; consumers that haven't adopted it yet keep
+// working against the existing get/put pair.
+export const appendToList = async <T>(
+  bucket: string,
+  id: string,
+  value: T,
+): Promise<void> => {
+  const supabase = createAdminClient();
+  const { error } = await supabase.rpc("secure_records_append_to_list", {
+    p_bucket: bucket,
+    p_id: id,
+    p_value: value as never,
+  });
+  if (error) {
+    throw new Error(
+      `[team-15-storage] appendToList(${bucket}/${id}) failed: ${error.message}`,
+    );
+  }
+};
+
 export type SponsorBlock = {
   id: string;
   path: "dealer" | "auction" | "picknbuild" | "private";
