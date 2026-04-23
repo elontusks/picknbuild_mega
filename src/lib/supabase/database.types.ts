@@ -619,6 +619,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      secure_records_compare_and_set: {
+        Args: {
+          p_bucket: string
+          p_id: string
+          p_expected: Json
+          p_next: Json
+        }
+        Returns: number
+      }
     }
     Enums: {
       garage_action_kind:

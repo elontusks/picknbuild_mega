@@ -10,9 +10,10 @@ import {
 } from "@/lib/admin/ingestion";
 import { markListingStatus } from "@/services/team-03-supply";
 import {
+  DEAL_REQUESTS_BUCKET,
   getDealRequest,
-  putDealRequest,
 } from "@/services/team-10-dashboard";
+import { compareAndSetRecord } from "@/services/team-15-storage";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -96,7 +97,22 @@ export async function acknowledgeDealRequestAction(input: {
       error: `request already in status "${existing.status}"`,
     };
   }
-  await putDealRequest({ ...existing, status: "acknowledged" });
+  // CAS: two admins hitting this at the same time would both pass the
+  // guard above under a naive read-then-put. Push the transition into a
+  // single UPDATE so whoever loses the race walks away with `false` and
+  // no second log row gets written.
+  const updated = await compareAndSetRecord(
+    DEAL_REQUESTS_BUCKET,
+    existing.id,
+    existing,
+    { ...existing, status: "acknowledged" as const },
+  );
+  if (!updated) {
+    return {
+      ok: false,
+      error: "request changed underneath us; refresh and try again",
+    };
+  }
   await Promise.all([
     recordModerationAction({
       actor: admin.id,
@@ -210,6 +226,13 @@ export type SponsorUpsertInput = {
   active?: boolean;
 };
 
+// Trust boundary: `bodyHtml` is stored raw and rendered by Team 5's
+// sponsor board via `dangerouslySetInnerHTML`. That's intentional — ops
+// wants to paste tracked-link anchors and styled copy — but it means this
+// action is a stored-XSS sink by design. The requireAdmin() gate is the
+// only thing standing between a sponsor write and arbitrary HTML landing
+// on every shopper's search screen, so keep it here and do NOT export a
+// non-admin codepath.
 export async function upsertSponsorAction(
   input: SponsorUpsertInput,
 ): Promise<ActionResult> {

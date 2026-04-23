@@ -2,6 +2,7 @@ import "server-only";
 
 import { nowIso } from "@/contracts";
 import * as Storage from "@/services/team-15-storage";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Ad-hoc moderation ledger. ARCHITECTURE §7 drops the full "report queue"
 // concept and §5 Team 15 narrows us to "Manual Moderation Actions" —
@@ -57,8 +58,26 @@ export const listModerationLogForTarget = async (
   targetKind: ModerationTargetKind,
   targetId: string,
 ): Promise<ModerationLogEntry[]> => {
-  const all = await listModerationLog();
-  return all.filter(
-    (r) => r.targetKind === targetKind && r.targetId === targetId,
+  // Filter in the database so the listing-detail page stays cheap as the
+  // moderation log grows. Bucket rows are jsonb; we can index on
+  // (bucket, value->>'targetKind', value->>'targetId') later if this
+  // becomes hot. Fallback: if the query errors (schema drift, etc.)
+  // surface an empty list rather than pulling the whole bucket, since a
+  // silent in-memory scan would defeat the reason we moved off it.
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("secure_records")
+    .select("value")
+    .eq("bucket", MODERATION_LOG_BUCKET)
+    .eq("value->>targetKind", targetKind)
+    .eq("value->>targetId", targetId)
+    .order("updated_at", { ascending: false });
+  if (error) {
+    throw new Error(
+      `[admin/moderation] listModerationLogForTarget failed: ${error.message}`,
+    );
+  }
+  return ((data ?? []).map((row) => row.value as ModerationLogEntry)).sort(
+    (a, b) => b.occurredAt.localeCompare(a.occurredAt),
   );
 };

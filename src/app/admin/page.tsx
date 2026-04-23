@@ -5,8 +5,8 @@ import { PAYMENTS_BUCKET, SUBSCRIPTIONS_BUCKET } from "@/services/team-14-paymen
 import { listAllUsers } from "@/lib/admin/users";
 import { listAllDealRequests } from "@/services/team-10-dashboard";
 import { getLatestIngestionRun } from "@/lib/admin/ingestion";
+import { countListings } from "@/lib/admin/listings";
 import { AdminTile } from "@/components/admin/admin-tile";
-import { listListings } from "@/lib/listings/store";
 
 const DEAL_BUCKET = "deals";
 
@@ -16,7 +16,7 @@ const DEAL_BUCKET = "deals";
 const FEED_LIVE = false;
 
 export default async function AdminOverviewPage() {
-  const [users, deals, payments, subscriptions, dealRequests, ingestion] =
+  const [users, deals, payments, subscriptions, dealRequests, ingestion, listingsCount] =
     await Promise.all([
       listAllUsers(),
       Storage.listRecords<DealRecord>(DEAL_BUCKET),
@@ -24,12 +24,8 @@ export default async function AdminOverviewPage() {
       Storage.listRecords<Subscription>(SUBSCRIPTIONS_BUCKET),
       listAllDealRequests(),
       getLatestIngestionRun(),
+      countListings(),
     ]);
-
-  // Listings go through Team 3's listings table, not a storage bucket.
-  // Pull all statuses so the admin count reflects inventory regardless of
-  // "active/stale/removed".
-  const listings = await listListings({ status: "any", limit: 100 });
 
   const pendingRequests = dealRequests.filter(
     (r) => r.status === "submitted",
@@ -50,8 +46,7 @@ export default async function AdminOverviewPage() {
         testId="tile-listings"
         href="/admin/listings"
         label="Listings"
-        value={String(listings.length)}
-        hint={`(page of up to 100)`}
+        value={String(listingsCount)}
       />
       <AdminTile
         testId="tile-deals"

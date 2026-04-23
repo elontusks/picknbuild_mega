@@ -58,6 +58,19 @@ vi.mock("@/services/team-15-storage", () => ({
   removeRecord: vi.fn(async (bucket: string, id: string) => {
     getBucket(bucket).delete(id);
   }),
+  // Simulated CAS: compare the current jsonb against `expected`; if deep
+  // equal, swap to `next` and return true. Otherwise return false. This
+  // mirrors the Postgres `value = jsonb` comparison semantics closely
+  // enough for unit coverage — the real atomicity story is the
+  // secure_records_compare_and_set RPC tested separately.
+  compareAndSetRecord: vi.fn(
+    async (bucket: string, id: string, expected: unknown, next: unknown) => {
+      const cur = getBucket(bucket).get(id);
+      if (JSON.stringify(cur) !== JSON.stringify(expected)) return false;
+      getBucket(bucket).set(id, next);
+      return true;
+    },
+  ),
 }));
 
 vi.mock("@/services/team-03-supply", () => ({
@@ -308,6 +321,33 @@ describe("acknowledgeDealRequestAction", () => {
     expect(res.ok).toBe(false);
     // Log not written on refusal.
     expect(allLogs()).toHaveLength(0);
+  });
+
+  test("second admin loses the CAS when another acknowledge landed first", async () => {
+    hoisted.getCurrentUser.mockResolvedValue(makeAdmin());
+    const req = seedRequest();
+
+    // Simulate a concurrent admin flipping the row between the first
+    // admin's `getDealRequest` and the CAS write. We patch getRecord so
+    // the first call returns the original submitted row (what the first
+    // admin "read"), then another write happens in the bucket (the race
+    // winner), and finally the CAS runs against the mutated row.
+    const storage = await import("@/services/team-15-storage");
+    const getSpy = vi
+      .spyOn(storage, "getRecord")
+      .mockImplementationOnce(async () => ({ ...req }));
+
+    // Race winner: a different admin already flipped it.
+    getBucket(DEAL_REQUESTS_BUCKET).set(req.id, {
+      ...req,
+      status: "acknowledged",
+    });
+
+    const res = await acknowledgeDealRequestAction({ requestId: req.id });
+    expect(res.ok).toBe(false);
+    // No second log row from the losing admin.
+    expect(allLogs()).toHaveLength(0);
+    getSpy.mockRestore();
   });
 });
 
