@@ -100,11 +100,13 @@ export function GarageComparisonTable({ rows, winners }: Props) {
                 winners.lowestTotalEntryId === row.entryId &&
                 !!quote &&
                 !(quote.path === "dealer" && quote.approvedBool === false) &&
-                winningTotal(quote, rows);
+                winners.minTotal !== undefined &&
+                quote.total === winners.minTotal;
               const isMonthlyWinner =
                 winners.lowestMonthlyEntryId === row.entryId &&
                 !!quote &&
-                winningMonthly(quote, rows);
+                winners.minMonthly !== undefined &&
+                matchesMinMonthly(quote, winners.minMonthly);
               return (
                 <tr
                   key={`${row.entryId}-${path}`}
@@ -166,34 +168,14 @@ export function GarageComparisonTable({ rows, winners }: Props) {
   );
 }
 
-// A quote is the total-winner only if its own total matches the minimum total
-// we picked out for the winning entry — otherwise the highlight spreads across
-// every path row of the winning vehicle, which hides which path actually won.
-const winningTotal = (q: PathQuote, rows: ComparisonRow[]): boolean => {
-  const approved = rows
-    .flatMap((r) => r.quotes)
-    .filter((candidate) => !(candidate.path === "dealer" && candidate.approvedBool === false))
-    .map((candidate) => candidate.total);
-  if (approved.length === 0) return false;
-  const min = Math.min(...approved);
-  return q.total === min && !(q.path === "dealer" && q.approvedBool === false);
-};
-
-const winningMonthly = (q: PathQuote, rows: ComparisonRow[]): boolean => {
-  const monthlies: number[] = [];
-  for (const r of rows) {
-    for (const cand of r.quotes) {
-      if (cand.path === "dealer") {
-        if (cand.approvedBool === false) continue;
-        if (cand.monthly !== undefined) monthlies.push(cand.monthly);
-      } else if (cand.path === "picknbuild" && cand.biweekly !== undefined) {
-        monthlies.push((cand.biweekly * 26) / 12);
-      }
-    }
+// Map a quote onto the same monthly axis `computeHighlights` uses: dealer
+// already expresses monthly, picknbuild scales biweekly to monthly. Any other
+// path doesn't have a monthly cadence and can't win the highlight.
+const matchesMinMonthly = (q: PathQuote, min: number): boolean => {
+  if (q.path === "dealer") {
+    if (q.approvedBool === false || q.monthly === undefined) return false;
+    return q.monthly === min;
   }
-  if (monthlies.length === 0) return false;
-  const min = Math.min(...monthlies);
-  if (q.path === "dealer" && q.monthly !== undefined) return q.monthly === min;
   if (q.path === "picknbuild" && q.biweekly !== undefined) {
     return (q.biweekly * 26) / 12 === min;
   }

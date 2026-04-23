@@ -67,7 +67,12 @@ export function GarageActionButtons({ listing, conversionState }: Props) {
     });
   };
 
-  const pastDecided = conversionState !== "decided";
+  // `decided` is the *first* entry in CONVERSION_STATE_ORDER and the default
+  // getConversionState returns when no record exists yet. So anything not
+  // equal to "decided" means the workflow (Team 12) has already moved into
+  // payment-initiated / deposit-received / post-deposit and we should hide
+  // Start picknbuild to prevent double-entry into checkout.
+  const conversionInProgress = conversionState !== "decided";
 
   return (
     <div
@@ -75,7 +80,7 @@ export function GarageActionButtons({ listing, conversionState }: Props) {
       data-conversion-state={conversionState}
       className="flex flex-wrap items-center gap-2"
     >
-      {pastDecided ? (
+      {conversionInProgress ? (
         <span
           data-testid="garage-action-in-progress"
           className="inline-flex items-center rounded-md bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100"

@@ -75,6 +75,15 @@ function GarageContainer({ user, seeds }: Props) {
     quotes: e.quotes,
   }));
 
+  // Intentionally two distinct zero-states:
+  //   seeds.length === 0  → nothing ever saved. No intake filter context can
+  //                         be responsible for the emptiness, so the filter
+  //                         chrome is noise and we short-circuit to the
+  //                         "save from search" empty-state.
+  //   seeds.length  > 0 && filtered.length === 0 → user has saved vehicles
+  //                         but current IntakeState hides them all. Filter
+  //                         chrome stays visible so they can see (and adjust)
+  //                         what's pruning the view.
   if (seeds.length === 0) {
     return (
       <section

@@ -16,6 +16,14 @@ const DECISIONS: ReadonlySet<GarageDecision> = new Set<GarageDecision>([
 
 /**
  * POST /api/garage/[listingId]/decision — flip the per-item pass/pick flag.
+ *
+ * Uses `C.garage.pick` for every decision value, including `null`. The
+ * pick/unpick capability split is about *adding the vehicle to the garage*
+ * (pick) vs *removing it* (unpick — DELETE on the parent resource). Flipping
+ * the pass/pick marker doesn't add or remove anything from the garage, so it
+ * stays on the pick side of the split. DELETE /api/garage/[listingId] is the
+ * unpick surface.
+ *
  * No ownership resolver: the write is scoped to the principal by
  * `updateDecision({ userId: principal.id, ... })`, mirroring how
  * `/api/garage` handles the CRUD pair.

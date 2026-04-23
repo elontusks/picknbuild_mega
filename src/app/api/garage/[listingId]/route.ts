@@ -18,13 +18,15 @@ type Ctx = { params: Promise<{ listingId: string }> };
  */
 export const DELETE = requireCap<Ctx>(
   C.garage.unpick,
-  async (_req) => {
-    // Resolve against the principal itself — garage records are self-owned
-    // by definition (the buyer is the only actor who can pick/unpick).
+  async (_req, ctx) => {
+    // Resolve against the principal itself for ownership — garage records
+    // are self-owned by definition (the buyer is the only actor who can
+    // pick/unpick) — but use the listingId as the resource id so audit logs
+    // and authz telemetry can attribute denials to the row being unpicked.
     const principal = await loadPrincipal();
-    return principal
-      ? { type: "garage_item", id: principal.id, owner_id: principal.id }
-      : undefined;
+    if (!principal) return undefined;
+    const { listingId } = await ctx.params;
+    return { type: "garage_item", id: listingId, owner_id: principal.id };
   },
 )(async (_req, ctx, principal) => {
   const { listingId } = await ctx.params;

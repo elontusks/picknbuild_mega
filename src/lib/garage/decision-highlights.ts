@@ -20,6 +20,10 @@ export type EntryHighlight = {
 export type HighlightWinners = {
   lowestTotalEntryId?: string;
   lowestMonthlyEntryId?: string;
+  /** Minimum approved total across every quote in every entry. */
+  minTotal?: number;
+  /** Minimum monthly-equivalent cadence across every quote in every entry. */
+  minMonthly?: number;
 };
 
 export type HighlightInput = {
@@ -69,6 +73,7 @@ export const computeHighlights = (
       (cur.total as number) < (acc.total as number) ? cur : acc,
     );
     winners.lowestTotalEntryId = winner.entryId;
+    winners.minTotal = winner.total;
   }
   const monthlies = perEntry.filter((e) => e.monthly !== undefined);
   if (monthlies.length > 0) {
@@ -76,6 +81,7 @@ export const computeHighlights = (
       (cur.monthly as number) < (acc.monthly as number) ? cur : acc,
     );
     winners.lowestMonthlyEntryId = winner.entryId;
+    winners.minMonthly = winner.monthly;
   }
   return { perEntry, winners };
 };
