@@ -125,6 +125,51 @@ describe("submitFeedPost", () => {
     });
     expect(result.ok).toBe(false);
   });
+
+  test("enforces server-side caps bypassed by the UI (body length, media shape, listing id, deal price)", async () => {
+    hoisted.requireUser.mockResolvedValue(makeFixtureUser({ id: "u_1" }));
+
+    // Body over 10KB is rejected server-side.
+    const huge = "x".repeat(10_001);
+    const r1 = await submitFeedPost({ kind: "question", body: huge });
+    expect(r1).toMatchObject({ ok: false });
+
+    // Non-data-URL media ref is rejected.
+    const r2 = await submitFeedPost({
+      kind: "question",
+      body: "ok",
+      mediaRefs: ["https://evil.example.com/image.png"],
+    });
+    expect(r2).toMatchObject({ ok: false });
+
+    // Too many media refs.
+    const tinyRef = "data:image/png;base64,AAA";
+    const r3 = await submitFeedPost({
+      kind: "question",
+      body: "ok",
+      mediaRefs: [tinyRef, tinyRef, tinyRef, tinyRef, tinyRef],
+    });
+    expect(r3).toMatchObject({ ok: false });
+
+    // Malformed listing id.
+    const r4 = await submitFeedPost({
+      kind: "question",
+      body: "ok",
+      listingId: "../etc/passwd",
+    });
+    expect(r4).toMatchObject({ ok: false });
+
+    // Negative deal price.
+    const r5 = await submitFeedPost({
+      kind: "deal",
+      body: "ok",
+      dealPrice: -1,
+    });
+    expect(r5).toMatchObject({ ok: false });
+
+    // Nothing was written.
+    expect(getBucket(FEED_POSTS_BUCKET).size).toBe(0);
+  });
 });
 
 describe("togglePostLike", () => {
@@ -200,6 +245,31 @@ describe("submitVehicleUpload", () => {
     ) as string[];
     expect(ids).toContain(result.postId);
     expect(hoisted.revalidatePath).toHaveBeenCalledWith("/feed");
+  });
+
+  test("surfaces postWarning when the listing persists but the companion post fails server-side validation", async () => {
+    hoisted.requireUser.mockResolvedValue(makeFixtureUser({ id: "u_1" }));
+    hoisted.uploadUserListing.mockResolvedValue({
+      ok: true,
+      listing: { id: "listing_42" },
+    });
+
+    // Companion body exceeds the server-side post-body cap. The listing
+    // still persists; the result exposes postWarning rather than silently
+    // dropping the failure.
+    const result = await submitVehicleUpload({
+      year: 2019,
+      make: "Honda",
+      model: "Accord",
+      titleStatus: "clean",
+      photos: [],
+      feedBody: "x".repeat(10_001),
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.listingId).toBe("listing_42");
+    expect(result.postId).toBeUndefined();
+    expect(result.postWarning).toBeTruthy();
   });
 
   test("forwards Team 3 validation errors without writing a feed post", async () => {

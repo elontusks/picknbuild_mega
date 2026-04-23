@@ -25,7 +25,11 @@ export function UserVehicleUploadForm() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [feedBody, setFeedBody] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<{ listingId: string; postId?: string } | null>(null);
+  const [success, setSuccess] = useState<{
+    listingId: string;
+    postId?: string;
+    postWarning?: string;
+  } | null>(null);
   const [pending, startTransition] = useTransition();
 
   const onSubmit = (ev: React.FormEvent<HTMLFormElement>) => {
@@ -33,7 +37,9 @@ export function UserVehicleUploadForm() {
     setError(null);
     setSuccess(null);
     const yearNum = Number(year);
-    if (!Number.isFinite(yearNum)) {
+    // Number("") === 0, so we need the trim() check — Number.isFinite(0)
+    // is true and would let an empty input slip through.
+    if (year.trim().length === 0 || !Number.isFinite(yearNum)) {
       setError("Year is required.");
       return;
     }
@@ -55,10 +61,15 @@ export function UserVehicleUploadForm() {
         setError(result.error);
         return;
       }
-      const success: { listingId: string; postId?: string } = {
+      const success: {
+        listingId: string;
+        postId?: string;
+        postWarning?: string;
+      } = {
         listingId: result.listingId,
       };
       if (result.postId) success.postId = result.postId;
+      if (result.postWarning) success.postWarning = result.postWarning;
       setSuccess(success);
       setYear("");
       setMake("");
@@ -196,10 +207,25 @@ export function UserVehicleUploadForm() {
           </p>
         ) : null}
         {success ? (
-          <p role="status" className="text-xs text-emerald-700 dark:text-emerald-300">
-            Listing {success.listingId} created
-            {success.postId ? ` · Feed post ${success.postId}` : ""}.
-          </p>
+          <div className="flex flex-col items-end gap-1 text-xs">
+            <p
+              role="status"
+              data-testid="vehicle-upload-success"
+              className="text-emerald-700 dark:text-emerald-300"
+            >
+              Listing {success.listingId} created
+              {success.postId ? ` · Feed post ${success.postId}` : ""}.
+            </p>
+            {success.postWarning ? (
+              <p
+                role="status"
+                data-testid="vehicle-upload-post-warning"
+                className="text-amber-700 dark:text-amber-300"
+              >
+                Companion feed post was not created: {success.postWarning}
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </form>

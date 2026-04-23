@@ -11,6 +11,11 @@ import {
   type FeedPostKind,
 } from "@/lib/feed/types";
 import { clusterFeedPosts } from "@/lib/feed/cluster";
+import {
+  validateCommentBody,
+  validateMediaRefs,
+  validatePostBody,
+} from "@/lib/feed/validate";
 
 // Team 16 — feed read/write service.
 //
@@ -31,6 +36,7 @@ export const FEED_POSTS_INDEX_BUCKET = "feed_posts_index";
 export const FEED_POSTS_BY_USER_BUCKET = "feed_posts_by_user";
 export const FEED_LIKES_BUCKET = "feed_likes";
 export const FEED_COMMENTS_BUCKET = "feed_comments";
+export const FEED_COMMENTS_INDEX_BUCKET = "feed_comments_index";
 export const FEED_INDEX_KEY = "all";
 
 const newId = (prefix: string): string => {
@@ -43,7 +49,20 @@ const newId = (prefix: string): string => {
 
 // ---- reads -----------------------------------------------------------------
 
-export const listFeedPosts = async (): Promise<FeedPost[]> => {
+// Project mediaRefs out of list responses — v1 stores media as inline
+// base64 data URLs, and pulling 4 × 1.5MB per row into a feed scan hurts
+// fast. Detail / permalink reads go through getFeedPost which keeps the
+// full payload; the card fetches media on demand via getPostMedia.
+export type FeedPostListItem = Omit<FeedPost, "mediaRefs"> & {
+  mediaCount: number;
+};
+
+const stripMedia = (post: FeedPost): FeedPostListItem => {
+  const { mediaRefs, ...rest } = post;
+  return { ...rest, mediaCount: mediaRefs?.length ?? 0 };
+};
+
+export const listFeedPosts = async (): Promise<FeedPostListItem[]> => {
   const ids =
     (await Storage.getRecord<string[]>(
       FEED_POSTS_INDEX_BUCKET,
@@ -54,15 +73,22 @@ export const listFeedPosts = async (): Promise<FeedPost[]> => {
     ids.map((id) => Storage.getRecord<FeedPost>(FEED_POSTS_BUCKET, id)),
   );
   const posts = records.filter((p): p is FeedPost => p !== null);
-  return clusterFeedPosts(posts);
+  return clusterFeedPosts(posts).map(stripMedia);
 };
 
 export const getFeedPost = async (id: string): Promise<FeedPost | null> =>
   Storage.getRecord<FeedPost>(FEED_POSTS_BUCKET, id);
 
+// Fetch just the media refs for a single post — the card calls this
+// lazily when it detects mediaCount > 0 on a list row.
+export const getPostMedia = async (id: string): Promise<string[]> => {
+  const post = await Storage.getRecord<FeedPost>(FEED_POSTS_BUCKET, id);
+  return post?.mediaRefs ?? [];
+};
+
 export const listFeedPostsForUser = async (
   authorId: string,
-): Promise<FeedPost[]> => {
+): Promise<FeedPostListItem[]> => {
   const ids =
     (await Storage.getRecord<string[]>(
       FEED_POSTS_BY_USER_BUCKET,
@@ -74,7 +100,8 @@ export const listFeedPostsForUser = async (
   );
   return records
     .filter((p): p is FeedPost => p !== null)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map(stripMedia);
 };
 
 // Admin-tile friendly: how many posts exist. The admin tile calls this.
@@ -105,15 +132,18 @@ export type CreateFeedPostResult =
 export const createFeedPost = async (
   input: CreateFeedPostInput,
 ): Promise<CreateFeedPostResult> => {
-  const body = input.body?.trim() ?? "";
-  if (body.length < 1) {
-    return { ok: false, error: "Post body cannot be empty." };
-  }
+  const bodyCheck = validatePostBody(input.body ?? "");
+  if (!bodyCheck.ok) return bodyCheck;
+  const body = input.body.trim();
   if (!isFeedPostKind(input.kind)) {
     return {
       ok: false,
       error: `Unknown post kind. Expected one of ${FEED_POST_KINDS.join(", ")}.`,
     };
+  }
+  if (input.mediaRefs) {
+    const mediaCheck = validateMediaRefs(input.mediaRefs);
+    if (!mediaCheck.ok) return mediaCheck;
   }
   const post: FeedPost = {
     id: newId("fp"),
@@ -205,10 +235,9 @@ export const addComment = async (input: {
   userId: string;
   body: string;
 }): Promise<AddCommentResult> => {
-  const body = input.body?.trim() ?? "";
-  if (body.length < 1) {
-    return { ok: false, error: "Comment cannot be empty." };
-  }
+  const bodyCheck = validateCommentBody(input.body ?? "");
+  if (!bodyCheck.ok) return bodyCheck;
+  const body = input.body.trim();
   const post = await Storage.getRecord<FeedPost>(
     FEED_POSTS_BUCKET,
     input.postId,
@@ -222,15 +251,15 @@ export const addComment = async (input: {
     body,
     createdAt: nowIso(),
   };
-  const existing =
-    (await Storage.getRecord<FeedComment[]>(
-      FEED_COMMENTS_BUCKET,
-      input.postId,
-    )) ?? [];
-  await Storage.putRecord(FEED_COMMENTS_BUCKET, input.postId, [
-    ...existing,
-    comment,
-  ]);
+  // Store the comment as its own record + append its id to a per-post
+  // index. The previous read-modify-write against a single bucket row
+  // dropped comments under concurrent posting — same race Team 13 had.
+  await Storage.putRecord(FEED_COMMENTS_BUCKET, comment.id, comment);
+  await Storage.appendToList(
+    FEED_COMMENTS_INDEX_BUCKET,
+    input.postId,
+    comment.id,
+  );
 
   // Fan-out notification to the post author — but not if they're commenting
   // on their own post. Fire-and-forget; emitNotification swallows errors.
@@ -251,8 +280,18 @@ export const addComment = async (input: {
 };
 
 export const listComments = async (postId: string): Promise<FeedComment[]> => {
-  const rows =
-    (await Storage.getRecord<FeedComment[]>(FEED_COMMENTS_BUCKET, postId)) ??
-    [];
-  return [...rows].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const ids =
+    (await Storage.getRecord<string[]>(
+      FEED_COMMENTS_INDEX_BUCKET,
+      postId,
+    )) ?? [];
+  if (ids.length === 0) return [];
+  const rows = await Promise.all(
+    ids.map((id) =>
+      Storage.getRecord<FeedComment>(FEED_COMMENTS_BUCKET, id),
+    ),
+  );
+  return rows
+    .filter((c): c is FeedComment => c !== null)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 };

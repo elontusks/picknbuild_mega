@@ -2,8 +2,10 @@ import Link from "next/link";
 import { getListing } from "@/services/team-03-supply";
 import {
   countLikes,
+  getPostMedia,
   hasLiked,
   listComments,
+  type FeedPostListItem,
 } from "@/services/team-16-feed";
 import type { FeedPost } from "@/lib/feed/types";
 import { FeedEngagementControls } from "./engagement-controls";
@@ -11,11 +13,27 @@ import { ProfileLinkFromFeedPost } from "./profile-link";
 import { VehicleCardInFeed } from "./vehicle-card-in-feed";
 import { PostKindChip, PostKindTemplate } from "./templates";
 
+// Accepts either shape:
+//   - FeedPost: full row from getFeedPost() (has mediaRefs inline)
+//   - FeedPostListItem: stripped row from listFeedPosts() (mediaCount only)
+// Media is fetched on-demand via getPostMedia() when mediaCount > 0.
 type FeedPostCardProps = {
-  post: FeedPost;
+  post: FeedPost | FeedPostListItem;
   viewerId?: string;
   viewerZip?: string;
   showEngagement?: boolean;
+};
+
+const resolveMedia = async (
+  post: FeedPost | FeedPostListItem,
+): Promise<string[]> => {
+  // FeedPostListItem has mediaCount; FeedPost does not. Use that as the
+  // discriminator since mediaRefs is optional on FeedPost.
+  if ("mediaCount" in post) {
+    if (post.mediaCount === 0) return [];
+    return getPostMedia(post.id);
+  }
+  return post.mediaRefs ?? [];
 };
 
 // Feed Post Card — the generic frame. Dispatches to PostKindTemplate for
@@ -28,13 +46,14 @@ export async function FeedPostCard({
   viewerZip,
   showEngagement = true,
 }: FeedPostCardProps) {
-  const [listing, likeCount, liked, comments] = await Promise.all([
+  const [listing, likeCount, liked, comments, mediaRefs] = await Promise.all([
     post.listingId ? getListing(post.listingId) : Promise.resolve(null),
     countLikes(post.id),
     viewerId
       ? hasLiked({ postId: post.id, userId: viewerId })
       : Promise.resolve(false),
     listComments(post.id),
+    resolveMedia(post),
   ]);
 
   const createdAt = new Date(post.createdAt);
@@ -66,15 +85,15 @@ export async function FeedPostCard({
 
       <PostKindTemplate post={post} />
 
-      {post.mediaRefs && post.mediaRefs.length > 0 ? (
+      {mediaRefs.length > 0 ? (
         <div
           className="grid gap-2"
           data-testid="post-media"
           style={{
-            gridTemplateColumns: `repeat(${Math.min(post.mediaRefs.length, 3)}, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${Math.min(mediaRefs.length, 3)}, minmax(0, 1fr))`,
           }}
         >
-          {post.mediaRefs.map((src, i) => (
+          {mediaRefs.map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={i}

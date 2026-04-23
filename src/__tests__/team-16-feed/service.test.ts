@@ -44,12 +44,13 @@ import {
   FEED_POSTS_BY_USER_BUCKET,
   FEED_INDEX_KEY,
   FEED_LIKES_BUCKET,
-  FEED_COMMENTS_BUCKET,
+  FEED_COMMENTS_INDEX_BUCKET,
   addComment,
   countFeedPosts,
   createFeedPost,
   getFeedPost,
   likePost,
+  listComments,
   listFeedPosts,
   unlikePost,
 } from "@/services/team-16-feed";
@@ -147,6 +148,27 @@ describe("listFeedPosts / countFeedPosts", () => {
   test("getFeedPost returns null when the id is unknown", async () => {
     expect(await getFeedPost("fp_missing")).toBeNull();
   });
+
+  test("listFeedPosts strips mediaRefs and exposes mediaCount; getFeedPost keeps the full payload", async () => {
+    const tinyRef = "data:image/png;base64,AAA";
+    const post = await createFeedPost({
+      authorId: "u_1",
+      kind: "build",
+      body: "with photos",
+      mediaRefs: [tinyRef, tinyRef],
+    });
+    if (!post.ok) throw new Error("setup");
+
+    const list = await listFeedPosts();
+    expect(list).toHaveLength(1);
+    const row = list[0]!;
+    expect("mediaRefs" in row).toBe(false);
+    expect(row.mediaCount).toBe(2);
+
+    // The permalink / detail path still sees inline media.
+    const full = await getFeedPost(post.post.id);
+    expect(full?.mediaRefs).toEqual([tinyRef, tinyRef]);
+  });
 });
 
 describe("likePost / unlikePost", () => {
@@ -202,12 +224,14 @@ describe("addComment", () => {
     });
     expect(result.ok).toBe(true);
 
-    const stored = getBucket(FEED_COMMENTS_BUCKET).get(post.post.id) as Array<{
-      userId: string;
-      body: string;
-    }>;
-    expect(stored).toHaveLength(1);
-    expect(stored[0]!.body).toBe("try this");
+    // Comment is stored as its own record, id lives in the per-post index.
+    const ids = getBucket(FEED_COMMENTS_INDEX_BUCKET).get(
+      post.post.id,
+    ) as string[];
+    expect(ids).toHaveLength(1);
+    const listed = await listComments(post.post.id);
+    expect(listed).toHaveLength(1);
+    expect(listed[0]!.body).toBe("try this");
 
     expect(hoisted.emitNotification).toHaveBeenCalledTimes(1);
     const firstCall = hoisted.emitNotification.mock.calls[0];
@@ -233,6 +257,25 @@ describe("addComment", () => {
     });
     expect(result.ok).toBe(true);
     expect(hoisted.emitNotification).not.toHaveBeenCalled();
+  });
+
+  test("concurrent comments on the same post do not clobber each other", async () => {
+    const post = await createFeedPost({
+      authorId: "u_author",
+      kind: "question",
+      body: "race me",
+    });
+    if (!post.ok) throw new Error("setup");
+
+    const [r1, r2, r3] = await Promise.all([
+      addComment({ postId: post.post.id, userId: "u_a", body: "one" }),
+      addComment({ postId: post.post.id, userId: "u_b", body: "two" }),
+      addComment({ postId: post.post.id, userId: "u_c", body: "three" }),
+    ]);
+    expect(r1.ok && r2.ok && r3.ok).toBe(true);
+
+    const listed = await listComments(post.post.id);
+    expect(listed.map((c) => c.body).sort()).toEqual(["one", "three", "two"]);
   });
 
   test("rejects empty body and missing post", async () => {

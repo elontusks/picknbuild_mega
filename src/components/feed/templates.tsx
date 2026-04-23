@@ -128,7 +128,7 @@ export function WarningPostTemplate({ post }: { post: FeedPost }) {
       ? "bg-rose-200 text-rose-900"
       : severity === "low"
         ? "bg-rose-100 text-rose-800"
-        : "bg-rose-150 text-rose-800";
+        : "bg-rose-100 text-rose-800";
   return (
     <div
       data-testid="tpl-warning"

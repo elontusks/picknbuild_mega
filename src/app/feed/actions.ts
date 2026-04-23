@@ -16,6 +16,13 @@ import {
   type FeedPost,
   type FeedPostKind,
 } from "@/lib/feed/types";
+import {
+  validateCommentBody,
+  validateDealPrice,
+  validateListingId,
+  validateMediaRefs,
+  validatePostBody,
+} from "@/lib/feed/validate";
 
 // Server actions for the Team 16 feed. Every write goes through
 // requireUser(); anonymous viewers can read /feed and /feed/[postId] but
@@ -64,14 +71,30 @@ export async function submitFeedPost(
     };
   }
   const kind: FeedPostKind = input.kind;
+
+  // Server-side guards: UI limits are bypassable by anyone POSTing the
+  // action directly. Enforce body, media, linked-listing, and deal-price
+  // shape before touching storage.
+  const bodyCheck = validatePostBody(input.body ?? "");
+  if (!bodyCheck.ok) return bodyCheck;
+  const mediaRefs = input.mediaRefs ?? [];
+  const mediaCheck = validateMediaRefs(mediaRefs);
+  if (!mediaCheck.ok) return mediaCheck;
+  if (input.listingId) {
+    const listingCheck = validateListingId(input.listingId);
+    if (!listingCheck.ok) return listingCheck;
+  }
+  if (input.dealPrice !== undefined) {
+    const priceCheck = validateDealPrice(input.dealPrice);
+    if (!priceCheck.ok) return priceCheck;
+  }
+
   const serviceInput: CreateFeedPostInput = {
     authorId: viewer.id,
     kind,
     body: input.body ?? "",
     ...(input.listingId ? { listingId: input.listingId } : {}),
-    ...(input.mediaRefs && input.mediaRefs.length > 0
-      ? { mediaRefs: input.mediaRefs }
-      : {}),
+    ...(mediaRefs.length > 0 ? { mediaRefs } : {}),
   };
   const extras = pickExtras(input);
   if (extras) serviceInput.extras = extras;
@@ -108,6 +131,8 @@ export async function submitFeedComment(input: {
   body: string;
 }): Promise<CommentResult> {
   const viewer = await requireUser();
+  const bodyCheck = validateCommentBody(input.body);
+  if (!bodyCheck.ok) return bodyCheck;
   const result = await addComment({
     postId: input.postId,
     userId: viewer.id,
@@ -138,7 +163,12 @@ export type UploadVehicleInput = {
 };
 
 export type UploadVehicleResult =
-  | { ok: true; listingId: string; postId?: string }
+  | {
+      ok: true;
+      listingId: string;
+      postId?: string;
+      postWarning?: string;
+    }
   | { ok: false; error: string; field?: string };
 
 export async function submitVehicleUpload(
@@ -170,6 +200,7 @@ export async function submitVehicleUpload(
   }
 
   let postId: string | undefined;
+  let postWarning: string | undefined;
   const body = input.feedBody?.trim();
   if (body) {
     const post = await createFeedPost({
@@ -181,7 +212,13 @@ export async function submitVehicleUpload(
         ? { extras: { dealPrice: input.price } }
         : {}),
     });
-    if (post.ok) postId = post.post.id;
+    if (post.ok) {
+      postId = post.post.id;
+    } else {
+      // Listing persisted, companion post didn't. Surface this to the
+      // caller — the form renders a non-fatal warning next to success.
+      postWarning = post.error;
+    }
   }
 
   revalidatePath("/feed");
@@ -189,5 +226,6 @@ export async function submitVehicleUpload(
     ok: true,
     listingId: upload.listing.id,
     ...(postId ? { postId } : {}),
+    ...(postWarning ? { postWarning } : {}),
   };
 }
