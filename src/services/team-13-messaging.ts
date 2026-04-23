@@ -42,20 +42,8 @@ const newId = (prefix: string): string => {
 
 const nowIso = () => new Date().toISOString();
 
-// KNOWN: concurrent openOrCreateThread calls that land on the same
-// userId's index will race on this read-modify-write and can drop
-// thread ids. Safe within a single call, not safe across calls. Fix
-// requires an atomic appendToList(bucket, id, value) primitive from
-// Team 15; tracked in TEAMS.md under the Team 15 follow-ups note.
-const appendThreadIndex = async (userId: string, threadId: string) => {
-  const existing =
-    (await Storage.getRecord<string[]>(THREADS_BY_USER_BUCKET, userId)) ?? [];
-  if (existing.includes(threadId)) return;
-  await Storage.putRecord(THREADS_BY_USER_BUCKET, userId, [
-    ...existing,
-    threadId,
-  ]);
-};
+const appendThreadIndex = (userId: string, threadId: string) =>
+  Storage.appendToList(THREADS_BY_USER_BUCKET, userId, threadId);
 
 const loadThreadMessages = async (threadId: string): Promise<Message[]> =>
   (await Storage.getRecord<Message[]>(MESSAGES_BUCKET, threadId)) ?? [];
@@ -63,8 +51,12 @@ const loadThreadMessages = async (threadId: string): Promise<Message[]> =>
 // -- threads --------------------------------------------------------------
 
 export const listThreads = async (userId: string): Promise<MessageThread[]> => {
-  const ids =
+  const raw =
     (await Storage.getRecord<string[]>(THREADS_BY_USER_BUCKET, userId)) ?? [];
+  // appendToList is atomic but not deduping. Dedup defensively so that a
+  // double-append (e.g. replay of a fire-and-forget call) never renders
+  // the same thread twice.
+  const ids = Array.from(new Set(raw));
   const threads = await Promise.all(
     ids.map((id) => Storage.getRecord<MessageThread>(THREAD_BUCKET, id)),
   );
@@ -89,8 +81,9 @@ export const openOrCreateThread = async (input: {
   // thread lives under all of its participants' indexes.
   const [first] = input.participants;
   if (first) {
-    const ids =
+    const raw =
       (await Storage.getRecord<string[]>(THREADS_BY_USER_BUCKET, first)) ?? [];
+    const ids = Array.from(new Set(raw));
     const candidates = await Promise.all(
       ids.map((id) => Storage.getRecord<MessageThread>(THREAD_BUCKET, id)),
     );
@@ -196,14 +189,13 @@ export const sendMessage = async (input: {
   return message;
 };
 
-// Per-user read state. `thread_reads` bucket holds one row per thread,
-// value is a `{ userId → lastReadAt }` map so every participant's read
-// marker for a given thread lives together and unreadCount queries are
-// one getRecord. The read-modify-write here has the same cross-call
-// race as the other user-keyed indexes (see appendThreadIndex); when a
-// single user hits "mark read" concurrently the latest call wins, which
-// is acceptable since markThreadRead is monotonic (always advancing to
-// `now`) and a lost write just means a slightly-older timestamp.
+// KNOWN: `thread_reads/{threadId}` stores a `{userId → lastReadAt}` map, not
+// a list, so appendToList doesn't fit. When two DIFFERENT participants call
+// markThreadRead on the same thread concurrently, the second write can wipe
+// out the first user's lastReadAt entirely — worse than a monotonic single-
+// user race. Fix needs either (a) a shape change to one record per
+// (threadId,userId) keyed by `${threadId}:${userId}`, or (b) a new jsonbSet
+// atomic primitive from Team 15. Tracked in TEAMS.md follow-ups.
 export const markThreadRead = async (input: {
   userId: string;
   threadId: string;

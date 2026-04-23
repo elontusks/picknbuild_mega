@@ -88,11 +88,14 @@ export const updatePreferences = async (
 export const listNotifications = async (
   userId: string,
 ): Promise<Notification[]> => {
-  const ids =
+  const raw =
     (await Storage.getRecord<string[]>(
       NOTIFICATIONS_INDEX_BUCKET,
       userId,
     )) ?? [];
+  // appendToList is atomic but not deduping. Dedup defensively so that a
+  // double-append never renders the same notification twice.
+  const ids = Array.from(new Set(raw));
   const records = await Promise.all(
     ids.map((id) => Storage.getRecord<Notification>(NOTIFICATIONS_BUCKET, id)),
   );
@@ -139,30 +142,20 @@ const buildRecord = (input: {
 
 const persistBatch = async (records: Notification[]): Promise<void> => {
   if (records.length === 0) return;
-  // Row writes can safely parallelize — they target distinct ids. The
-  // per-user index is NOT safe to update concurrently: read-modify-write
-  // races would drop ids. Build the new index in one pass and write once.
+  // Row writes target distinct ids, safe to parallelize. Index updates
+  // previously used a read-modify-write that races across concurrent
+  // emitNotification callers (Team 12 workflows + Team 14 payments both
+  // fan out fire-and-forget to the same user) and dropped ids. Swapped to
+  // Team 15's atomic appendToList primitive so concurrent appends can't
+  // clobber each other.
   await Promise.all(
     records.map((r) => Storage.putRecord(NOTIFICATIONS_BUCKET, r.id, r)),
   );
-  const [first] = records;
-  if (!first) return;
-  const userId = first.userId;
-  // KNOWN: concurrent emitNotification calls for the same userId will
-  // race on this read-modify-write and can drop ids. Safe within a
-  // single call (batched), not safe across calls. Fix requires an
-  // atomic appendToList(bucket, id, value) primitive from Team 15;
-  // tracked in TEAMS.md under the Team 15 follow-ups note.
-  const existing =
-    (await Storage.getRecord<string[]>(
-      NOTIFICATIONS_INDEX_BUCKET,
-      userId,
-    )) ?? [];
-  const merged = existing.slice();
-  for (const r of records) {
-    if (!merged.includes(r.id)) merged.push(r.id);
-  }
-  await Storage.putRecord(NOTIFICATIONS_INDEX_BUCKET, userId, merged);
+  await Promise.all(
+    records.map((r) =>
+      Storage.appendToList(NOTIFICATIONS_INDEX_BUCKET, r.userId, r.id),
+    ),
+  );
 };
 
 const routeInApp = async (record: Notification): Promise<void> => {
