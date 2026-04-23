@@ -5,7 +5,7 @@ import type { BestFitPreference, PathKind, PathQuote } from "@/contracts";
 import {
   recommendBestPath,
   type RecommendationOutput,
-} from "@/services/team-11-intelligence";
+} from "@/lib/pricing/recommendation";
 import { useIntakeState } from "@/lib/intake";
 
 const PATH_LABEL: Record<PathKind, string> = {
@@ -65,24 +65,14 @@ export function YourBestPathRightNow({
       // `output` cached is fine because it's never shown.
       return;
     }
-    let cancelled = false;
     setLoading(true);
-    recommendBestPath({ intake, quotes, bestFit })
-      .then((res) => {
-        if (cancelled) return;
-        setOutput(res);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setOutput(null);
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+    try {
+      setOutput(recommendBestPath({ intake, quotes, bestFit }));
+    } catch {
+      setOutput(null);
+    } finally {
+      setLoading(false);
+    }
     // intake/quotes/bestFit captured via memo keys so we don't thrash on
     // identity-only changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
