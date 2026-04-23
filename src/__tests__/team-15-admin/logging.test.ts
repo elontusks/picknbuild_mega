@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 type Bucket = Map<string, unknown>;
 const buckets = new Map<string, Bucket>();
@@ -65,10 +65,17 @@ describe("logEvent", () => {
 });
 
 describe("listAdminLogs", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   test("returns entries newest-first", async () => {
+    vi.setSystemTime(new Date("2026-04-22T10:00:00.000Z"));
     await logEvent({ actor: "a", action: "first" });
-    // Force a microtask split so the timestamps differ reliably on fast runs.
-    await new Promise((r) => setTimeout(r, 2));
+    vi.setSystemTime(new Date("2026-04-22T11:00:00.000Z"));
     await logEvent({ actor: "a", action: "second" });
 
     const logs = await listAdminLogs();

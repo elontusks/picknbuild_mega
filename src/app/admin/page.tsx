@@ -82,7 +82,7 @@ export default async function AdminOverviewPage() {
         testId="tile-feed"
         href="/admin/monitoring"
         label="Feed activity"
-        value={FEED_LIVE ? "—" : "—"}
+        value="—"
         hint={FEED_LIVE ? "live" : "Feed not live (Team 16 pending)"}
       />
       <AdminTile

@@ -22,9 +22,15 @@ const hoisted = vi.hoisted(() => ({
   markListingStatus: vi.fn<(id: string, status: string) => Promise<void>>(
     async () => {},
   ),
-  profilesUpdate: vi.fn(async () => ({ error: null })),
-  sponsorUpsert: vi.fn(async () => ({ error: null })),
-  sponsorUpdate: vi.fn(async () => ({ error: null })),
+  profilesUpdate: vi.fn<(patch: unknown) => Promise<{ error: null }>>(
+    async () => ({ error: null }),
+  ),
+  sponsorUpsert: vi.fn<(row: unknown) => Promise<{ error: null }>>(
+    async () => ({ error: null }),
+  ),
+  sponsorUpdate: vi.fn<(patch: unknown) => Promise<{ error: null }>>(
+    async () => ({ error: null }),
+  ),
 }));
 
 vi.mock("@/services/team-01-auth", () => ({
@@ -64,16 +70,18 @@ vi.mock("@/lib/supabase/admin", () => ({
     from: (table: string) => {
       if (table === "profiles") {
         return {
-          update: (_patch: unknown) => ({
-            eq: async (_col: string, _val: string) => hoisted.profilesUpdate(),
+          update: (patch: unknown) => ({
+            eq: async (_col: string, _val: string) =>
+              hoisted.profilesUpdate(patch),
           }),
         };
       }
       if (table === "sponsor_blocks") {
         return {
-          upsert: async (_row: unknown) => hoisted.sponsorUpsert(),
-          update: (_patch: unknown) => ({
-            eq: async (_col: string, _val: string) => hoisted.sponsorUpdate(),
+          upsert: async (row: unknown) => hoisted.sponsorUpsert(row),
+          update: (patch: unknown) => ({
+            eq: async (_col: string, _val: string) =>
+              hoisted.sponsorUpdate(patch),
           }),
         };
       }
@@ -84,6 +92,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 
 import {
   acknowledgeDealRequestAction,
+  markListingStaleAction,
   recordIngestionHeartbeatAction,
   removeListingAction,
   resetUserFinancialsAction,
@@ -115,6 +124,23 @@ const seedRequest = (
   return req;
 };
 
+const allLogs = () => Array.from(getBucket(ADMIN_LOGS_BUCKET).values());
+const allModLogs = () => Array.from(getBucket(MODERATION_LOG_BUCKET).values());
+const allIngestionRuns = () => Array.from(getBucket(INGESTION_RUNS_BUCKET).values());
+
+const expectNoMutations = () => {
+  // Aggregate: no admin log, no moderation log, no ingestion row, no DB
+  // writes. Every admin-gate test should leave the system identical to
+  // its pre-call state except for the existing seeded rows.
+  expect(allLogs()).toHaveLength(0);
+  expect(allModLogs()).toHaveLength(0);
+  expect(allIngestionRuns()).toHaveLength(0);
+  expect(hoisted.markListingStatus).not.toHaveBeenCalled();
+  expect(hoisted.profilesUpdate).not.toHaveBeenCalled();
+  expect(hoisted.sponsorUpsert).not.toHaveBeenCalled();
+  expect(hoisted.sponsorUpdate).not.toHaveBeenCalled();
+};
+
 beforeEach(() => {
   for (const b of buckets.values()) b.clear();
   hoisted.getCurrentUser.mockReset();
@@ -126,7 +152,7 @@ beforeEach(() => {
   hoisted.sponsorUpdate.mockReset().mockResolvedValue({ error: null });
 });
 
-describe("requireAdmin gate", () => {
+describe("requireAdmin gate (redirect shape)", () => {
   test("non-admin callers are redirected to /", async () => {
     hoisted.getCurrentUser.mockResolvedValue(
       makeFixtureUser({ id: "u_1", role: "buyer" }),
@@ -135,10 +161,7 @@ describe("requireAdmin gate", () => {
       removeListingAction({ listingId: "l_1" }),
     ).rejects.toThrow("__redirect__");
     expect(hoisted.redirect).toHaveBeenCalledWith("/");
-    // No moderation or log side-effects landed.
-    expect(getBucket(ADMIN_LOGS_BUCKET).size).toBe(0);
-    expect(getBucket(MODERATION_LOG_BUCKET).size).toBe(0);
-    expect(hoisted.markListingStatus).not.toHaveBeenCalled();
+    expectNoMutations();
   });
 
   test("anonymous callers are redirected to /login", async () => {
@@ -147,7 +170,85 @@ describe("requireAdmin gate", () => {
       removeListingAction({ listingId: "l_1" }),
     ).rejects.toThrow("__redirect__");
     expect(hoisted.redirect).toHaveBeenCalledWith("/login");
+    expectNoMutations();
   });
+});
+
+// Per-action gate tests. Every server action must refuse a non-admin viewer
+// before any mutation OR log write lands. If the gate is ever deleted, these
+// tests are the sanity net — adding a one-liner `await requireAdmin()` has
+// to be the first real statement in each handler.
+describe("admin gate blocks non-admin callers for every action", () => {
+  const cases: Array<{
+    name: string;
+    run: () => Promise<unknown>;
+    setup?: () => void;
+  }> = [
+    {
+      name: "removeListingAction",
+      run: () => removeListingAction({ listingId: "l_1" }),
+    },
+    {
+      name: "markListingStaleAction",
+      run: () => markListingStaleAction({ listingId: "l_1" }),
+    },
+    {
+      name: "acknowledgeDealRequestAction",
+      setup: () => {
+        seedRequest();
+      },
+      run: () => acknowledgeDealRequestAction({ requestId: "dreq_1" }),
+    },
+    {
+      name: "suspendUserAction",
+      run: () => suspendUserAction({ userId: "u_2" }),
+    },
+    {
+      name: "resetUserFinancialsAction",
+      run: () => resetUserFinancialsAction({ userId: "u_2" }),
+    },
+    {
+      name: "recordIngestionHeartbeatAction",
+      run: () =>
+        recordIngestionHeartbeatAction({ source: "copart", status: "ok" }),
+    },
+    {
+      name: "upsertSponsorAction",
+      run: () =>
+        upsertSponsorAction({
+          path: "picknbuild",
+          title: "Tier 1",
+          bodyHtml: "",
+        }),
+    },
+    {
+      name: "toggleSponsorActiveAction",
+      run: () => toggleSponsorActiveAction({ id: "sponsor_1", active: false }),
+    },
+  ];
+
+  for (const c of cases) {
+    test(`${c.name} refuses a non-admin viewer`, async () => {
+      hoisted.getCurrentUser.mockResolvedValue(
+        makeFixtureUser({ id: "attacker", role: "buyer" }),
+      );
+      c.setup?.();
+      // Snapshot the seeded deal_request so we can assert no mutation
+      // happened to it either.
+      const seededReq =
+        (getBucket(DEAL_REQUESTS_BUCKET).get("dreq_1") as DealRequest | undefined) ??
+        null;
+
+      await expect(c.run()).rejects.toThrow("__redirect__");
+      expect(hoisted.redirect).toHaveBeenCalledWith("/");
+      expectNoMutations();
+
+      if (seededReq) {
+        const afterReq = getBucket(DEAL_REQUESTS_BUCKET).get("dreq_1") as DealRequest;
+        expect(afterReq.status).toBe(seededReq.status);
+      }
+    });
+  }
 });
 
 describe("removeListingAction", () => {
@@ -162,18 +263,18 @@ describe("removeListingAction", () => {
       "listing_42",
       "removed",
     );
-    const modRows = Array.from(
-      getBucket(MODERATION_LOG_BUCKET).values(),
-    ) as Array<{ action: string; targetId: string; note?: string }>;
+    const modRows = allModLogs() as Array<{
+      action: string;
+      targetId: string;
+      note?: string;
+    }>;
     expect(modRows).toHaveLength(1);
     expect(modRows[0]).toMatchObject({
       action: "remove",
       targetId: "listing_42",
       note: "spam",
     });
-    const logs = Array.from(
-      getBucket(ADMIN_LOGS_BUCKET).values(),
-    ) as Array<{ action: string; target: string }>;
+    const logs = allLogs() as Array<{ action: string; target: string }>;
     expect(logs).toHaveLength(1);
     expect(logs[0]).toMatchObject({
       action: "listing.remove",
@@ -193,9 +294,7 @@ describe("acknowledgeDealRequestAction", () => {
     const updated = getBucket(DEAL_REQUESTS_BUCKET).get(req.id) as DealRequest;
     expect(updated.status).toBe("acknowledged");
 
-    const logs = Array.from(
-      getBucket(ADMIN_LOGS_BUCKET).values(),
-    ) as Array<{ action: string; target: string }>;
+    const logs = allLogs() as Array<{ action: string; target: string }>;
     expect(logs[0]).toMatchObject({
       action: "deal_request.acknowledge",
       target: req.id,
@@ -208,43 +307,42 @@ describe("acknowledgeDealRequestAction", () => {
     const res = await acknowledgeDealRequestAction({ requestId: "dreq_1" });
     expect(res.ok).toBe(false);
     // Log not written on refusal.
-    expect(getBucket(ADMIN_LOGS_BUCKET).size).toBe(0);
-  });
-
-  test("rejects non-admin callers before touching the bucket", async () => {
-    hoisted.getCurrentUser.mockResolvedValue(
-      makeFixtureUser({ id: "attacker", role: "buyer" }),
-    );
-    seedRequest();
-    await expect(
-      acknowledgeDealRequestAction({ requestId: "dreq_1" }),
-    ).rejects.toThrow("__redirect__");
-    const req = getBucket(DEAL_REQUESTS_BUCKET).get("dreq_1") as DealRequest;
-    expect(req.status).toBe("submitted");
+    expect(allLogs()).toHaveLength(0);
   });
 });
 
 describe("suspendUserAction + resetUserFinancialsAction", () => {
-  test("suspend calls profiles update and logs the action", async () => {
+  test("suspend patches profiles with account_status='suspended' and logs", async () => {
     hoisted.getCurrentUser.mockResolvedValue(makeAdmin());
     const res = await suspendUserAction({ userId: "u_2", note: "abuse" });
     expect(res.ok).toBe(true);
     expect(hoisted.profilesUpdate).toHaveBeenCalledTimes(1);
-    const logs = Array.from(getBucket(ADMIN_LOGS_BUCKET).values()) as Array<{
+    // This is the column that the `20260422000420_add_roles_to_profiles`
+    // migration constrained to ('active', 'suspended', 'banned',
+    // 'unverified') — if the action ever drifts off that column name or
+    // value, the database CHECK would reject the write and we'd fail
+    // silently at runtime. The assertion anchors the mapping.
+    expect(hoisted.profilesUpdate).toHaveBeenCalledWith({
+      account_status: "suspended",
+    });
+    const logs = allLogs() as Array<{
       action: string;
       target: string;
     }>;
     expect(logs[0]).toMatchObject({ action: "user.suspend", target: "u_2" });
   });
 
-  test("reset-financials logs but does not touch deal history", async () => {
+  test("reset-financials patches the three financial fields (no deal-history touch)", async () => {
     hoisted.getCurrentUser.mockResolvedValue(makeAdmin());
     const res = await resetUserFinancialsAction({ userId: "u_3" });
     expect(res.ok).toBe(true);
     expect(hoisted.profilesUpdate).toHaveBeenCalledTimes(1);
-    const logs = Array.from(getBucket(ADMIN_LOGS_BUCKET).values()) as Array<{
-      action: string;
-    }>;
+    expect(hoisted.profilesUpdate).toHaveBeenCalledWith({
+      budget: null,
+      credit_score: null,
+      no_credit: false,
+    });
+    const logs = allLogs() as Array<{ action: string }>;
     expect(logs[0]?.action).toBe("user.reset-financials");
   });
 });
@@ -258,10 +356,8 @@ describe("ingestion heartbeat", () => {
       ingested: 142,
     });
     expect(res.ok).toBe(true);
-    expect(getBucket(INGESTION_RUNS_BUCKET).size).toBe(1);
-    const logs = Array.from(getBucket(ADMIN_LOGS_BUCKET).values()) as Array<{
-      action: string;
-    }>;
+    expect(allIngestionRuns()).toHaveLength(1);
+    const logs = allLogs() as Array<{ action: string }>;
     expect(logs[0]?.action).toBe("ingestion.heartbeat");
   });
 });
@@ -287,9 +383,7 @@ describe("sponsor catalog", () => {
     });
     expect(res.ok).toBe(true);
     expect(hoisted.sponsorUpsert).toHaveBeenCalledTimes(1);
-    const logs = Array.from(getBucket(ADMIN_LOGS_BUCKET).values()) as Array<{
-      action: string;
-    }>;
+    const logs = allLogs() as Array<{ action: string }>;
     expect(logs[0]?.action).toBe("sponsor.create");
   });
 
@@ -301,9 +395,8 @@ describe("sponsor catalog", () => {
     });
     expect(res.ok).toBe(true);
     expect(hoisted.sponsorUpdate).toHaveBeenCalledTimes(1);
-    const logs = Array.from(getBucket(ADMIN_LOGS_BUCKET).values()) as Array<{
-      action: string;
-    }>;
+    expect(hoisted.sponsorUpdate).toHaveBeenCalledWith({ active: false });
+    const logs = allLogs() as Array<{ action: string }>;
     expect(logs[0]?.action).toBe("sponsor.toggle-active");
   });
 });

@@ -1,7 +1,11 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { mapProfileToUser, type ProfileForUser } from "@/lib/auth/map-user";
+import {
+  deriveRole,
+  mapProfileToUser,
+  type ProfileForUser,
+} from "@/lib/auth/map-user";
 import type { User, UserRole } from "@/contracts";
 
 const PROFILE_COLUMNS =
@@ -41,17 +45,9 @@ export async function listAllUsers(
   if (error) throw new Error(`listAllUsers: ${error.message}`);
 
   const rows: AdminUserRow[] = (data ?? []).map((row) => {
-    const roles = (row.roles ?? []) as string[];
-    const role: UserRole = roles.includes("admin")
-      ? "admin"
-      : roles.includes("dealer")
-        ? "dealer"
-        : roles.includes("individual_seller") || roles.includes("seller")
-          ? "seller"
-          : "buyer";
     return {
       id: row.id,
-      role,
+      role: deriveRole(row.roles),
       email: row.email ?? null,
       displayName: row.display_name ?? row.full_name ?? null,
       zip: row.zip ?? null,
