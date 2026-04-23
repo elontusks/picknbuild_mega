@@ -11,25 +11,16 @@ import { buildSpecSummary } from "@/lib/build-records/summary";
 import { PACKAGE_BY_TIER } from "@/lib/build-records/packages";
 import { CheckoutClient } from "@/components/checkout/checkout-client";
 
-type SearchParams = {
-  build?: string;
-  pkg?: string;
-  term?: string;
-};
+type SearchParams = { build?: string };
 
-const isPackageTier = (v: string | undefined): v is PackageTier =>
-  v === "standard" ||
-  v === "premium" ||
-  v === "silver" ||
-  v === "platinum" ||
-  v === "gold";
-
-const isTerm = (v: string | undefined): v is Term =>
-  v === "cash" || v === "1y" || v === "2y" || v === "3y" || v === "4y" || v === "5y";
-
-const resolveTitleStatus = (titleStatus?: string): TitleStatus => {
-  if (titleStatus === "rebuilt") return "rebuilt";
-  if (titleStatus === "unknown") return "unknown";
+// Title resolution must mirror signAgreement's server-side derivation so the
+// preview summary on screen is the same text the server will later sign.
+const resolveServerTitleStatus = (
+  build: { tradeIn?: { titleStatus: "clean" | "rebuilt" } },
+  listingTitle?: TitleStatus,
+): TitleStatus => {
+  if (listingTitle && listingTitle !== "unknown") return listingTitle;
+  if (build.tradeIn?.titleStatus === "rebuilt") return "rebuilt";
   return "clean";
 };
 
@@ -53,16 +44,17 @@ export default async function CheckoutPage({
   }
 
   const build = access.record;
-  const selectedPackage: PackageTier = isPackageTier(params.pkg)
-    ? params.pkg
-    : build.selectedPackage ?? "standard";
-  const term: Term = isTerm(params.term)
-    ? params.term
-    : PACKAGE_BY_TIER[selectedPackage].defaultTerm;
+  if (!build.selectedPackage) {
+    // No package picked yet → nothing to sign.
+    redirect("/configurator");
+  }
+  const selectedPackage: PackageTier = build.selectedPackage;
+  const term: Term = PACKAGE_BY_TIER[selectedPackage].defaultTerm;
 
   const listing = build.listingId ? await getListing(build.listingId) : null;
-  const titleStatus = resolveTitleStatus(
-    listing?.titleStatus ?? (build.tradeIn?.titleStatus as TitleStatus | undefined),
+  const titleStatus = resolveServerTitleStatus(
+    build,
+    listing?.titleStatus,
   );
 
   const priced = quoteLivePrice({
@@ -76,7 +68,7 @@ export default async function CheckoutPage({
   });
 
   const summary = buildSpecSummary({
-    build: { ...build, selectedPackage },
+    build,
     ...(listing ? { listing } : {}),
     term,
     titleStatus,
@@ -94,9 +86,6 @@ export default async function CheckoutPage({
     <CheckoutClient
       buildRecordId={build.id}
       specSummary={summary}
-      selectedPackage={selectedPackage}
-      term={term}
-      titleStatus={titleStatus}
       depositAmount={DEPOSIT_AMOUNT_USD}
       {...(existingAgreementId ? { initialAgreementId: existingAgreementId } : {})}
     />

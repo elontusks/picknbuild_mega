@@ -59,6 +59,7 @@ const renderConfigurator = () =>
         userId: "u_1",
         selectedPackage: "standard",
       })}
+      isPersisted={true}
       viewer={{ creditScore: 680, noCredit: false }}
     />,
   );
@@ -113,5 +114,27 @@ describe("ConfiguratorClient", () => {
       selectedPackage: "standard",
       customizations: { wrap: true },
     });
+  });
+
+  test("when isPersisted=false, the first save omits buildRecordId so the server mints one", async () => {
+    render(
+      <ConfiguratorClient
+        initialBuild={makeFixtureBuildRecord({
+          id: "seed_client_only",
+          userId: "u_1",
+          selectedPackage: "standard",
+        })}
+        isPersisted={false}
+        viewer={{ creditScore: 680, noCredit: false }}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("customization-input-wrap"));
+    fireEvent.click(screen.getByTestId("configurator-save"));
+    await Promise.resolve();
+    await Promise.resolve();
+    const arg = hoisted.saveBuildDraft.mock.calls.at(-1)?.[0] as
+      | { buildRecordId?: string }
+      | undefined;
+    expect(arg?.buildRecordId).toBeUndefined();
   });
 });

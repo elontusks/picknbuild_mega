@@ -1,10 +1,7 @@
 import { makeFixtureBuildRecord } from "@/contracts";
 import { requireUser } from "@/services/team-01-auth";
 import { getListing } from "@/services/team-03-supply";
-import {
-  getBuildRecord,
-  loadBuildRecordForUser,
-} from "@/lib/build-records/storage";
+import { loadBuildRecordForUser } from "@/lib/build-records/storage";
 import { ConfiguratorClient } from "@/components/configurator/configurator-client";
 
 type Params = { listingId: string };
@@ -21,21 +18,22 @@ export default async function ConfiguratorAnchoredPage({
   const { listingId } = await params;
   const { buildId } = await searchParams;
 
+  // Same hydration rule as /configurator: a forbidden or missing buildId
+  // produces a fresh server-minted seed rather than reusing the caller's
+  // chosen id.
   let initialBuild = makeFixtureBuildRecord({
     userId: viewer.id,
     listingId,
   });
+  let isPersisted = false;
   if (buildId) {
     const access = await loadBuildRecordForUser({
       buildRecordId: buildId,
       userId: viewer.id,
     });
-    if (access.ok) initialBuild = access.record;
-    else {
-      const existing = await getBuildRecord(buildId);
-      if (!existing) {
-        initialBuild = { ...initialBuild, id: buildId };
-      }
+    if (access.ok) {
+      initialBuild = access.record;
+      isPersisted = true;
     }
   }
 
@@ -44,6 +42,7 @@ export default async function ConfiguratorAnchoredPage({
   return (
     <ConfiguratorClient
       initialBuild={initialBuild}
+      isPersisted={isPersisted}
       {...(listing ? { listing } : {})}
       viewer={{
         ...(viewer.creditScore !== undefined

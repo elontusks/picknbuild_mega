@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import type { PackageTier, Term, TitleStatus } from "@/contracts";
 import { AgreementForm } from "./agreement-form";
 import { DepositStep } from "./deposit-step";
 
 type Props = {
   buildRecordId: string;
+  // Rendered preview only — the server re-derives the summary from the
+  // persisted BuildRecord when signAgreement runs, so this string is never
+  // trusted as the source of truth for pricing.
   specSummary: string;
-  selectedPackage: PackageTier;
-  term: Term;
-  titleStatus: TitleStatus;
   depositAmount: number;
   initialAgreementId?: string;
 };
@@ -18,9 +17,6 @@ type Props = {
 export function CheckoutClient({
   buildRecordId,
   specSummary,
-  selectedPackage,
-  term,
-  titleStatus,
   depositAmount,
   initialAgreementId,
 }: Props) {
@@ -45,9 +41,6 @@ export function CheckoutClient({
         <AgreementForm
           buildRecordId={buildRecordId}
           specSummary={specSummary}
-          selectedPackage={selectedPackage}
-          term={term}
-          titleStatus={titleStatus}
           onSigned={(id) => setAgreementId(id)}
         />
       ) : (

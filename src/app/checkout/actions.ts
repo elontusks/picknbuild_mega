@@ -12,40 +12,73 @@ import {
 } from "@/contracts";
 import { requireUser } from "@/services/team-01-auth";
 import { createDepositCharge } from "@/services/team-14-payments";
+import { getListing } from "@/services/team-03-supply";
+import { listRecords } from "@/services/team-15-storage";
 import { loadBuildRecordForUser } from "@/lib/build-records/storage";
 import {
+  AGREEMENTS_BUCKET,
   loadAgreementForUser,
   putAgreement,
 } from "@/lib/agreements/storage";
 import { PICKNBUILD_CLAUSE_IDS } from "@/lib/agreements/clauses";
 import { buildSpecSummary } from "@/lib/build-records/summary";
 import { quoteLivePrice } from "@/lib/build-records/price";
+import { PACKAGE_BY_TIER } from "@/lib/build-records/packages";
 
 export type SignAgreementInput = {
   buildRecordId: string;
   signatureImage: string;
   insuranceAcknowledged: boolean;
   nonRefundableAcknowledged: boolean;
-  term: Term;
-  titleStatus: TitleStatus;
-  selectedPackage: PackageTier;
 };
 
 export type SignAgreementResult =
-  | { ok: true; agreementId: string }
+  | { ok: true; agreementId: string; alreadySigned?: boolean }
   | { ok: false; error: string };
 
+// TRUSTED-PROXY ASSUMPTION.
+// `x-forwarded-for` is only reliable behind a proxy that rewrites the header
+// for every incoming request (Vercel, Cloudflare, a correctly configured
+// nginx). If this app is ever deployed without such a proxy, a caller can
+// spoof an arbitrary IP here — the value is only used as the audit stamp on
+// AgreementDocument.signaturePayload.ip, but do not copy-paste this helper
+// into any path where the IP gates a security decision.
 const resolveClientIp = async (): Promise<string> => {
   const h = await headers();
-  // `x-forwarded-for` may be a comma-separated list; first entry is the
-  // client. Fall back to the runtime-provided real-ip header, then 127.0.0.1
-  // so dev environments without a proxy still produce a usable value.
   const xff = h.get("x-forwarded-for");
   if (xff) {
     const first = xff.split(",")[0]?.trim();
     if (first) return first;
   }
   return h.get("x-real-ip")?.trim() || "127.0.0.1";
+};
+
+// Derive the title status for pricing + summary server-side. The configurator
+// client cannot influence this: a listing-anchored build uses the listing's
+// parsed title, a spec-based build honors a tradeIn hint, and everything else
+// falls to "clean". A malicious client that POSTs titleStatus: "rebuilt" to
+// save on the rebuilt-vehicle discount never reaches this code path.
+const resolveServerTitleStatus = async (
+  build: { listingId?: string; tradeIn?: { titleStatus: "clean" | "rebuilt" } },
+): Promise<TitleStatus> => {
+  if (build.listingId) {
+    const listing = await getListing(build.listingId);
+    if (listing?.titleStatus && listing.titleStatus !== "unknown") {
+      return listing.titleStatus;
+    }
+  }
+  if (build.tradeIn?.titleStatus === "rebuilt") return "rebuilt";
+  return "clean";
+};
+
+const findAgreementIdForBuild = async (input: {
+  buildRecordId: string;
+  userId: string;
+}): Promise<string | undefined> => {
+  const all = await listRecords<AgreementDocument>(AGREEMENTS_BUCKET);
+  return all.find(
+    (a) => a.buildRecordId === input.buildRecordId && a.userId === input.userId,
+  )?.id;
 };
 
 export async function signAgreement(
@@ -75,21 +108,51 @@ export async function signAgreement(
           : "Not your build record.",
     };
   }
+  const build = access.record;
+
+  // Idempotency: if an agreement already exists for this (userId,
+  // buildRecordId) pair, return its id instead of minting a duplicate. This
+  // covers double-submit from the client as well as deliberate replay.
+  const existingAgreementId = await findAgreementIdForBuild({
+    buildRecordId: build.id,
+    userId: viewer.id,
+  });
+  if (existingAgreementId) {
+    return { ok: true, agreementId: existingAgreementId, alreadySigned: true };
+  }
+
+  // The user must have picked a package before signing. We read it from the
+  // persisted BuildRecord rather than from the request body — otherwise a
+  // crafted POST could sign for a cheaper tier than the configurator showed.
+  const selectedPackage: PackageTier | undefined = build.selectedPackage;
+  if (!selectedPackage) {
+    return {
+      ok: false,
+      error: "Pick a package in the configurator before signing.",
+    };
+  }
+
+  // Term is derived server-side from the package default. BuildRecord (§3.3)
+  // does not store a term, so we intentionally do not trust the checkout
+  // client to supply one — a malicious caller could otherwise POST
+  // `term: "cash"` to zero out the biweekly figure on the signed summary.
+  const term: Term = PACKAGE_BY_TIER[selectedPackage].defaultTerm;
+  const titleStatus = await resolveServerTitleStatus(build);
 
   const priced = quoteLivePrice({
-    packageTier: input.selectedPackage,
-    customizations: access.record.customizations,
-    term: input.term,
-    titleStatus: input.titleStatus,
+    packageTier: selectedPackage,
+    customizations: build.customizations,
+    term,
+    titleStatus,
     creditScore: viewer.creditScore,
     noCredit: viewer.noCredit,
-    tradeInValue: access.record.tradeIn?.estimatedValue,
+    tradeInValue: build.tradeIn?.estimatedValue,
   });
 
   const renderedSpecSummary = buildSpecSummary({
-    build: { ...access.record, selectedPackage: input.selectedPackage },
-    term: input.term,
-    titleStatus: input.titleStatus,
+    build,
+    term,
+    titleStatus,
     total: priced.total,
     down: priced.down,
     biweekly: priced.biweekly,
@@ -99,7 +162,7 @@ export async function signAgreement(
   const doc: AgreementDocument = {
     id: nextFixtureId("agreement"),
     userId: viewer.id,
-    buildRecordId: access.record.id,
+    buildRecordId: build.id,
     renderedSpecSummary,
     clauses: [...PICKNBUILD_CLAUSE_IDS],
     signaturePayload: {
@@ -231,15 +294,4 @@ export async function loadCheckoutBootstrap(
     ...(existingAgreementId ? { agreementId: existingAgreementId } : {}),
   };
 }
-
-const findAgreementIdForBuild = async (input: {
-  buildRecordId: string;
-  userId: string;
-}): Promise<string | undefined> => {
-  const { listRecords } = await import("@/services/team-15-storage");
-  const agreements = await listRecords<AgreementDocument>("agreements");
-  return agreements.find(
-    (a) => a.buildRecordId === input.buildRecordId && a.userId === input.userId,
-  )?.id;
-};
 

@@ -31,6 +31,11 @@ import { SpecSummary } from "./spec-summary";
 
 type Props = {
   initialBuild: BuildRecord;
+  // true when initialBuild was loaded from storage (server-minted id, owned
+  // by viewer). false when it's a fresh client-side seed. Controls whether
+  // the client echoes the id back to saveBuildDraft — the server rejects
+  // unknown ids to prevent id-grab, so we only pass through persisted ones.
+  isPersisted: boolean;
   listing?: ListingObject;
   intake?: IntakeState;
   viewer: {
@@ -54,12 +59,16 @@ const resolveTitleStatus = (
 
 export function ConfiguratorClient({
   initialBuild,
+  isPersisted,
   listing,
   intake,
   viewer,
 }: Props) {
   const router = useRouter();
   const [build, setBuild] = useState<BuildRecord>(initialBuild);
+  const [persistedId, setPersistedId] = useState<string | null>(
+    isPersisted ? initialBuild.id : null,
+  );
   const [selectedPackage, setSelectedPackage] = useState<PackageTier>(
     initialBuild.selectedPackage ?? "standard",
   );
@@ -144,20 +153,29 @@ export function ConfiguratorClient({
     setCustomizations((prev) => ({ ...prev, [key]: value }));
   };
 
+  const persist = async () => {
+    // Only pass buildRecordId when we have proof it already exists server-side.
+    // The server rejects unknown ids; on first save, we omit it so the
+    // server mints a fresh one.
+    const input = {
+      ...(persistedId ? { buildRecordId: persistedId } : {}),
+      listingId: listing?.id ?? build.listingId,
+      selectedPackage,
+      customizations,
+      attachments,
+    };
+    return saveBuildDraft(input);
+  };
+
   const handleSave = () => {
     setStatus({ kind: "saving" });
     startTransition(async () => {
-      const result = await saveBuildDraft({
-        buildRecordId: build.id,
-        listingId: listing?.id ?? build.listingId,
-        selectedPackage,
-        customizations,
-        attachments,
-      });
+      const result = await persist();
       if (!result.ok) {
         setStatus({ kind: "error", message: result.error });
         return;
       }
+      setPersistedId(result.buildRecordId);
       setBuild((prev) => ({
         ...prev,
         id: result.buildRecordId,
@@ -172,22 +190,13 @@ export function ConfiguratorClient({
   const handleContinue = () => {
     setStatus({ kind: "saving" });
     startTransition(async () => {
-      const result = await saveBuildDraft({
-        buildRecordId: build.id,
-        listingId: listing?.id ?? build.listingId,
-        selectedPackage,
-        customizations,
-        attachments,
-      });
+      const result = await persist();
       if (!result.ok) {
         setStatus({ kind: "error", message: result.error });
         return;
       }
-      const params = new URLSearchParams({
-        build: result.buildRecordId,
-        pkg: selectedPackage,
-        term,
-      });
+      setPersistedId(result.buildRecordId);
+      const params = new URLSearchParams({ build: result.buildRecordId });
       router.push(`/checkout?${params.toString()}`);
     });
   };

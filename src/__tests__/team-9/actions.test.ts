@@ -88,30 +88,68 @@ beforeEach(() => {
 });
 
 describe("saveBuildDraft", () => {
-  test("writes the BuildRecord to bucket 'build_records' keyed by its id", async () => {
+  test("mints a server-owned id when no buildRecordId is supplied", async () => {
     hoisted.requireUser.mockResolvedValue(
       makeFixtureUser({ id: "u_1", role: "buyer" }),
     );
 
     const result = await saveBuildDraft({
-      buildRecordId: "b_new",
       selectedPackage: "premium",
       customizations: { wrap: true, paint: false },
       attachments: [{ type: "note", ref: "leather" }],
     });
 
-    expect(result).toEqual({ ok: true, buildRecordId: "b_new" });
+    expect(result.ok).toBe(true);
     expect(BUILD_RECORDS_BUCKET).toBe("build_records");
-    const stored = getBucket("build_records").get("b_new") as {
-      userId: string;
+    if (result.ok) {
+      const stored = getBucket("build_records").get(result.buildRecordId) as {
+        userId: string;
+        selectedPackage: string;
+        customizations: Record<string, boolean>;
+        attachments: { type: string; ref: string }[];
+      };
+      expect(stored.userId).toBe("u_1");
+      expect(stored.selectedPackage).toBe("premium");
+      expect(stored.customizations.wrap).toBe(true);
+      expect(stored.attachments).toHaveLength(1);
+    }
+  });
+
+  test("rejects an arbitrary buildRecordId that does not map to an existing row — prevents client-side id-grab", async () => {
+    hoisted.requireUser.mockResolvedValue(
+      makeFixtureUser({ id: "u_1", role: "buyer" }),
+    );
+    const result = await saveBuildDraft({
+      buildRecordId: "b_claimed_by_client",
+      selectedPackage: "gold",
+      customizations: {},
+      attachments: [],
+    });
+    expect(result).toEqual({ ok: false, error: "Build record not found." });
+    expect(getBucket("build_records").has("b_claimed_by_client")).toBe(false);
+  });
+
+  test("updates an existing BuildRecord in place when the viewer owns it", async () => {
+    hoisted.requireUser.mockResolvedValue(
+      makeFixtureUser({ id: "u_1", role: "buyer" }),
+    );
+    getBucket("build_records").set(
+      "b_mine",
+      makeFixtureBuildRecord({ id: "b_mine", userId: "u_1" }),
+    );
+    const result = await saveBuildDraft({
+      buildRecordId: "b_mine",
+      selectedPackage: "platinum",
+      customizations: { seats: true },
+      attachments: [],
+    });
+    expect(result).toEqual({ ok: true, buildRecordId: "b_mine" });
+    const stored = getBucket("build_records").get("b_mine") as {
       selectedPackage: string;
       customizations: Record<string, boolean>;
-      attachments: { type: string; ref: string }[];
     };
-    expect(stored.userId).toBe("u_1");
-    expect(stored.selectedPackage).toBe("premium");
-    expect(stored.customizations.wrap).toBe(true);
-    expect(stored.attachments).toHaveLength(1);
+    expect(stored.selectedPackage).toBe("platinum");
+    expect(stored.customizations.seats).toBe(true);
   });
 
   test("rejects when the user isn't the owner of the existing BuildRecord", async () => {
@@ -148,20 +186,39 @@ describe("signAgreement", () => {
     );
     getBucket("build_records").set(
       "b_1",
-      makeFixtureBuildRecord({ id: "b_1", userId: "u_1" }),
+      makeFixtureBuildRecord({
+        id: "b_1",
+        userId: "u_1",
+        selectedPackage: "standard",
+      }),
     );
     const result = await signAgreement({
       buildRecordId: "b_1",
       signatureImage: "data:image/svg+xml;utf8,<svg/>",
       insuranceAcknowledged: false,
       nonRefundableAcknowledged: true,
-      term: "3y",
-      titleStatus: "clean",
-      selectedPackage: "standard",
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/acknowledge/);
     expect(getBucket("agreements").size).toBe(0);
+  });
+
+  test("rejects when the BuildRecord has no selected package yet", async () => {
+    hoisted.requireUser.mockResolvedValue(
+      makeFixtureUser({ id: "u_1", role: "buyer" }),
+    );
+    getBucket("build_records").set(
+      "b_1",
+      makeFixtureBuildRecord({ id: "b_1", userId: "u_1" }),
+    );
+    const result = await signAgreement({
+      buildRecordId: "b_1",
+      signatureImage: "data:image/svg+xml;utf8,<svg/>",
+      insuranceAcknowledged: true,
+      nonRefundableAcknowledged: true,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/package/i);
   });
 
   test("writes AgreementDocument to bucket 'agreements' on happy path", async () => {
@@ -185,9 +242,6 @@ describe("signAgreement", () => {
       signatureImage: "data:image/svg+xml;utf8,<svg/>",
       insuranceAcknowledged: true,
       nonRefundableAcknowledged: true,
-      term: "3y",
-      titleStatus: "clean",
-      selectedPackage: "premium",
     });
 
     expect(result.ok).toBe(true);
@@ -200,6 +254,7 @@ describe("signAgreement", () => {
         nonRefundableAcknowledged: true;
         insuranceAcknowledged: true;
         signaturePayload: { ip: string; image: string };
+        renderedSpecSummary: string;
       };
       expect(doc.userId).toBe("u_1");
       expect(doc.buildRecordId).toBe("b_1");
@@ -207,8 +262,92 @@ describe("signAgreement", () => {
       expect(doc.nonRefundableAcknowledged).toBe(true);
       expect(doc.clauses).toContain("clause.non-refundable");
       expect(doc.clauses).toContain("clause.insurance-required");
+      // Package comes from the server-loaded BuildRecord, not request body.
+      expect(doc.renderedSpecSummary).toContain("premium");
       // First entry of x-forwarded-for wins.
       expect(doc.signaturePayload.ip).toBe("203.0.113.9");
+    }
+  });
+
+  test("is idempotent — a second call with the same (user, build) returns the same agreementId", async () => {
+    hoisted.requireUser.mockResolvedValue(
+      makeFixtureUser({ id: "u_1", role: "buyer" }),
+    );
+    getBucket("build_records").set(
+      "b_1",
+      makeFixtureBuildRecord({
+        id: "b_1",
+        userId: "u_1",
+        selectedPackage: "standard",
+      }),
+    );
+
+    const first = await signAgreement({
+      buildRecordId: "b_1",
+      signatureImage: "data:image/svg+xml;utf8,<svg/>",
+      insuranceAcknowledged: true,
+      nonRefundableAcknowledged: true,
+    });
+    const second = await signAgreement({
+      buildRecordId: "b_1",
+      signatureImage: "data:image/svg+xml;utf8,<svg/>",
+      insuranceAcknowledged: true,
+      nonRefundableAcknowledged: true,
+    });
+
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(true);
+    if (first.ok && second.ok) {
+      expect(second.agreementId).toBe(first.agreementId);
+      expect(second.alreadySigned).toBe(true);
+    }
+    // Only one row in the bucket — no duplicate.
+    expect(getBucket("agreements").size).toBe(1);
+  });
+
+  test("ignores any extra client-supplied pricing fields (package/term/titleStatus) — server uses the BuildRecord", async () => {
+    hoisted.requireUser.mockResolvedValue(
+      makeFixtureUser({ id: "u_1", role: "buyer" }),
+    );
+    getBucket("build_records").set(
+      "b_1",
+      makeFixtureBuildRecord({
+        id: "b_1",
+        userId: "u_1",
+        selectedPackage: "gold",
+      }),
+    );
+
+    // Cast through unknown to simulate a malicious client POSTing extra keys
+    // that would cheapen the signed summary. The server must ignore them.
+    // SignAgreementInput doesn't permit these fields by type — the whole
+    // point of this test is that a client lying outside the type bounds
+    // changes nothing about the signed document.
+    type MaliciousInput = Parameters<typeof signAgreement>[0] & {
+      selectedPackage: string;
+      term: string;
+      titleStatus: string;
+    };
+    const input: MaliciousInput = {
+      buildRecordId: "b_1",
+      signatureImage: "data:image/svg+xml;utf8,<svg/>",
+      insuranceAcknowledged: true,
+      nonRefundableAcknowledged: true,
+      selectedPackage: "standard",
+      term: "cash",
+      titleStatus: "rebuilt",
+    };
+    const result = await signAgreement(input);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const doc = getBucket("agreements").get(result.agreementId) as {
+        renderedSpecSummary: string;
+      };
+      // Server signed the actual (gold) package, not the attacker's
+      // "standard". Summary should mention "gold".
+      expect(doc.renderedSpecSummary).toContain("gold");
+      expect(doc.renderedSpecSummary).not.toContain("Package: standard");
     }
   });
 
@@ -218,16 +357,17 @@ describe("signAgreement", () => {
     );
     getBucket("build_records").set(
       "b_1",
-      makeFixtureBuildRecord({ id: "b_1", userId: "owner" }),
+      makeFixtureBuildRecord({
+        id: "b_1",
+        userId: "owner",
+        selectedPackage: "standard",
+      }),
     );
     const result = await signAgreement({
       buildRecordId: "b_1",
       signatureImage: "data:image/svg+xml;utf8,<svg/>",
       insuranceAcknowledged: true,
       nonRefundableAcknowledged: true,
-      term: "3y",
-      titleStatus: "clean",
-      selectedPackage: "standard",
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/Not your build record/);

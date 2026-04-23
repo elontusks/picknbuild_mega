@@ -1,10 +1,7 @@
 import { makeFixtureBuildRecord } from "@/contracts";
 import { requireUser } from "@/services/team-01-auth";
 import { getListing } from "@/services/team-03-supply";
-import {
-  getBuildRecord,
-  loadBuildRecordForUser,
-} from "@/lib/build-records/storage";
+import { loadBuildRecordForUser } from "@/lib/build-records/storage";
 import { ConfiguratorClient } from "@/components/configurator/configurator-client";
 
 type SearchParams = {
@@ -21,29 +18,23 @@ export default async function ConfiguratorSpecPage({
   const params = await searchParams;
 
   // Resolve which BuildRecord to hydrate. Priority: explicit buildId in the
-  // URL (Team 5's path card forwards one) -> any existing record for the
-  // listingId+user combo -> a new blank seed. Ownership is enforced before
-  // the existing record is surfaced to the client.
+  // URL that resolves to a row owned by viewer -> fresh unsaved seed.
+  // A forbidden or not-found id falls through to a server-minted fresh seed;
+  // we never echo the caller's id back into the client state because the
+  // save path rejects unknown/foreign ids anyway.
   let initialBuild = makeFixtureBuildRecord({
     userId: viewer.id,
     ...(params.listingId ? { listingId: params.listingId } : {}),
   });
+  let isPersisted = false;
   if (params.buildId) {
     const access = await loadBuildRecordForUser({
       buildRecordId: params.buildId,
       userId: viewer.id,
     });
-    if (access.ok) initialBuild = access.record;
-    else {
-      // Fall through to a fresh seed; don't leak the forbidden/not-found
-      // status here — client would just see a blank configurator.
-      const existing = await getBuildRecord(params.buildId);
-      if (!existing) {
-        initialBuild = {
-          ...initialBuild,
-          id: params.buildId,
-        };
-      }
+    if (access.ok) {
+      initialBuild = access.record;
+      isPersisted = true;
     }
   }
 
@@ -54,6 +45,7 @@ export default async function ConfiguratorSpecPage({
   return (
     <ConfiguratorClient
       initialBuild={initialBuild}
+      isPersisted={isPersisted}
       {...(listing ? { listing } : {})}
       viewer={{
         ...(viewer.creditScore !== undefined

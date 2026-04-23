@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { PackageTier, Term, TitleStatus } from "@/contracts";
 import { Disclaimer } from "@/components/legal/disclaimer";
 import { PICKNBUILD_CLAUSES } from "@/lib/agreements/clauses";
 import { signAgreement } from "@/app/checkout/actions";
@@ -9,19 +8,16 @@ import { SignatureCapture } from "./signature-capture";
 
 type Props = {
   buildRecordId: string;
+  // The summary is a read-only display of what the *server* will sign —
+  // re-derived by the server from the persisted BuildRecord at submit time,
+  // not trusted from this string. Keep it here only for the on-screen preview.
   specSummary: string;
-  selectedPackage: PackageTier;
-  term: Term;
-  titleStatus: TitleStatus;
   onSigned: (agreementId: string) => void;
 };
 
 export function AgreementForm({
   buildRecordId,
   specSummary,
-  selectedPackage,
-  term,
-  titleStatus,
   onSigned,
 }: Props) {
   const [insurance, setInsurance] = useState(false);
@@ -51,9 +47,6 @@ export function AgreementForm({
         signatureImage,
         insuranceAcknowledged: insurance,
         nonRefundableAcknowledged: nonRefundable,
-        term,
-        titleStatus,
-        selectedPackage,
       });
       if (!result.ok) {
         setError(result.error);

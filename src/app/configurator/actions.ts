@@ -29,11 +29,13 @@ export type SaveBuildResult =
   | { ok: false; error: string };
 
 /**
- * Persists the current configurator state to bucket "build_records". Reuses
- * the incoming id so Team 5's draft BuildRecord (created client-side in
- * build-record-store.tsx) survives the hydration into the configurator and
- * the same row is updated — not duplicated — when Team 12's
- * onDepositReceived resolves it after the deposit charge succeeds.
+ * Persists the current configurator state to bucket "build_records".
+ *
+ * Id handling: either the caller forwards a buildRecordId that already
+ * resolves to a row they own (reuse), or the server mints a fresh id
+ * (create). The "buildRecordId provided but row does not exist" branch is
+ * rejected — we never auto-claim an attacker-chosen id, otherwise a user
+ * could grab a future sequential id out from under another caller.
  */
 export async function saveBuildDraft(
   input: SaveBuildInput,
@@ -43,16 +45,15 @@ export async function saveBuildDraft(
   let base: BuildRecord;
   if (input.buildRecordId) {
     const existing = await getBuildRecord(input.buildRecordId);
-    if (existing && existing.userId !== viewer.id) {
+    if (!existing) {
+      return { ok: false, error: "Build record not found." };
+    }
+    if (existing.userId !== viewer.id) {
       return { ok: false, error: "Not your build record." };
     }
-    base =
-      existing ??
-      makeFixtureBuildRecord({
-        id: input.buildRecordId,
-        userId: viewer.id,
-      });
+    base = existing;
   } else {
+    // Server owns id minting. Client cannot seed this value.
     base = makeFixtureBuildRecord({ userId: viewer.id });
   }
 

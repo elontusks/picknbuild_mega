@@ -17,9 +17,6 @@ const renderForm = (onSigned = vi.fn()) =>
     <AgreementForm
       buildRecordId="b_1"
       specSummary="Spec: 2020 Honda Accord"
-      selectedPackage="standard"
-      term="3y"
-      titleStatus="clean"
       onSigned={onSigned}
     />,
   );
@@ -83,10 +80,12 @@ describe("AgreementForm", () => {
       buildRecordId: "b_1",
       insuranceAcknowledged: true,
       nonRefundableAcknowledged: true,
-      selectedPackage: "standard",
-      term: "3y",
-      titleStatus: "clean",
     });
+    // The form must NOT forward pricing-influencing fields — signAgreement
+    // now re-derives them on the server from the persisted BuildRecord.
+    expect(arg.selectedPackage).toBeUndefined();
+    expect(arg.term).toBeUndefined();
+    expect(arg.titleStatus).toBeUndefined();
     expect(typeof arg.signatureImage).toBe("string");
     expect(arg.signatureImage.length).toBeGreaterThan(0);
     await waitFor(() => {
