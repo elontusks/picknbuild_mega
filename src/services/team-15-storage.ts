@@ -88,6 +88,33 @@ export const removeRecord = async (
   }
 };
 
+// Atomic compare-and-set. Wraps "read X, if still X write Y" into a single
+// Postgres UPDATE so two concurrent callers can't both pass the same
+// guard. Returns true when the row was updated, false when the stored
+// value no longer matches `expected` (either someone else raced ahead or
+// the row was removed). Callers pass the *exact* shape they read — jsonb
+// `=` compares canonical form, not a subset.
+export const compareAndSetRecord = async <T>(
+  bucket: string,
+  id: string,
+  expected: T,
+  next: T,
+): Promise<boolean> => {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("secure_records_compare_and_set", {
+    p_bucket: bucket,
+    p_id: id,
+    p_expected: expected as never,
+    p_next: next as never,
+  });
+  if (error) {
+    throw new Error(
+      `[team-15-storage] compareAndSetRecord(${bucket}/${id}) failed: ${error.message}`,
+    );
+  }
+  return (data ?? 0) > 0;
+};
+
 // Atomic list-append primitive. Background: Team 13's notifications_by_user,
 // threads_by_user and thread_reads buckets all use a read-modify-write pattern
 // (getRecord → array.push → putRecord) that races under concurrent writes and
