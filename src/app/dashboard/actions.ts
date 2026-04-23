@@ -98,11 +98,19 @@ export async function loadDashboard(input?: {
   // Include the deposit PaymentRecord — it's tagged to the user and kind
   // "deposit" but may not carry a dealId yet if the webhook is racing the
   // synchronous confirm path. We collapse the two lists so the dashboard
-  // always shows the deposit row.
+  // always shows the deposit row. Guard on dealId so a deposit explicitly
+  // tied to another deal never leaks onto this dashboard: only accept the
+  // user-level row when it matches this deal or is still unstamped.
   const byId = new Map<string, PaymentRecord>();
   for (const p of paymentsForDeal) byId.set(p.id, p);
   for (const p of paymentsForUser) {
-    if (p.kind === "deposit" && !byId.has(p.id)) byId.set(p.id, p);
+    if (
+      p.kind === "deposit" &&
+      (p.dealId === dealId || !p.dealId) &&
+      !byId.has(p.id)
+    ) {
+      byId.set(p.id, p);
+    }
   }
   const payments = [...byId.values()].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt),

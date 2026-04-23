@@ -194,6 +194,58 @@ describe("loadDashboard", () => {
       expect(result.snapshot.payments.map((p) => p.id)).toEqual(["p_dep"]);
     }
   });
+
+  test("does not leak a deposit stamped for another deal onto the current deal's dashboard", async () => {
+    hoisted.requireUser.mockResolvedValue(
+      makeFixtureUser({ id: "u_1", role: "buyer" }),
+    );
+    const dealA = makeFixtureDealRecord({
+      id: "d_A",
+      userId: "u_1",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+    const dealB = makeFixtureDealRecord({
+      id: "d_B",
+      userId: "u_1",
+      createdAt: "2026-04-01T00:00:00.000Z",
+    });
+    hoisted.listDealsForUser.mockResolvedValue([dealA, dealB]);
+    hoisted.getDeal.mockImplementation(async (id: string) =>
+      id === "d_A" ? dealA : id === "d_B" ? dealB : null,
+    );
+    // Unstamped deposit: meant for d_A, but dealId hasn't been written yet.
+    const unstampedForA = makeFixturePaymentRecord({
+      id: "p_unstamped_A",
+      userId: "u_1",
+      kind: "deposit",
+      dealId: undefined,
+      amount: 1000,
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+    // Stamped deposit for d_A: must NOT show up on d_B's dashboard.
+    const stampedForA = makeFixturePaymentRecord({
+      id: "p_stamped_A",
+      userId: "u_1",
+      kind: "deposit",
+      dealId: "d_A",
+      amount: 1000,
+      createdAt: "2026-01-02T00:00:00.000Z",
+    });
+    hoisted.listPaymentsForDeal.mockImplementation(async (dealId: string) =>
+      dealId === "d_A" ? [stampedForA] : [],
+    );
+    hoisted.listPaymentsForUser.mockResolvedValue([stampedForA, unstampedForA]);
+
+    const result = await loadDashboard({ dealId: "d_B" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const ids = result.snapshot.payments.map((p) => p.id);
+      // Unstamped deposits still surface (webhook-race fallback).
+      expect(ids).toContain("p_unstamped_A");
+      // But a deposit explicitly tied to d_A is invisible on d_B's dashboard.
+      expect(ids).not.toContain("p_stamped_A");
+    }
+  });
 });
 
 describe("submitDealRequest", () => {

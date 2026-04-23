@@ -1,7 +1,9 @@
-import type { DealTimelineEntry } from "@/contracts";
+import type { DealStatus, DealTimelineEntry } from "@/contracts";
 import { formatDate } from "@/components/payments/format";
-import { humanizeDealStatus } from "@/lib/dashboard/status-labels";
-import type { DealStatus } from "@/contracts";
+import {
+  DEAL_STATUSES,
+  humanizeDealStatus,
+} from "@/lib/dashboard/status-labels";
 
 type Props = {
   timeline: DealTimelineEntry[];
@@ -45,16 +47,6 @@ export function StatusTimeline({ timeline }: Props) {
     </section>
   );
 }
-
-const DEAL_STATUSES: DealStatus[] = [
-  "build-started",
-  "sourcing",
-  "purchased",
-  "in-transit",
-  "delivered",
-  "surrendered",
-  "cancelled",
-];
 
 const labelForStage = (stage: string): string =>
   (DEAL_STATUSES as string[]).includes(stage)

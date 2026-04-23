@@ -22,6 +22,12 @@ const LABELS: Record<DealStatus, string> = {
   cancelled: "Cancelled",
 };
 
+// Full DealStatus vocabulary, including terminal branches. DEAL_STATUS_FLOW
+// above is the happy-path subset used by the progress view; callers that
+// need to recognize *any* DealStatus (e.g. Status Timeline humanizing an
+// arbitrary stage string) should use this one.
+export const DEAL_STATUSES = Object.keys(LABELS) as DealStatus[];
+
 export const humanizeDealStatus = (s: DealStatus): string => LABELS[s];
 
 const DESCRIPTIONS: Record<DealStatus, string> = {
