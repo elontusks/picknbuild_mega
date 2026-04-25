@@ -15,7 +15,12 @@
     "db:push": "supabase db push",
     "db:pull": "supabase db pull",
     "db:diff": "supabase db diff",
-    "db:types": "supabase gen types typescript --linked 2>/dev/null > src/lib/supabase/database.types.ts"
+    "db:types": "supabase gen types typescript --linked 2>/dev/null > src/lib/supabase/database.types.ts",
+    "scraper:install": "cd scraper && npm install && npx playwright install chromium",
+    "scraper:dev": "cd scraper && npm run dev",
+    "scraper:build": "cd scraper && npm run build",
+    "scraper:start": "cd scraper && npm run start",
+    "dev:all": "./start-all.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
