@@ -162,7 +162,7 @@ describe("intakeToListingsQuery", () => {
     expect(q).toContain("titlePreference=clean");
   });
 
-  test("includes make/model/trim/year/mileage/zip when set", () => {
+  test("includes make/model/trim/year/mileage when set", () => {
     const s = makeFixtureIntakeState({
       make: "Honda",
       model: "Accord",
@@ -176,8 +176,14 @@ describe("intakeToListingsQuery", () => {
     expect(q).toContain("yearMin=2015");
     expect(q).toContain("yearMax=2022");
     expect(q).toContain("mileageMax=80000");
-    expect(q).toContain("zip=43210");
     expect(q).toContain("limit=24");
+  });
+
+  test("does not include zip — profile ZIP is display-only context, not a hard filter", () => {
+    const q = intakeToListingsQuery(
+      makeFixtureIntakeState({ location: { zip: "43065" } }),
+    );
+    expect(q.includes("zip=")).toBe(false);
   });
 
   test("skips undefined optional fields", () => {
