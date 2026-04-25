@@ -36,11 +36,20 @@ export async function scraperFetch<T = unknown>(
       signal: opts.signal ?? controller.signal,
     });
     const text = await res.text();
-    const json = text ? JSON.parse(text) : null;
+    let json: unknown = null;
+    if (text) {
+      try {
+        json = JSON.parse(text);
+      } catch {
+        // Non-JSON body (HTML error page, plain text, etc.) — surface as a
+        // scraper-unavailable rather than crashing the route with a 500.
+        throw new ScraperUnavailableError("non-JSON response from scraper");
+      }
+    }
     if (!res.ok) {
       const message =
         (json && typeof json === "object" && "error" in json
-          ? String(json.error)
+          ? String((json as { error: unknown }).error)
           : null) ?? `Scraper ${res.status}`;
       throw new Error(message);
     }
