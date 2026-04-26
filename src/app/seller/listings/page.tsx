@@ -299,31 +299,55 @@ export default function MyListingsPage() {
               </span>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                onClick={handleCreateListing}
-                disabled={isSaving || Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim()}
-                style={{
-                  flex: 1,
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  backgroundColor: Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'var(--muted)' : 'var(--accent)',
-                  color: Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'var(--muted-foreground)' : 'var(--accent-foreground)',
-                  border: 'none',
-                  fontWeight: '600',
-                  cursor: isSaving || Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'not-allowed' : 'pointer',
-                  opacity: isSaving ? 0.6 : 1,
-                }}
-              >
-                {isSaving ? 'Creating...' : 'Create Listing'}
-              </button>
-              <button
-                onClick={() => { setShowForm(false); setError(null); setFormErrors({}); }}
-                disabled={isSaving}
-                style={{ flex: 1, padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--muted)', color: 'var(--foreground)', border: '1px solid var(--border)', fontWeight: '600', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.6 : 1 }}
-              >
-                Cancel
-              </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={handleCreateListing}
+                  disabled={isSaving || Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim()}
+                  style={{
+                    flex: 1,
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    backgroundColor: Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'var(--muted)' : 'var(--accent)',
+                    color: Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'var(--muted-foreground)' : 'var(--accent-foreground)',
+                    border: 'none',
+                    fontWeight: '600',
+                    cursor: isSaving || Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'not-allowed' : 'pointer',
+                    opacity: isSaving ? 0.6 : 1,
+                  }}
+                >
+                  {isSaving ? 'Creating...' : 'Create Listing'}
+                </button>
+                <button
+                  onClick={() => { setShowForm(false); setError(null); setFormErrors({}); }}
+                  disabled={isSaving}
+                  style={{ flex: 1, padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--muted)', color: 'var(--foreground)', border: '1px solid var(--border)', fontWeight: '600', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.6 : 1 }}
+                >
+                  Cancel
+                </button>
+              </div>
+
+              {Object.keys(formErrors).length > 0 && (
+                <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '6px', fontSize: '13px', color: '#dc2626', border: '1px solid #fecaca' }}>
+                  <strong>Fix the following errors:</strong>
+                  <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+                    {formErrors.make && <li>{formErrors.make}</li>}
+                    {formErrors.model && <li>{formErrors.model}</li>}
+                    {formErrors.year && <li>{formErrors.year}</li>}
+                    {formErrors.price && <li>{formErrors.price}</li>}
+                  </ul>
+                </div>
+              )}
+
+              {Object.keys(formErrors).length === 0 && (!formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim()) && (
+                <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '6px', fontSize: '13px', color: '#dc2626', border: '1px solid #fecaca' }}>
+                  Please fill in all required fields:
+                  {!formData.make.trim() && ' Make,'}
+                  {!formData.model.trim() && ' Model,'}
+                  {!formData.year.trim() && ' Year,'}
+                  {!formData.price.trim() && ' Price'}
+                </div>
+              )}
             </div>
           </div>
         </div>
