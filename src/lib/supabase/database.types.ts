@@ -80,6 +80,51 @@ export type Database = {
           },
         ]
       }
+      curated_listings: {
+        Row: {
+          curated_at: string
+          expires_at: string | null
+          hotness_score: number | null
+          id: string
+          listing_id: string
+          rank: number
+          scrape_site_id: string
+        }
+        Insert: {
+          curated_at?: string
+          expires_at?: string | null
+          hotness_score?: number | null
+          id?: string
+          listing_id: string
+          rank: number
+          scrape_site_id: string
+        }
+        Update: {
+          curated_at?: string
+          expires_at?: string | null
+          hotness_score?: number | null
+          id?: string
+          listing_id?: string
+          rank?: number
+          scrape_site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curated_listings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curated_listings_scrape_site_id_fkey"
+            columns: ["scrape_site_id"]
+            isOneToOne: false
+            referencedRelation: "scrape_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dealer_pages: {
         Row: {
           claimed: boolean
@@ -327,86 +372,240 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_refresh_runs: {
+        Row: {
+          changed_fields: Json | null
+          duration_ms: number | null
+          error: string | null
+          id: string
+          listing_id: string
+          new_snapshot: Json | null
+          prev_snapshot: Json | null
+          refreshed_at: string
+          status: string | null
+        }
+        Insert: {
+          changed_fields?: Json | null
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          listing_id: string
+          new_snapshot?: Json | null
+          prev_snapshot?: Json | null
+          refreshed_at?: string
+          status?: string | null
+        }
+        Update: {
+          changed_fields?: Json | null
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          listing_id?: string
+          new_snapshot?: Json | null
+          prev_snapshot?: Json | null
+          refreshed_at?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_refresh_runs_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listings: {
         Row: {
+          acv: number | null
+          auction_date: string | null
+          auction_location: string | null
+          auction_time_left: string | null
+          auction_timezone: string | null
+          bid_count: number | null
           bin_price: number | null
+          body_style: string | null
           created_at: string
           current_bid: number | null
+          cylinders: string | null
+          damage_estimate: number | null
+          drive_type: string | null
+          engine: string | null
           estimated_market_value: number | null
+          exterior_color: string | null
           fees: number | null
+          fuel_type: string | null
+          has_keys: boolean | null
           id: string
+          image_url: string | null
+          interior_color: string | null
+          last_refresh_diff: Json | null
           last_refreshed_at: string
           location_zip: string | null
+          loss_type: string | null
+          lot_number: string | null
           make: string
+          match_score: number | null
           mileage: number | null
           model: string
+          odometer_brand: string | null
           owner_user_id: string | null
           photos: string[]
           price: number | null
+          primary_damage: string | null
+          raw_extracted: Json | null
+          raw_title_status: string | null
+          repair_estimate: number | null
+          retail_value: number | null
+          scrape_site_id: string | null
+          secondary_damage: string | null
+          seller: string | null
+          seller_type: string | null
           source: string
           source_external_id: string | null
           source_updated_at: string
           source_url: string
           status: string
+          title_state: string | null
           title_status: string
+          transmission: string | null
           trim: string | null
           updated_at: string
+          vehicle_condition: string | null
           vin: string | null
+          watch_count: number | null
           year: number
         }
         Insert: {
+          acv?: number | null
+          auction_date?: string | null
+          auction_location?: string | null
+          auction_time_left?: string | null
+          auction_timezone?: string | null
+          bid_count?: number | null
           bin_price?: number | null
+          body_style?: string | null
           created_at?: string
           current_bid?: number | null
+          cylinders?: string | null
+          damage_estimate?: number | null
+          drive_type?: string | null
+          engine?: string | null
           estimated_market_value?: number | null
+          exterior_color?: string | null
           fees?: number | null
+          fuel_type?: string | null
+          has_keys?: boolean | null
           id?: string
+          image_url?: string | null
+          interior_color?: string | null
+          last_refresh_diff?: Json | null
           last_refreshed_at?: string
           location_zip?: string | null
+          loss_type?: string | null
+          lot_number?: string | null
           make: string
+          match_score?: number | null
           mileage?: number | null
           model: string
+          odometer_brand?: string | null
           owner_user_id?: string | null
           photos?: string[]
           price?: number | null
+          primary_damage?: string | null
+          raw_extracted?: Json | null
+          raw_title_status?: string | null
+          repair_estimate?: number | null
+          retail_value?: number | null
+          scrape_site_id?: string | null
+          secondary_damage?: string | null
+          seller?: string | null
+          seller_type?: string | null
           source: string
           source_external_id?: string | null
           source_updated_at?: string
           source_url: string
           status?: string
+          title_state?: string | null
           title_status?: string
+          transmission?: string | null
           trim?: string | null
           updated_at?: string
+          vehicle_condition?: string | null
           vin?: string | null
+          watch_count?: number | null
           year: number
         }
         Update: {
+          acv?: number | null
+          auction_date?: string | null
+          auction_location?: string | null
+          auction_time_left?: string | null
+          auction_timezone?: string | null
+          bid_count?: number | null
           bin_price?: number | null
+          body_style?: string | null
           created_at?: string
           current_bid?: number | null
+          cylinders?: string | null
+          damage_estimate?: number | null
+          drive_type?: string | null
+          engine?: string | null
           estimated_market_value?: number | null
+          exterior_color?: string | null
           fees?: number | null
+          fuel_type?: string | null
+          has_keys?: boolean | null
           id?: string
+          image_url?: string | null
+          interior_color?: string | null
+          last_refresh_diff?: Json | null
           last_refreshed_at?: string
           location_zip?: string | null
+          loss_type?: string | null
+          lot_number?: string | null
           make?: string
+          match_score?: number | null
           mileage?: number | null
           model?: string
+          odometer_brand?: string | null
           owner_user_id?: string | null
           photos?: string[]
           price?: number | null
+          primary_damage?: string | null
+          raw_extracted?: Json | null
+          raw_title_status?: string | null
+          repair_estimate?: number | null
+          retail_value?: number | null
+          scrape_site_id?: string | null
+          secondary_damage?: string | null
+          seller?: string | null
+          seller_type?: string | null
           source?: string
           source_external_id?: string | null
           source_updated_at?: string
           source_url?: string
           status?: string
+          title_state?: string | null
           title_status?: string
+          transmission?: string | null
           trim?: string | null
           updated_at?: string
+          vehicle_condition?: string | null
           vin?: string | null
+          watch_count?: number | null
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "listings_scrape_site_id_fkey"
+            columns: ["scrape_site_id"]
+            isOneToOne: false
+            referencedRelation: "scrape_sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -465,6 +664,96 @@ export type Database = {
           roles?: string[]
           updated_at?: string
           zip?: string | null
+        }
+        Relationships: []
+      }
+      scrape_runs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          listing_id: string | null
+          missing_fields: Json | null
+          raw_extracted: Json | null
+          scrape_site_id: string
+          status: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          listing_id?: string | null
+          missing_fields?: Json | null
+          raw_extracted?: Json | null
+          scrape_site_id: string
+          status?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          listing_id?: string | null
+          missing_fields?: Json | null
+          raw_extracted?: Json | null
+          scrape_site_id?: string
+          status?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scrape_runs_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrape_runs_scrape_site_id_fkey"
+            columns: ["scrape_site_id"]
+            isOneToOne: false
+            referencedRelation: "scrape_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scrape_sites: {
+        Row: {
+          active: boolean
+          base_url: string
+          created_at: string
+          fc_specification: string | null
+          id: string
+          name: string
+          search_url_template: string | null
+          site_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          base_url: string
+          created_at?: string
+          fc_specification?: string | null
+          id?: string
+          name: string
+          search_url_template?: string | null
+          site_type?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          base_url?: string
+          created_at?: string
+          fc_specification?: string | null
+          id?: string
+          name?: string
+          search_url_template?: string | null
+          site_type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -528,6 +817,33 @@ export type Database = {
           sort_order?: number
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      unsupported_domains: {
+        Row: {
+          attempts: number
+          domain: string
+          first_failed_at: string
+          id: string
+          last_failed_at: string
+          reason: string | null
+        }
+        Insert: {
+          attempts?: number
+          domain: string
+          first_failed_at?: string
+          id?: string
+          last_failed_at?: string
+          reason?: string | null
+        }
+        Update: {
+          attempts?: number
+          domain?: string
+          first_failed_at?: string
+          id?: string
+          last_failed_at?: string
+          reason?: string | null
         }
         Relationships: []
       }
@@ -612,20 +928,11 @@ export type Database = {
     }
     Functions: {
       secure_records_append_to_list: {
-        Args: {
-          p_bucket: string
-          p_id: string
-          p_value: Json
-        }
+        Args: { p_bucket: string; p_id: string; p_value: Json }
         Returns: undefined
       }
       secure_records_compare_and_set: {
-        Args: {
-          p_bucket: string
-          p_id: string
-          p_expected: Json
-          p_next: Json
-        }
+        Args: { p_bucket: string; p_expected: Json; p_id: string; p_next: Json }
         Returns: number
       }
     }
