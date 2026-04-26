@@ -43,6 +43,8 @@ export default function MyListingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     make: '',
     model: '',
@@ -153,15 +155,28 @@ export default function MyListingsPage() {
     setError(null);
   };
 
-  const handleDeleteListing = async (listingId: string) => {
+  const handleDeleteListing = (listingId: string) => {
+    setDeleteConfirmId(listingId);
+  };
+
+  const confirmDeleteListing = async () => {
+    if (!deleteConfirmId) return;
     try {
+      setIsDeleting(true);
       setError(null);
-      const response = await fetch(`/api/seller/listings/${listingId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/seller/listings/${deleteConfirmId}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete listing');
-      setListings(listings.filter((l) => l.id !== listingId));
+      setListings(listings.filter((l) => l.id !== deleteConfirmId));
+      setDeleteConfirmId(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete listing');
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const cancelDeleteListing = () => {
+    setDeleteConfirmId(null);
   };
 
   return (
@@ -403,6 +418,80 @@ export default function MyListingsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={cancelDeleteListing}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--card)',
+              borderRadius: '8px',
+              padding: '24px',
+              maxWidth: '400px',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+              border: '1px solid var(--border)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontSize: '18px', fontWeight: '600', margin: '0 0 8px 0', color: 'var(--foreground)' }}>
+              Delete Listing?
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--muted-foreground)', margin: '0 0 20px 0' }}>
+              Are you sure you want to delete this listing? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={cancelDeleteListing}
+                disabled={isDeleting}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  backgroundColor: 'var(--muted)',
+                  color: 'var(--foreground)',
+                  border: '1px solid var(--border)',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  opacity: isDeleting ? 0.6 : 1,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteListing}
+                disabled={isDeleting}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  backgroundColor: '#dc2626',
+                  color: '#fff',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  opacity: isDeleting ? 0.6 : 1,
+                }}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
