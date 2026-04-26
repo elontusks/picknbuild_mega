@@ -9,7 +9,6 @@ type EngagementProps = {
   initialLikeCount: number;
   initialCommentCount: number;
   canInteract: boolean;
-  permalinkPath: string;
 };
 
 // Like / comment / reply / share for a feed post. Reply is a one-level
@@ -21,14 +20,12 @@ export function FeedEngagementControls({
   initialLikeCount,
   initialCommentCount,
   canInteract,
-  permalinkPath,
 }: EngagementProps) {
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [commentCount, setCommentCount] = useState(initialCommentCount);
   const [commentDraft, setCommentDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [shareMsg, setShareMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const handleLike = () => {
@@ -61,24 +58,6 @@ export function FeedEngagementControls({
     });
   };
 
-  const handleShare = async () => {
-    const url =
-      typeof window !== "undefined"
-        ? new URL(permalinkPath, window.location.origin).toString()
-        : permalinkPath;
-    try {
-      if (typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-        setShareMsg("Link copied");
-      } else {
-        setShareMsg(url);
-      }
-    } catch {
-      setShareMsg(url);
-    }
-    setTimeout(() => setShareMsg(null), 2500);
-  };
-
   return (
     <div
       data-testid={`engagement-${postId}`}
@@ -104,24 +83,6 @@ export function FeedEngagementControls({
           <span>💬</span>
           <span className="font-medium">{commentCount}</span>
         </div>
-        <button
-          type="button"
-          data-testid="share-btn"
-          onClick={handleShare}
-          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition duration-200"
-        >
-          <span>🔗</span>
-          <span className="font-medium">Share</span>
-        </button>
-        {shareMsg ? (
-          <span
-            role="status"
-            data-testid="share-msg"
-            className="ml-auto text-emerald-600 dark:text-emerald-400 font-medium"
-          >
-            ✓ {shareMsg}
-          </span>
-        ) : null}
       </div>
       {canInteract ? (
         <div className="flex gap-2">

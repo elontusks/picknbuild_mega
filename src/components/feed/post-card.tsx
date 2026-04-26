@@ -138,7 +138,6 @@ export async function FeedPostCard({
           initialLikeCount={likeCount}
           initialCommentCount={comments.length}
           canInteract={Boolean(viewerId)}
-          permalinkPath={`/feed/${post.id}`}
         />
       ) : null}
 
