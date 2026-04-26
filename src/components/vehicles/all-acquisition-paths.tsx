@@ -76,41 +76,41 @@ export function AllAcquisitionPaths({
             data-testid={`path-card-${path}`}
             className={`flex flex-col gap-2 rounded-xl border p-3 ${
               bestFitPath === path
-                ? "border-emerald-400 bg-emerald-50 dark:border-emerald-500/60 dark:bg-emerald-950/30"
-                : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+                ? "border-emerald-400 bg-emerald-50-500/60-950/30"
+                : "border-border bg-white-800-950"
             }`}
           >
             <header className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-zinc-950 dark:text-white">
+                <h3 className="text-sm font-semibold text-foreground">
                   {PATH_TITLE[path]}
                 </h3>
-                <p className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
                   {PATH_SUBTITLE[path]}
                 </p>
               </div>
               {bestFitPath === path ? (
-                <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">
+                <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary-foreground">
                   Best fit
                 </span>
               ) : null}
             </header>
-            <p className="text-sm text-zinc-700 dark:text-zinc-200">{allInLine(quote)}</p>
+            <p className="text-sm text-muted-foreground">{allInLine(quote)}</p>
             {quote.down !== undefined ? (
-              <p className="text-xs text-zinc-600 dark:text-zinc-300">
+              <p className="text-xs text-muted-foreground">
                 Down {usd(quote.down)}
               </p>
             ) : null}
             <p
               data-testid={`barrier-${path}`}
-              className="text-xs leading-5 text-zinc-600 dark:text-zinc-300"
+              className="text-xs leading-5 text-muted-foreground"
             >
               {quote.barrierLine}
             </p>
             {notApproved ? (
               <p
                 data-testid="not-approved"
-                className="rounded bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700 dark:bg-rose-950/50 dark:text-rose-200"
+                className="rounded bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700-950/50 dark:text-rose-200"
               >
                 Credit tier doesn&apos;t meet this dealer path right now.
               </p>

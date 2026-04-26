@@ -14,7 +14,7 @@ export function MatchModeToggle() {
   return (
     <label
       data-intake="match-mode-toggle"
-      className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+      className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm-700-900"
     >
       <input
         type="checkbox"
@@ -22,12 +22,12 @@ export function MatchModeToggle() {
         onChange={(e) =>
           dispatch({ type: "set-match-mode", matchMode: e.target.checked })
         }
-        className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 dark:border-zinc-600 dark:bg-zinc-800"
+        className="h-4 w-4 rounded border-border text-foreground focus:ring-zinc-900-600-800"
       />
-      <span className="font-medium text-zinc-800 dark:text-zinc-100">
+      <span className="font-medium text-zinc-800">
         Match Mode
       </span>
-      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+      <span className="text-xs text-muted-foreground">
         only listings your cash + credit can actually get
       </span>
     </label>

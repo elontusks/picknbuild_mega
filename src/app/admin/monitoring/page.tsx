@@ -24,7 +24,7 @@ export default async function AdminMonitoringPage() {
       <section>
         <h3 className="pb-2 text-sm font-semibold">Recent admin actions</h3>
         {logs.length === 0 ? (
-          <p className="text-xs text-zinc-500">No admin actions logged yet.</p>
+          <p className="text-xs text-muted-foreground">No admin actions logged yet.</p>
         ) : (
           <ul
             className="flex flex-col gap-1 text-xs"
@@ -32,12 +32,12 @@ export default async function AdminMonitoringPage() {
           >
             {logs.slice(0, 50).map((entry) => (
               <li key={entry.id} className="flex flex-wrap gap-2">
-                <span className="text-zinc-500">
+                <span className="text-muted-foreground">
                   {new Date(entry.createdAt).toLocaleString()}
                 </span>
                 <span className="font-semibold">{entry.action}</span>
                 {entry.target ? <span>→ {entry.target}</span> : null}
-                <span className="text-zinc-500">by {entry.actor}</span>
+                <span className="text-muted-foreground">by {entry.actor}</span>
               </li>
             ))}
           </ul>
@@ -47,7 +47,7 @@ export default async function AdminMonitoringPage() {
       <section>
         <h3 className="pb-2 text-sm font-semibold">Recent ingestion runs</h3>
         {ingestion.length === 0 ? (
-          <p className="text-xs text-zinc-500">No ingestion runs recorded.</p>
+          <p className="text-xs text-muted-foreground">No ingestion runs recorded.</p>
         ) : (
           <ul className="flex flex-col gap-1 text-xs">
             {ingestion.slice(0, 20).map((run) => (
@@ -66,8 +66,8 @@ export default async function AdminMonitoringPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800">
-      <div className="text-xs text-zinc-500">{label}</div>
+    <div className="rounded-md border border-border p-3 text-sm-800">
+      <div className="text-xs text-muted-foreground">{label}</div>
       <div className="text-xl font-semibold">{value}</div>
     </div>
   );

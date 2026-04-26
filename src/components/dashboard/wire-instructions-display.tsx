@@ -21,10 +21,10 @@ export function WireInstructionsDisplay({ wire }: Props) {
   return (
     <section
       data-testid="wire-instructions"
-      className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="rounded-lg border border-border bg-background p-4-800-950"
     >
       <header className="mb-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Wire instructions
         </h2>
       </header>
@@ -33,7 +33,7 @@ export function WireInstructionsDisplay({ wire }: Props) {
           <ItemRow key={testid} label={label} value={value} testid={testid} />
         ))}
       </dl>
-      <Disclaimer context="wire-instructions" className="mt-3 text-xs text-zinc-500" />
+      <Disclaimer context="wire-instructions" className="mt-3 text-xs text-muted-foreground" />
     </section>
   );
 }
@@ -49,7 +49,7 @@ function ItemRow({
 }) {
   return (
     <>
-      <dt className="text-zinc-500">{label}</dt>
+      <dt className="text-muted-foreground">{label}</dt>
       <dd
         data-testid={testid}
         className="text-right font-mono text-sm"

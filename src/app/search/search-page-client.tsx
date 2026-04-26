@@ -9,8 +9,6 @@ const BUILD_VERSION = 'v12-all-elements-final';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { User } from '@/contracts';
 import { Car, PickedCar, GarageGroup, UserProfile } from '@/lib/search-demo/types';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import TopBar from '@/components/clarity/TopBar';
 import MatchModeBar from '@/components/clarity/MatchModeBar';
 import DealerColumn from '@/components/clarity/columns/DealerColumn';
 import AuctionDIYColumn from '@/components/clarity/columns/AuctionDIYColumn';
@@ -34,11 +32,7 @@ type Props = {
 };
 
 export function SearchPageClient(props: Props) {
-  return (
-    <ThemeProvider>
-      <SearchPageInner {...props} />
-    </ThemeProvider>
-  );
+  return <SearchPageInner {...props} />;
 }
 
 function SearchPageInner(props: Props) {
@@ -311,17 +305,6 @@ function SearchPageInner(props: Props) {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
-      <TopBar
-        pickedCount={pickedCars.length}
-        onGarageClick={() => setGarageOpen(!garageOpen)}
-        garageOpen={garageOpen}
-        onReferralClick={() => setShowReferralModal(true)}
-        onSellClick={() => setShowSellModal(true)}
-        onSignInClick={() => setShowSignInModal(true)}
-        currentUser={currentUser}
-        onSignOut={handleSignOut}
-      />
-
       <MatchModeBar
         userProfile={userProfile}
         userZip={user.zip}

@@ -33,7 +33,7 @@ export function VehicleGroupingDisplay({
     return (
       <p
         data-testid="garage-grouping-empty"
-        className="rounded-md border border-dashed border-zinc-200 p-6 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400"
+        className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground-800"
       >
         Nothing saved yet. Pick cars from search or the listing detail page to
         bring them into your garage.
@@ -51,10 +51,10 @@ export function VehicleGroupingDisplay({
           className="flex flex-col gap-3"
         >
           <header className="flex items-baseline justify-between">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+            <h3 className="text-sm font-semibold text-foreground">
               {group.label}
             </h3>
-            <span className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
               {group.entries.length} saved
             </span>
           </header>

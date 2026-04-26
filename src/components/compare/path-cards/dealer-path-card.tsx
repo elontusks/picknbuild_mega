@@ -60,28 +60,28 @@ export function DealerPathCard({
         </>
       }
       body={
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-zinc-700 dark:text-zinc-200">
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
           {sticker !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Sticker</dt>
+              <dt className="text-muted-foreground">Sticker</dt>
               <dd className="text-right">{usd(sticker)}</dd>
             </>
           ) : null}
           {quote.down !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Down</dt>
+              <dt className="text-muted-foreground">Down</dt>
               <dd className="text-right">{usd(quote.down)}</dd>
             </>
           ) : null}
           {quote.monthly !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Monthly</dt>
+              <dt className="text-muted-foreground">Monthly</dt>
               <dd className="text-right">{usd(quote.monthly)}</dd>
             </>
           ) : null}
           {quote.apr !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">APR</dt>
+              <dt className="text-muted-foreground">APR</dt>
               <dd className="text-right">{pctLabel(quote.apr)}</dd>
             </>
           ) : null}
@@ -91,7 +91,7 @@ export function DealerPathCard({
         notApproved ? (
           <p
             data-testid="path-card-dealer-not-approved"
-            className="rounded bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700 dark:bg-rose-950/50 dark:text-rose-200"
+            className="rounded bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700-950/50 dark:text-rose-200"
           >
             Not approved at your credit tier. Try another path.
           </p>

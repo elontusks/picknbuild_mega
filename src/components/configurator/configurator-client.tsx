@@ -209,13 +209,13 @@ export function ConfiguratorClient({
       <main className="flex min-w-0 flex-1 flex-col gap-6">
         <header className="space-y-1">
           <h1 className="text-2xl font-semibold">picknbuild Configurator</h1>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted-foreground">
             Pick your package, customize, and lock in the spec. Pricing is live.
           </p>
         </header>
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             1. Package
           </h2>
           <PackageCards
@@ -226,7 +226,7 @@ export function ConfiguratorClient({
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             2. Term
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -239,8 +239,8 @@ export function ConfiguratorClient({
                 onClick={() => setTerm(t)}
                 className={`rounded px-3 py-1 text-sm ${
                   term === t
-                    ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                    : "border border-zinc-300 dark:border-zinc-700"
+                    ? "bg-muted text-primary-foreground"
+                    : "border border-border-700"
                 }`}
               >
                 {t}
@@ -250,7 +250,7 @@ export function ConfiguratorClient({
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             3. Customizations
           </h2>
           <CustomizationPanel
@@ -260,20 +260,20 @@ export function ConfiguratorClient({
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             4. Add to Your Build
           </h2>
           <AttachmentsPanel value={attachments} onChange={setAttachments} />
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             5. Review Spec
           </h2>
           <SpecSummary summary={summary} />
         </section>
 
-        <section className="space-y-2 rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs dark:border-amber-700 dark:bg-amber-950/40">
+        <section className="space-y-2 rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs-700-950/40">
           <h3 className="font-semibold">Before you sign</h3>
           <Disclaimer context="insurance" />
           <Disclaimer context="non-refundable" />
@@ -291,7 +291,7 @@ export function ConfiguratorClient({
             data-testid="configurator-save"
             onClick={handleSave}
             disabled={isPending}
-            className="rounded-md border border-zinc-300 px-4 py-2 text-sm disabled:opacity-50 dark:border-zinc-700"
+            className="rounded-md border border-border px-4 py-2 text-sm disabled:opacity-50-700"
           >
             {status.kind === "saving" ? "Saving…" : "Save draft"}
           </button>
@@ -300,7 +300,7 @@ export function ConfiguratorClient({
             data-testid="configurator-continue"
             onClick={handleContinue}
             disabled={isPending}
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900"
+            className="rounded-md bg-muted px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
             Continue to agreement
           </button>

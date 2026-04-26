@@ -10,7 +10,7 @@ export function MessageHistoryDisplay({
   if (messages.length === 0) {
     return (
       <p
-        className="text-sm text-zinc-500"
+        className="text-sm text-muted-foreground"
         data-testid="message-history-empty"
       >
         No messages yet — say hi.
@@ -34,14 +34,14 @@ export function MessageHistoryDisplay({
             <div
               className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
                 mine
-                  ? "bg-blue-600 text-white"
-                  : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                  ? "bg-blue-600 text-primary-foreground"
+                  : "bg-muted text-foreground-800"
               }`}
             >
               <p className="whitespace-pre-wrap break-words">{m.body}</p>
               <time
                 className={`mt-1 block text-[10px] ${
-                  mine ? "text-blue-100" : "text-zinc-500"
+                  mine ? "text-blue-100" : "text-muted-foreground"
                 }`}
                 dateTime={m.sentAt}
               >

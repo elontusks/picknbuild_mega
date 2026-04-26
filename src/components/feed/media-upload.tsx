@@ -70,7 +70,7 @@ export function MediaUploadInterface({
   return (
     <div
       data-testid={testId}
-      className="flex flex-col gap-2 rounded-md border border-dashed border-zinc-300 p-2 dark:border-zinc-700"
+      className="flex flex-col gap-2 rounded-md border border-dashed border-border p-2-700"
     >
       <div className="flex items-center gap-2">
         <input
@@ -83,7 +83,7 @@ export function MediaUploadInterface({
           onChange={(e) => handleFiles(e.target.files)}
           className="text-xs"
         />
-        <span className="text-[11px] text-zinc-500">
+        <span className="text-[11px] text-muted-foreground">
           {refs.length}/{MAX_FILES}
         </span>
       </div>
@@ -101,7 +101,7 @@ export function MediaUploadInterface({
                 type="button"
                 data-testid={`${testId}-remove-${i}`}
                 onClick={() => removeAt(i)}
-                className="absolute -right-1 -top-1 rounded-full bg-zinc-900 px-1 text-[10px] text-white"
+                className="absolute -right-1 -top-1 rounded-full bg-muted px-1 text-[10px] text-primary-foreground"
                 aria-label={`Remove media ${i + 1}`}
               >
                 ×

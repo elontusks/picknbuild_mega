@@ -38,12 +38,12 @@ export function ChooseYourTerm({ enabled = true }: Props) {
       className="flex flex-wrap items-center gap-2"
     >
       <legend className="sr-only">Choose your term</legend>
-      <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Term
       </span>
       <div
         role="radiogroup"
-        className="inline-flex overflow-hidden rounded-lg border border-zinc-200 bg-white text-xs dark:border-zinc-700 dark:bg-zinc-900"
+        className="inline-flex overflow-hidden rounded-lg border border-border bg-background text-xs-700-900"
       >
         {TERM_OPTIONS.map((opt) => {
           const isActive = opt.value === active;
@@ -60,8 +60,8 @@ export function ChooseYourTerm({ enabled = true }: Props) {
               }
               className={`px-3 py-1.5 font-medium transition-colors ${
                 isActive
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 disabled:opacity-40 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  ? "bg-muted text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted disabled:opacity-40 dark:hover:bg-muted"
               }`}
             >
               {opt.label}

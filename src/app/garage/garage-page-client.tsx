@@ -88,12 +88,12 @@ function GarageContainer({ user, seeds }: Props) {
     return (
       <section
         data-testid="garage-empty"
-        className="mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-200 p-10 text-center dark:border-zinc-800"
+        className="mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-xl border border-dashed border-border p-10 text-center-800"
       >
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
+        <h2 className="text-lg font-semibold text-foreground">
           Your garage is empty.
         </h2>
-        <p className="max-w-md text-sm text-zinc-600 dark:text-zinc-300">
+        <p className="max-w-md text-sm text-muted-foreground">
           Save vehicles from Search or a listing detail page and they'll land
           here grouped by make and model, with all four paths priced side by
           side.
@@ -111,13 +111,13 @@ function GarageContainer({ user, seeds }: Props) {
         totalCount={seeds.length}
       />
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Side-by-side
         </h2>
         <GarageComparisonTable rows={rows} winners={winners} />
       </section>
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Grouped by vehicle
         </h2>
         <VehicleGroupingDisplay

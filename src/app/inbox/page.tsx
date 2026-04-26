@@ -11,7 +11,7 @@ export default async function InboxPage() {
   const threads = await listThreads(principal.id);
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+      <h1 className="text-lg font-semibold text-foreground">
         Inbox
       </h1>
       <MessageInbox threads={threads} currentUserId={principal.id} />

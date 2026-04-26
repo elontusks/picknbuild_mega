@@ -17,9 +17,9 @@ export function DealSwitcher({ currentDealId, deals }: Props) {
     <nav
       data-testid="deal-switcher"
       aria-label="Other deals"
-      className="rounded-lg border border-zinc-200 bg-white p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+      className="rounded-lg border border-border bg-background p-3 text-sm-800-950"
     >
-      <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+      <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
         Your deals
       </p>
       <ul className="space-y-1">
@@ -32,13 +32,13 @@ export function DealSwitcher({ currentDealId, deals }: Props) {
               className={
                 deal.id === currentDealId
                   ? "font-medium"
-                  : "text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
+                  : "text-muted-foreground underline-offset-2 hover:underline"
               }
             >
               <span>
                 {deal.committedSpec.makeModelYearRange || deal.id}
               </span>
-              <span className="ml-2 text-xs text-zinc-500">
+              <span className="ml-2 text-xs text-muted-foreground">
                 {humanizeDealStatus(deal.status)} · {formatDate(deal.createdAt)}
               </span>
             </Link>

@@ -29,28 +29,28 @@ export function DecisionHighlightBadges({
     badges.push({
       key: "lowest-total",
       label: "Best total $",
-      tone: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100",
+      tone: "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
     });
   }
   if (isLowestMonthlyInGarage) {
     badges.push({
       key: "lowest-monthly",
       label: "Best cadence",
-      tone: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-100",
+      tone: "bg-sky-100 text-sky-800-900/40 dark:text-sky-100",
     });
   }
   if (lowBarrier) {
     badges.push({
       key: "low-barrier",
       label: "Low barrier",
-      tone: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100",
+      tone: "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
     });
   }
   if (stillDeciding) {
     badges.push({
       key: "still-deciding",
       label: "Still deciding",
-      tone: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
+      tone: "bg-muted text-muted-foreground-800",
     });
   }
 

@@ -34,16 +34,16 @@ export function PathCardShell({
       aria-label={`${PATH_TITLE[path]} path`}
       className={`flex flex-col gap-2 rounded-xl border p-3 ${
         isBestFit
-          ? "border-emerald-400 bg-emerald-50 dark:border-emerald-500/60 dark:bg-emerald-950/30"
-          : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+          ? "border-emerald-400 bg-emerald-50-500/60-950/30"
+          : "border-border bg-white-800-950"
       }`}
     >
       <header className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-950 dark:text-white">
+          <h3 className="text-sm font-semibold text-foreground">
             {PATH_TITLE[path]}
           </h3>
-          <p className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
             {PATH_SUBTITLE[path]}
           </p>
         </div>
@@ -51,7 +51,7 @@ export function PathCardShell({
       </header>
       <div className="flex flex-wrap gap-1">{badges}</div>
       <p
-        className="text-sm font-medium text-zinc-900 dark:text-white"
+        className="text-sm font-medium text-foreground"
         data-testid={`path-card-${path}-headline`}
       >
         {headline}
@@ -59,7 +59,7 @@ export function PathCardShell({
       {body}
       <p
         data-testid={`path-card-${path}-barrier`}
-        className="text-xs leading-5 text-zinc-600 dark:text-zinc-300"
+        className="text-xs leading-5 text-muted-foreground"
       >
         {barrierLine}
       </p>

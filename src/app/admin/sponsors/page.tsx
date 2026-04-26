@@ -37,7 +37,7 @@ export default async function AdminSponsorsPage() {
       <section>
         <h3 className="pb-2 text-sm font-semibold">Catalog</h3>
         <table className="w-full text-left text-sm">
-          <thead className="text-xs text-zinc-500">
+          <thead className="text-xs text-muted-foreground">
             <tr>
               <th className="pb-2">Path</th>
               <th className="pb-2">Title</th>
@@ -51,7 +51,7 @@ export default async function AdminSponsorsPage() {
             {sponsors.map((s) => (
               <tr
                 key={s.id}
-                className="border-t border-zinc-100 text-xs dark:border-zinc-900"
+                className="border-t border-zinc-100 text-xs-900"
               >
                 <td className="py-2">{s.path}</td>
                 <td className="py-2">{s.title}</td>
@@ -66,7 +66,7 @@ export default async function AdminSponsorsPage() {
           </tbody>
         </table>
         {sponsors.length === 0 ? (
-          <p className="text-xs text-zinc-500">No sponsors yet.</p>
+          <p className="text-xs text-muted-foreground">No sponsors yet.</p>
         ) : null}
       </section>
     </section>

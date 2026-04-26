@@ -17,7 +17,7 @@ export function NotificationHistoryDisplay({
   if (notifications.length === 0) {
     return (
       <p
-        className="text-sm text-zinc-500"
+        className="text-sm text-muted-foreground"
         data-testid="notifications-empty"
       >
         No notifications yet.
@@ -39,22 +39,22 @@ export function NotificationHistoryDisplay({
             data-category={n.category}
             data-channel={n.channel}
             data-read={n.readAt ? "true" : "false"}
-            className={`flex items-start justify-between gap-3 rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800 ${
+            className={`flex items-start justify-between gap-3 rounded-md border border-border px-3 py-2-800 ${
               n.readAt
-                ? "bg-white dark:bg-zinc-950"
-                : "bg-blue-50 dark:bg-blue-950"
+                ? "bg-white-950"
+                : "bg-blue-50-950"
             }`}
           >
             <div className="flex flex-col">
-              <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {categoryLabel[n.category]} · {n.channel}
               </span>
-              <span className="text-sm text-zinc-900 dark:text-zinc-100">
+              <span className="text-sm text-foreground">
                 {payload?.title ?? JSON.stringify(n.payload)}
               </span>
             </div>
             <time
-              className="text-xs text-zinc-500"
+              className="text-xs text-muted-foreground"
               dateTime={n.createdAt}
             >
               {new Date(n.createdAt).toLocaleString()}

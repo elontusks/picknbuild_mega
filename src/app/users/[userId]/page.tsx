@@ -27,9 +27,9 @@ export default async function BuyerProfilePage({ params }: PageProps) {
 
       <div
         data-testid="saved-search-section"
-        className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+        className="rounded-xl border border-border bg-background p-4-800-950"
       >
-        <h2 className="mb-2 text-sm font-semibold text-zinc-950 dark:text-white">
+        <h2 className="mb-2 text-sm font-semibold text-foreground">
           Saved search
         </h2>
         {isSelf ? (
@@ -37,7 +37,7 @@ export default async function BuyerProfilePage({ params }: PageProps) {
         ) : (
           <p
             data-testid="saved-search-private"
-            className="text-sm text-zinc-500 dark:text-zinc-400"
+            className="text-sm text-muted-foreground"
           >
             Saved search is private.
           </p>
@@ -53,14 +53,14 @@ export default async function BuyerProfilePage({ params }: PageProps) {
             <Link
               href="/garage"
               data-testid="link-garage"
-              className="rounded-xl border border-zinc-200 bg-white p-4 text-sm font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900"
+              className="rounded-xl border border-border bg-background p-4 text-sm font-medium text-foreground hover:bg-background-800-950 dark:hover:bg-muted"
             >
               Go to Garage →
             </Link>
             <Link
               href="/inbox"
               data-testid="link-inbox"
-              className="rounded-xl border border-zinc-200 bg-white p-4 text-sm font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white dark:hover:bg-zinc-900"
+              className="rounded-xl border border-border bg-background p-4 text-sm font-medium text-foreground hover:bg-background-800-950 dark:hover:bg-muted"
             >
               Open Inbox →
             </Link>
@@ -68,7 +68,7 @@ export default async function BuyerProfilePage({ params }: PageProps) {
         ) : (
           <p
             data-testid="profile-public-note"
-            className="text-sm text-zinc-500 dark:text-zinc-400 sm:col-span-2"
+            className="text-sm text-muted-foreground sm:col-span-2"
           >
             Public buyer profile.
           </p>

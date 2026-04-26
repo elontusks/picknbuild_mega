@@ -10,7 +10,7 @@ export function SponsorCreateForm() {
   return (
     <form
       data-testid="admin-sponsor-create"
-      className="flex flex-col gap-2 rounded-md border border-zinc-200 p-3 text-xs dark:border-zinc-800"
+      className="flex flex-col gap-2 rounded-md border border-border p-3 text-xs-800"
       onSubmit={(e) => {
         e.preventDefault();
         const form = e.currentTarget as HTMLFormElement;
@@ -41,7 +41,7 @@ export function SponsorCreateForm() {
         Path
         <select
           name="path"
-          className="rounded-md border border-zinc-200 px-2 py-1 dark:border-zinc-800"
+          className="rounded-md border border-border px-2 py-1-800"
           defaultValue="picknbuild"
         >
           <option value="dealer">dealer</option>
@@ -54,32 +54,32 @@ export function SponsorCreateForm() {
         name="title"
         required
         placeholder="Title"
-        className="rounded-md border border-zinc-200 px-2 py-1 dark:border-zinc-800"
+        className="rounded-md border border-border px-2 py-1-800"
       />
       <textarea
         name="bodyHtml"
         rows={3}
         placeholder="Body HTML"
-        className="rounded-md border border-zinc-200 px-2 py-1 dark:border-zinc-800"
+        className="rounded-md border border-border px-2 py-1-800"
       />
       <input
         name="ctaLabel"
         placeholder="CTA label (optional)"
-        className="rounded-md border border-zinc-200 px-2 py-1 dark:border-zinc-800"
+        className="rounded-md border border-border px-2 py-1-800"
       />
       <input
         name="ctaHref"
         placeholder="CTA href (optional)"
-        className="rounded-md border border-zinc-200 px-2 py-1 dark:border-zinc-800"
+        className="rounded-md border border-border px-2 py-1-800"
       />
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded-md bg-zinc-900 px-3 py-1 text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+        className="self-start rounded-md bg-muted px-3 py-1 text-primary-foreground disabled:opacity-50-100"
       >
         Save sponsor
       </button>
-      {message ? <p className="text-zinc-500">{message}</p> : null}
+      {message ? <p className="text-muted-foreground">{message}</p> : null}
     </form>
   );
 }

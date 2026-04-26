@@ -16,14 +16,14 @@ export async function NotificationBell({ userId }: Props) {
     <Link
       href="/notifications"
       aria-label={`Notifications (${unread} unread)`}
-      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted dark:hover:bg-muted"
       data-shell-slot="notification-bell"
     >
       <span aria-hidden="true">🔔</span>
       {unread > 0 ? (
         <span
           data-testid="bell-unread"
-          className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-white"
+          className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-primary-foreground"
         >
           {unread > 9 ? "9+" : unread}
         </span>

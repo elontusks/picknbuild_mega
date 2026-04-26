@@ -13,7 +13,7 @@ export default async function AdminListingDetailPage({
   if (!listing) {
     return (
       <section
-        className="text-sm text-zinc-500"
+        className="text-sm text-muted-foreground"
         data-testid="admin-listing-missing"
       >
         Listing not found.{" "}
@@ -35,7 +35,7 @@ export default async function AdminListingDetailPage({
         <h2 className="text-lg font-semibold">
           {listing.year} {listing.make} {listing.model}
         </h2>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-muted-foreground">
           {listing.source} · {listing.status} · {listing.id}
         </p>
       </header>
@@ -74,7 +74,7 @@ export default async function AdminListingDetailPage({
       <div>
         <h3 className="pb-2 text-sm font-semibold">Moderation history</h3>
         {log.length === 0 ? (
-          <p className="text-xs text-zinc-500">No actions yet.</p>
+          <p className="text-xs text-muted-foreground">No actions yet.</p>
         ) : (
           <ul className="flex flex-col gap-1 text-xs">
             {log.map((entry) => (
@@ -92,8 +92,8 @@ export default async function AdminListingDetailPage({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-zinc-200 p-2 dark:border-zinc-800">
-      <div className="text-zinc-500">{label}</div>
+    <div className="rounded-md border border-border p-2-800">
+      <div className="text-muted-foreground">{label}</div>
       <div className="font-semibold">{value}</div>
     </div>
   );

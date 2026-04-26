@@ -36,14 +36,14 @@ export function PostConversionStatusView({ deal, conversionState }: Props) {
     return (
       <section
         data-testid="post-conversion-auction"
-        className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+        className="rounded-lg border border-border bg-background p-4-800-950"
       >
         <header className="mb-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Auction path
           </h2>
         </header>
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
+        <p className="text-sm text-muted-foreground">
           {getDisclaimer("auction-diy")}
         </p>
       </section>
@@ -55,10 +55,10 @@ export function PostConversionStatusView({ deal, conversionState }: Props) {
   return (
     <section
       data-testid="post-conversion-picknbuild"
-      className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="rounded-lg border border-border bg-background p-4-800-950"
     >
       <header className="mb-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Build progress
         </h2>
         <p className="mt-1 text-sm">
@@ -69,7 +69,7 @@ export function PostConversionStatusView({ deal, conversionState }: Props) {
           >
             {humanizeDealStatus(deal.status)}
           </span>
-          <span className="block text-xs text-zinc-500">
+          <span className="block text-xs text-muted-foreground">
             {describeDealStatus(deal.status)}
           </span>
         </p>
@@ -102,9 +102,9 @@ export function PostConversionStatusView({ deal, conversionState }: Props) {
               data-state={state}
               className={
                 state === "done"
-                  ? "text-zinc-500 line-through decoration-emerald-500"
+                  ? "text-muted-foreground line-through decoration-emerald-500"
                   : state === "active"
-                    ? "font-medium text-zinc-900 dark:text-zinc-100"
+                    ? "font-medium text-foreground"
                     : "text-zinc-400"
               }
             >

@@ -17,7 +17,7 @@ export function DistanceDisplay({ userZip, listingZip, className }: DistanceDisp
     <span
       data-testid="distance-display"
       title={fromTo}
-      className={className ?? "text-xs text-zinc-600 dark:text-zinc-300"}
+      className={className ?? "text-xs text-muted-foreground"}
     >
       {label}
     </span>

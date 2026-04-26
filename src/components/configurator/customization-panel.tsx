@@ -22,7 +22,7 @@ export function CustomizationPanel({ value, onChange }: Props) {
           <label
             key={c.key}
             data-testid={`customization-${c.key}`}
-            className="flex items-start gap-3 rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800"
+            className="flex items-start gap-3 rounded-md border border-border p-3 text-sm-800"
           >
             <input
               type="checkbox"
@@ -36,7 +36,7 @@ export function CustomizationPanel({ value, onChange }: Props) {
                 <span className="font-medium">{c.label}</span>
                 <span className="font-mono text-xs">{formatUsd(c.price)}</span>
               </div>
-              <p className="text-xs text-zinc-500">{c.blurb}</p>
+              <p className="text-xs text-muted-foreground">{c.blurb}</p>
             </div>
           </label>
         );

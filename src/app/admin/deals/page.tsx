@@ -57,8 +57,8 @@ export default async function AdminDealsPage({
             href={status === s ? "/admin/deals" : `/admin/deals?status=${s}`}
             className={`rounded-full border px-3 py-1 ${
               status === s
-                ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-                : "border-zinc-200 text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
+                ? "border-zinc-900 bg-muted text-white-100-100"
+                : "border-border text-muted-foreground-800"
             }`}
           >
             {s}: {counts[s]}
@@ -72,7 +72,7 @@ export default async function AdminDealsPage({
           className="w-full text-left text-sm"
           data-testid="admin-deals-table"
         >
-          <thead className="text-xs text-zinc-500">
+          <thead className="text-xs text-muted-foreground">
             <tr>
               <th className="pb-2">Deal</th>
               <th className="pb-2">User</th>
@@ -85,7 +85,7 @@ export default async function AdminDealsPage({
             {deals.map((d) => (
               <tr
                 key={d.id}
-                className="border-t border-zinc-100 dark:border-zinc-900"
+                className="border-t border-zinc-100-900"
               >
                 <td className="py-2 text-xs">{d.id}</td>
                 <td className="py-2 text-xs">
@@ -98,7 +98,7 @@ export default async function AdminDealsPage({
                 </td>
                 <td className="py-2 text-xs">{d.status}</td>
                 <td className="py-2 text-xs">${d.pricing.total}</td>
-                <td className="py-2 text-xs text-zinc-500">
+                <td className="py-2 text-xs text-muted-foreground">
                   {new Date(d.createdAt).toLocaleDateString()}
                 </td>
               </tr>
@@ -106,7 +106,7 @@ export default async function AdminDealsPage({
           </tbody>
         </table>
         {deals.length === 0 ? (
-          <p className="text-xs text-zinc-500">No deals match.</p>
+          <p className="text-xs text-muted-foreground">No deals match.</p>
         ) : null}
       </section>
 
@@ -115,7 +115,7 @@ export default async function AdminDealsPage({
           Pending requests ({submittedRequests.length})
         </h3>
         {submittedRequests.length === 0 ? (
-          <p className="text-xs text-zinc-500">Nothing awaiting acknowledgement.</p>
+          <p className="text-xs text-muted-foreground">Nothing awaiting acknowledgement.</p>
         ) : (
           <ul
             className="flex flex-col gap-2"

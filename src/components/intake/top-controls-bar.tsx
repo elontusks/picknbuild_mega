@@ -22,7 +22,7 @@ export function TopControlsBar({ onParsedListing }: Props) {
     <section
       data-shell-slot="intake-top-controls"
       data-intake="top-controls-bar"
-      className="flex flex-col gap-4 border-b border-zinc-200 bg-white px-4 py-4 dark:border-zinc-800 dark:bg-black md:px-6"
+      className="flex flex-col gap-4 border-b border-border bg-background px-4 py-4-800 md:px-6"
     >
       <div className="flex flex-wrap items-start gap-4">
         <CreditScoreInput />

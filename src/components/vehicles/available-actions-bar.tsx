@@ -128,14 +128,14 @@ export function AvailableActionsBar({
     <div
       data-testid="available-actions-bar"
       data-conversion-state={state}
-      className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
+      className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background p-3-800-950"
     >
       <button
         type="button"
         data-testid="action-start"
         onClick={() => markDecided(defaultPath)}
         disabled={pending !== null || state !== "decided"}
-        className="rounded bg-black px-3 py-2 text-xs font-semibold text-white disabled:opacity-60 dark:bg-white dark:text-black"
+        className="rounded bg-black px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
       >
         {pending === "start" ? "…" : startLabel}
       </button>
@@ -145,7 +145,7 @@ export function AvailableActionsBar({
           data-testid="action-message"
           onClick={openThread}
           disabled={pending !== null}
-          className="rounded border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-900 hover:bg-zinc-100 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+          className="rounded border border-border bg-background px-3 py-2 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-60-700-900 dark:hover:bg-muted"
         >
           {pending === "message"
             ? "Opening…"
@@ -161,12 +161,12 @@ export function AvailableActionsBar({
           router.push(`/configurator?listingId=${listing.id}`);
         }}
         disabled={pending !== null}
-        className="rounded border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-900 hover:bg-zinc-100 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+        className="rounded border border-border bg-background px-3 py-2 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-60-700-900 dark:hover:bg-muted"
       >
         Build this with picknbuild
       </button>
       {notice ? (
-        <span data-testid="action-notice" className="text-xs text-zinc-600 dark:text-zinc-300">
+        <span data-testid="action-notice" className="text-xs text-muted-foreground">
           {notice}
         </span>
       ) : null}

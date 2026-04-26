@@ -44,7 +44,7 @@ export default async function SellerProfilePage({ params }: PageProps) {
       <div className="flex items-center justify-between gap-3">
         <span
           data-testid="seller-chat-handle"
-          className="text-sm text-zinc-600 dark:text-zinc-300"
+          className="text-sm text-muted-foreground"
         >
           Chat handle: <strong>{chatHandle}</strong>
         </span>
@@ -61,7 +61,7 @@ export default async function SellerProfilePage({ params }: PageProps) {
             <button
               type="submit"
               data-testid="seller-message-button"
-              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700"
+              className="rounded-md border border-border px-3 py-1.5 text-sm-700"
             >
               Message {chatHandle}
             </button>
@@ -70,7 +70,7 @@ export default async function SellerProfilePage({ params }: PageProps) {
       </div>
 
       <div>
-        <h2 className="mb-3 text-base font-semibold text-zinc-950 dark:text-white">
+        <h2 className="mb-3 text-base font-semibold text-foreground">
           Active listing
         </h2>
         {activeListing ? (
@@ -84,7 +84,7 @@ export default async function SellerProfilePage({ params }: PageProps) {
         ) : (
           <p
             data-testid="seller-empty"
-            className="text-sm text-zinc-500 dark:text-zinc-400"
+            className="text-sm text-muted-foreground"
           >
             No active listing right now.
           </p>

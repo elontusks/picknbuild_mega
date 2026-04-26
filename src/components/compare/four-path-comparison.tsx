@@ -132,7 +132,7 @@ export function FourPathComparisonDisplay({
     return (
       <section
         data-testid="four-path-filtered-out"
-        className="rounded-md border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
+        className="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground-700"
       >
         This listing&rsquo;s title ({listing.titleStatus}) doesn&rsquo;t match
         your title preference ({intake.titlePreference}).
@@ -144,7 +144,7 @@ export function FourPathComparisonDisplay({
     return (
       <section
         data-testid="four-path-loading"
-        className="rounded-md border border-zinc-200 p-4 text-center text-sm text-zinc-500 dark:border-zinc-800"
+        className="rounded-md border border-border p-4 text-center text-sm text-muted-foreground-800"
       >
         Calculating paths…
       </section>
@@ -155,7 +155,7 @@ export function FourPathComparisonDisplay({
     return (
       <section
         data-testid="four-path-error"
-        className="rounded-md border border-rose-300 bg-rose-50 p-4 text-center text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200"
+        className="rounded-md border border-rose-300 bg-rose-50 p-4 text-center text-sm text-rose-700-800-950/40 dark:text-rose-200"
       >
         Couldn&rsquo;t fetch path pricing: {fetchState.message}
       </section>

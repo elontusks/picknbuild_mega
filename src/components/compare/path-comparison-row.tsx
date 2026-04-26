@@ -41,15 +41,15 @@ export function PathComparisonRow({ quotes, bestFitPath, caption }: Props) {
   return (
     <div
       data-testid="path-comparison-row"
-      className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800"
+      className="overflow-x-auto rounded-lg border border-border-800"
     >
       {caption ? (
-        <p className="border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+        <p className="border-b border-border bg-background px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground-800-900">
           {caption}
         </p>
       ) : null}
       <table className="w-full text-xs">
-        <thead className="bg-zinc-50 dark:bg-zinc-900">
+        <thead className="bg-background-900">
           <tr>
             <th scope="col" className="px-3 py-1.5 text-left">
               Path
@@ -82,19 +82,19 @@ export function PathComparisonRow({ quotes, bestFitPath, caption }: Props) {
                 key={path}
                 data-testid={`path-row-${path}`}
                 data-best-fit={isBest ? "true" : "false"}
-                className={`border-t border-zinc-200 dark:border-zinc-800 ${
+                className={`border-t border-border-800 ${
                   isBest
-                    ? "bg-emerald-50 dark:bg-emerald-950/30"
+                    ? "bg-emerald-50-950/30"
                     : ""
                 }`}
               >
                 <th
                   scope="row"
-                  className="whitespace-nowrap px-3 py-1.5 text-left font-semibold text-zinc-900 dark:text-white"
+                  className="whitespace-nowrap px-3 py-1.5 text-left font-semibold text-foreground"
                 >
                   {PATH_TITLE[path]}
                   {isBest ? (
-                    <span className="ml-1 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-white">
+                    <span className="ml-1 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-primary-foreground">
                       best
                     </span>
                   ) : null}

@@ -29,9 +29,9 @@ const TITLE_LABEL: Record<ListingObject["titleStatus"], string> = {
 };
 
 const TITLE_CHIP_CLASS: Record<ListingObject["titleStatus"], string> = {
-  clean: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100",
-  rebuilt: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100",
-  unknown: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
+  clean: "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
+  rebuilt: "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
+  unknown: "bg-muted text-muted-foreground-800",
 };
 
 const RISK_LABEL: Record<"low" | "med" | "high", string> = {
@@ -41,9 +41,9 @@ const RISK_LABEL: Record<"low" | "med" | "high", string> = {
 };
 
 const RISK_CHIP_CLASS: Record<"low" | "med" | "high", string> = {
-  low: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100",
-  med: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100",
-  high: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-100",
+  low: "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
+  med: "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
+  high: "bg-rose-100 text-rose-800-900/40 dark:text-rose-100",
 };
 
 const headlinePrice = (listing: ListingObject): { label: string; value: string } => {
@@ -94,9 +94,9 @@ export function VehicleCard({
       data-testid="vehicle-card"
       data-source={listing.source}
       data-variant={variant}
-      className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white text-left shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
+      className="flex flex-col overflow-hidden rounded-xl border border-border bg-background text-left shadow-sm transition hover:shadow-md-800-950"
     >
-      <div className="relative aspect-[4/3] w-full bg-zinc-100 dark:bg-zinc-900">
+      <div className="relative aspect-[4/3] w-full bg-muted-900">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -105,7 +105,7 @@ export function VehicleCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
             No photo yet
           </div>
         )}
@@ -116,21 +116,21 @@ export function VehicleCard({
           {TITLE_LABEL[listing.titleStatus]}
         </span>
         {listing.status !== "active" ? (
-          <span className="absolute right-2 top-2 rounded-full bg-zinc-900/80 px-2 py-0.5 text-[11px] font-medium text-white">
+          <span className="absolute right-2 top-2 rounded-full bg-muted/80 px-2 py-0.5 text-[11px] font-medium text-primary-foreground">
             {listing.status === "stale" ? "Stale" : "Removed"}
           </span>
         ) : null}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-semibold leading-tight text-zinc-950 dark:text-white">
+          <h3 className="text-sm font-semibold leading-tight text-foreground">
             {titleLine(listing)}
           </h3>
-          <span className="shrink-0 text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="shrink-0 text-xs text-muted-foreground">
             {SOURCE_LABEL[listing.source]}
           </span>
         </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {showMileage ? (
             <span data-testid="mileage">
               {listing.mileage!.toLocaleString()} mi
@@ -147,11 +147,11 @@ export function VehicleCard({
           ) : null}
         </div>
         <div className="mt-auto flex items-baseline justify-between">
-          <span className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs uppercase tracking-wide text-muted-foreground">
             {priceLabel}
           </span>
           <span
-            className="text-base font-semibold text-zinc-950 dark:text-white"
+            className="text-base font-semibold text-foreground"
             data-testid="price"
           >
             {priceValue}

@@ -35,7 +35,7 @@ export function MessageComposer({ threadId }: { threadId: string }) {
   return (
     <form
       onSubmit={submit}
-      className="flex items-end gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-800"
+      className="flex items-end gap-2 border-t border-border pt-2-800"
       data-testid="message-composer"
     >
       <textarea
@@ -43,13 +43,13 @@ export function MessageComposer({ threadId }: { threadId: string }) {
         onChange={(e) => setBody(e.target.value)}
         placeholder="Write a message…"
         rows={2}
-        className="flex-1 resize-none rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-blue-600 focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+        className="flex-1 resize-none rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-blue-600 focus:outline-none-800-950"
         disabled={isPending}
       />
       <button
         type="submit"
         disabled={isPending || body.trim().length === 0}
-        className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
       >
         {isPending ? "Sending…" : "Send"}
       </button>

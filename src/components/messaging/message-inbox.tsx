@@ -10,7 +10,7 @@ export function MessageInbox({
 }) {
   if (threads.length === 0) {
     return (
-      <p className="text-sm text-zinc-500" data-testid="inbox-empty">
+      <p className="text-sm text-muted-foreground" data-testid="inbox-empty">
         No conversations yet. Open one from a listing, a dealer page, or your
         garage.
       </p>

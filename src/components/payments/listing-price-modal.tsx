@@ -42,19 +42,19 @@ export function ListingPriceModal({
       aria-modal="true"
       className="fixed inset-0 z-40 flex items-center justify-center bg-black/50"
     >
-      <div className="w-full max-w-sm space-y-3 rounded-lg bg-white p-4 shadow-lg dark:bg-zinc-950">
+      <div className="w-full max-w-sm space-y-3 rounded-lg bg-background p-4 shadow-lg-950">
         <header className="flex items-baseline justify-between">
           <h2 className="text-base font-semibold">Extra listing fee</h2>
           <button
             type="button"
             data-testid="listing-price-modal-close"
             onClick={onClose}
-            className="text-sm text-zinc-500"
+            className="text-sm text-muted-foreground"
           >
             Close
           </button>
         </header>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted-foreground">
           Your dealer subscription covers a set number of active listings.
           This listing is over that quota and adds ${LISTING_FEE_AMOUNT_USD}{" "}
           for the current billing period.

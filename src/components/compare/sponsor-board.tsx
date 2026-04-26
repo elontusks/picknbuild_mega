@@ -53,9 +53,9 @@ export function SponsorBoard({ path, initial }: Props) {
       data-testid={`sponsor-board-${path}`}
       data-path={path}
       aria-label={`${path} sponsors`}
-      className="flex flex-col gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-2 text-[11px] dark:border-zinc-700 dark:bg-zinc-900/40"
+      className="flex flex-col gap-2 rounded-lg border border-dashed border-border bg-background p-2 text-[11px]-700-900/40"
     >
-      <p className="font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <p className="font-semibold uppercase tracking-wide text-muted-foreground">
         Sponsored for this path
       </p>
       <ul className="flex flex-col gap-2">
@@ -63,13 +63,13 @@ export function SponsorBoard({ path, initial }: Props) {
           <li
             key={s.id}
             data-testid={`sponsor-block-${s.id}`}
-            className="rounded border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded border border-border bg-background p-2-800-950"
           >
-            <p className="text-xs font-semibold text-zinc-900 dark:text-white">
+            <p className="text-xs font-semibold text-foreground">
               {s.title}
             </p>
             <div
-              className="mt-1 text-[11px] leading-snug text-zinc-700 dark:text-zinc-200"
+              className="mt-1 text-[11px] leading-snug text-muted-foreground"
               // Sponsor copy is operator-curated in Team 15's catalog. The
               // catalog is the single source of trust — rendering as HTML is
               // intentional so operators can include links.

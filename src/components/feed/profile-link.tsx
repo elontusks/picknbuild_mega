@@ -16,7 +16,7 @@ export function ProfileLinkFromFeedPost({
     <Link
       href={`/users/${userId}`}
       data-testid="feed-profile-link"
-      className="text-xs font-medium text-zinc-700 hover:underline dark:text-zinc-200"
+      className="text-xs font-medium text-muted-foreground hover:underline"
     >
       {label ?? `@${userId}`}
     </Link>

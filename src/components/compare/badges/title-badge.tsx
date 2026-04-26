@@ -8,10 +8,10 @@ export const TITLE_LABEL: Record<TitleStatus, string> = {
 
 const CHIP_CLASS: Record<TitleStatus, string> = {
   clean:
-    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100",
+    "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
   rebuilt:
-    "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100",
-  unknown: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
+    "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
+  unknown: "bg-muted text-muted-foreground-800",
 };
 
 type Props = {

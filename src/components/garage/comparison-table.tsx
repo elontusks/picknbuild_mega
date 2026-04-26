@@ -50,7 +50,7 @@ export function GarageComparisonTable({ rows, winners }: Props) {
     return (
       <p
         data-testid="garage-comparison-empty"
-        className="rounded-md border border-dashed border-zinc-200 p-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400"
+        className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground-800"
       >
         No saved vehicles yet — save a car from search or a listing page to
         compare side by side.
@@ -61,10 +61,10 @@ export function GarageComparisonTable({ rows, winners }: Props) {
   return (
     <div
       data-testid="garage-comparison-table"
-      className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800"
+      className="overflow-x-auto rounded-lg border border-border-800"
     >
       <table className="w-full text-xs">
-        <thead className="bg-zinc-50 dark:bg-zinc-900">
+        <thead className="bg-background-900">
           <tr>
             <th scope="col" className="px-3 py-1.5 text-left">
               Vehicle
@@ -111,13 +111,13 @@ export function GarageComparisonTable({ rows, winners }: Props) {
                 <tr
                   key={`${row.entryId}-${path}`}
                   data-testid={`garage-compare-row-${row.entryId}-${path}`}
-                  className="border-t border-zinc-200 dark:border-zinc-800"
+                  className="border-t border-border-800"
                 >
                   {pathIdx === 0 ? (
                     <th
                       scope="rowgroup"
                       rowSpan={PATH_ORDER.length}
-                      className="px-3 py-1.5 text-left align-top font-semibold text-zinc-900 dark:text-white"
+                      className="px-3 py-1.5 text-left align-top font-semibold text-foreground"
                     >
                       {describeListing(row.listing)}
                     </th>
@@ -128,7 +128,7 @@ export function GarageComparisonTable({ rows, winners }: Props) {
                     data-winner={isTotalWinner ? "true" : "false"}
                     className={`px-3 py-1.5 text-right ${
                       isTotalWinner
-                        ? "bg-emerald-100 font-semibold text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-100"
+                        ? "bg-emerald-100 font-semibold text-emerald-900-900/30 dark:text-emerald-100"
                         : ""
                     }`}
                   >
@@ -144,7 +144,7 @@ export function GarageComparisonTable({ rows, winners }: Props) {
                     data-winner={isMonthlyWinner ? "true" : "false"}
                     className={`px-3 py-1.5 text-right ${
                       isMonthlyWinner
-                        ? "bg-sky-100 font-semibold text-sky-900 dark:bg-sky-900/30 dark:text-sky-100"
+                        ? "bg-sky-100 font-semibold text-sky-900-900/30 dark:text-sky-100"
                         : ""
                     }`}
                   >

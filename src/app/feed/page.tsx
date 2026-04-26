@@ -25,7 +25,7 @@ export default async function FeedPage() {
           <Link
             href="/feed/upload"
             data-testid="feed-upload-link"
-            className="rounded-md border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
+            className="rounded-md border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-background-800 dark:hover:bg-muted"
           >
             Post a vehicle
           </Link>
@@ -37,12 +37,12 @@ export default async function FeedPage() {
       ) : (
         <section
           data-testid="feed-signin-prompt"
-          className="rounded-xl border border-dashed border-zinc-300 p-4 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
+          className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground-700"
         >
           Browsing as a guest.{" "}
           <Link
             href="/login"
-            className="font-medium text-zinc-900 underline dark:text-zinc-100"
+            className="font-medium text-foreground underline"
           >
             Sign in
           </Link>{" "}
@@ -53,7 +53,7 @@ export default async function FeedPage() {
       {posts.length === 0 ? (
         <p
           data-testid="feed-empty"
-          className="rounded-xl border border-zinc-200 p-6 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400"
+          className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground-800"
         >
           No posts yet — be the first to share.
         </p>

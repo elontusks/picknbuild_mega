@@ -35,7 +35,7 @@ export default async function DealerProfilePage({ params }: PageProps) {
       />
 
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-zinc-950 dark:text-white">
+        <h2 className="text-base font-semibold text-foreground">
           Active listings
         </h2>
         {!isOwner ? (
@@ -44,7 +44,7 @@ export default async function DealerProfilePage({ params }: PageProps) {
             <button
               type="submit"
               data-testid="dealer-message-button"
-              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700"
+              className="rounded-md border border-border px-3 py-1.5 text-sm-700"
             >
               Message dealer
             </button>
@@ -55,7 +55,7 @@ export default async function DealerProfilePage({ params }: PageProps) {
       {listings.length === 0 ? (
         <p
           data-testid="dealer-empty"
-          className="text-sm text-zinc-500 dark:text-zinc-400"
+          className="text-sm text-muted-foreground"
         >
           No active listings.
         </p>

@@ -37,7 +37,7 @@ export function AttachmentsPanel({ value, onChange }: Props) {
           data-testid="attachment-type"
           value={type}
           onChange={(e) => setType(e.target.value as BuildAttachment["type"])}
-          className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="rounded border border-border bg-background px-2 py-1 text-sm-700-900"
         >
           {TYPES.map((t) => (
             <option key={t} value={t}>
@@ -50,35 +50,35 @@ export function AttachmentsPanel({ value, onChange }: Props) {
           value={ref}
           onChange={(e) => setRef(e.target.value)}
           placeholder={type === "note" ? "short note…" : "url or filename"}
-          className="flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm-700-900"
         />
         <input
           data-testid="attachment-note"
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="optional note"
-          className="flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm-700-900"
         />
         <button
           type="button"
           data-testid="attachment-add"
           onClick={add}
-          className="rounded bg-zinc-900 px-3 py-1 text-sm text-white dark:bg-white dark:text-zinc-900"
+          className="rounded bg-muted px-3 py-1 text-sm text-primary-foreground"
         >
           Add
         </button>
       </div>
       {value.length === 0 ? (
-        <p className="text-xs text-zinc-500">No attachments yet.</p>
+        <p className="text-xs text-muted-foreground">No attachments yet.</p>
       ) : (
         <ul className="space-y-2">
           {value.map((a, i) => (
             <li
               key={`${a.type}-${a.ref}-${i}`}
               data-testid={`attachment-item-${i}`}
-              className="flex items-center gap-2 rounded border border-zinc-200 p-2 text-xs dark:border-zinc-800"
+              className="flex items-center gap-2 rounded border border-border p-2 text-xs-800"
             >
-              <span className="rounded bg-zinc-100 px-2 py-0.5 uppercase dark:bg-zinc-800">
+              <span className="rounded bg-muted px-2 py-0.5 uppercase-800">
                 {a.type}
               </span>
               <span className="flex-1 break-all font-mono">{a.ref}</span>
@@ -89,7 +89,7 @@ export function AttachmentsPanel({ value, onChange }: Props) {
                 type="button"
                 data-testid={`attachment-remove-${i}`}
                 onClick={() => remove(i)}
-                className="text-zinc-500 hover:text-red-600"
+                className="text-muted-foreground hover:text-red-600"
               >
                 Remove
               </button>

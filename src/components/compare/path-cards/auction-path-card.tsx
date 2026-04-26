@@ -50,32 +50,32 @@ export function AuctionPathCard({
         </>
       }
       body={
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-zinc-700 dark:text-zinc-200">
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
           {listing.currentBid !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Current bid</dt>
+              <dt className="text-muted-foreground">Current bid</dt>
               <dd className="text-right">{usd(listing.currentBid)}</dd>
             </>
           ) : null}
           {listing.binPrice !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Buy it now</dt>
+              <dt className="text-muted-foreground">Buy it now</dt>
               <dd className="text-right">{usd(listing.binPrice)}</dd>
             </>
           ) : null}
           {listing.estimatedMarketValue !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Market est.</dt>
+              <dt className="text-muted-foreground">Market est.</dt>
               <dd className="text-right">{usd(listing.estimatedMarketValue)}</dd>
             </>
           ) : null}
           {listing.fees !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Fees</dt>
+              <dt className="text-muted-foreground">Fees</dt>
               <dd className="text-right">{usd(listing.fees)}</dd>
             </>
           ) : null}
-          <dt className="text-zinc-500 dark:text-zinc-400">Timeline</dt>
+          <dt className="text-muted-foreground">Timeline</dt>
           <dd className="text-right">{auctionTimeline(listing)}</dd>
         </dl>
       }

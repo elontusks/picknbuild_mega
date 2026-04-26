@@ -11,7 +11,7 @@ export function Disclaimer({ context, className }: DisclaimerProps) {
       data-disclaimer={context}
       className={
         className ??
-        "text-xs leading-5 text-zinc-500 dark:text-zinc-400"
+        "text-xs leading-5 text-muted-foreground"
       }
     >
       {getDisclaimer(context)}

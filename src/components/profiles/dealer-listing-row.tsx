@@ -26,7 +26,7 @@ export function DealerListingRow({ listing, userZip }: Props) {
           type="button"
           data-testid="dealer-listing-edit"
           onClick={() => setEditing((v) => !v)}
-          className="rounded-md border border-zinc-300 px-2.5 py-1 text-xs dark:border-zinc-700"
+          className="rounded-md border border-border px-2.5 py-1 text-xs-700"
         >
           {editing ? "Cancel" : "Edit"}
         </button>
@@ -35,7 +35,7 @@ export function DealerListingRow({ listing, userZip }: Props) {
           <button
             type="submit"
             data-testid="dealer-listing-remove"
-            className="rounded-md border border-rose-300 px-2.5 py-1 text-xs text-rose-700 dark:border-rose-700 dark:text-rose-300"
+            className="rounded-md border border-rose-300 px-2.5 py-1 text-xs text-rose-700-700 dark:text-rose-300"
           >
             Remove
           </button>

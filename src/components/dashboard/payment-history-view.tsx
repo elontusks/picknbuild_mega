@@ -22,20 +22,20 @@ export function PaymentHistoryView({ payments }: Props) {
   return (
     <section
       data-testid="payment-history"
-      className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="rounded-lg border border-border bg-background p-4-800-950"
     >
       <header className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Payment history
         </h2>
-        <span className="text-xs text-zinc-500">
+        <span className="text-xs text-muted-foreground">
           {sorted.length} {sorted.length === 1 ? "entry" : "entries"}
         </span>
       </header>
       {sorted.length === 0 ? (
         <p
           data-testid="payment-history-empty"
-          className="text-sm text-zinc-500"
+          className="text-sm text-muted-foreground"
         >
           No payments recorded yet for this deal.
         </p>
@@ -51,7 +51,7 @@ export function PaymentHistoryView({ payments }: Props) {
             >
               <div>
                 <div className="font-medium">{humanizeKind(payment.kind)}</div>
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-muted-foreground">
                   {formatDate(payment.createdAt)} · {payment.status}
                 </div>
               </div>
@@ -59,7 +59,7 @@ export function PaymentHistoryView({ payments }: Props) {
                 className={`font-mono ${
                   payment.kind === "refund"
                     ? "text-emerald-600"
-                    : "text-zinc-900 dark:text-zinc-100"
+                    : "text-foreground"
                 }`}
               >
                 {payment.kind === "refund" ? "-" : ""}

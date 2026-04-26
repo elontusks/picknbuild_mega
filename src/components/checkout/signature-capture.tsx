@@ -28,17 +28,17 @@ export function SignatureCapture({ value, onChange }: Props) {
 
   return (
     <div data-testid="signature-capture" className="space-y-2">
-      <label className="block text-xs text-zinc-500">
+      <label className="block text-xs text-muted-foreground">
         Type your full legal name to sign
         <input
           data-testid="signature-input"
           value={typed}
           onChange={(e) => commit(e.target.value)}
-          className="mt-1 w-full rounded border border-zinc-300 bg-white px-2 py-2 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="mt-1 w-full rounded border border-border bg-background px-2 py-2 font-mono text-sm-700-900"
         />
       </label>
       {value ? (
-        <p className="text-[11px] text-zinc-500">
+        <p className="text-[11px] text-muted-foreground">
           Signature captured. This will be timestamped + IP-stamped on submit.
         </p>
       ) : null}

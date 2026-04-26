@@ -28,8 +28,8 @@ export function PackageCards({ selected, onChange }: Props) {
             onClick={() => onChange(pkg.tier)}
             className={`flex h-full flex-col gap-2 rounded-lg border p-3 text-left transition ${
               active
-                ? "border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900"
-                : "border-zinc-200 bg-white text-zinc-900 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                ? "border-zinc-900 bg-muted text-primary-foreground"
+                : "border-border bg-background text-foreground hover:border-zinc-400-800-950"
             }`}
           >
             <div className="flex items-baseline justify-between">
@@ -58,7 +58,7 @@ export function PackageIncludesDisclosure({ selected }: DisclosureProps) {
     return (
       <p
         data-testid="package-includes-empty"
-        className="text-xs text-zinc-500"
+        className="text-xs text-muted-foreground"
       >
         Pick a package to see what's included.
       </p>
@@ -75,7 +75,7 @@ export function PackageIncludesDisclosure({ selected }: DisclosureProps) {
           <li key={line}>{line}</li>
         ))}
       </ul>
-      <p className="text-[11px] text-zinc-500">
+      <p className="text-[11px] text-muted-foreground">
         Insurance is required before delivery. You may walk away at any time
         pre-deposit without credit impact.
       </p>

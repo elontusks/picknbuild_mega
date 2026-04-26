@@ -62,7 +62,7 @@ export function SelectPathButton({
         disabled={disabled || pending}
         data-testid={`select-path-${path}`}
         data-path={path}
-        className={`inline-flex items-center justify-center rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-400 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 dark:disabled:bg-zinc-700 ${className ?? ""}`}
+        className={`inline-flex items-center justify-center rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-400 dark:disabled:bg-zinc-700 ${className ?? ""}`}
       >
         {pending ? "Selecting…" : done ? "Selected ✓" : label}
       </button>

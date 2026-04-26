@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { loadSession } from "@/services/team-01-auth";
-import { Header } from "./header";
+import { GlobalHeader } from "./global-header";
 import { NotificationBell } from "./notification-bell";
 import { InboxEntry } from "./inbox-entry";
 import { MobileNavBar } from "./mobile-nav-bar";
@@ -22,8 +22,8 @@ export async function GlobalShell({ children }: GlobalShellProps) {
   const user = session.state === "ready" ? session.user : null;
 
   return (
-    <div className="flex min-h-full flex-col bg-zinc-50 dark:bg-black">
-      <Header
+    <div className="flex min-h-full flex-col bg-background">
+      <GlobalHeader
         user={user}
         bellSlot={user ? <NotificationBell userId={user.id} /> : null}
         inboxSlot={user ? <InboxEntry userId={user.id} /> : null}

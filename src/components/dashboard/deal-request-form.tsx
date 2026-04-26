@@ -39,13 +39,13 @@ export function DealRequestForm({ dealId }: Props) {
   return (
     <section
       data-testid="deal-request-form"
-      className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="rounded-lg border border-border bg-background p-4-800-950"
     >
       <header className="mb-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Request a change
         </h2>
-        <p className="mt-1 text-xs text-zinc-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Upgrade to a higher package, downgrade, or voluntarily surrender this
           build. A picknbuild rep will follow up.
         </p>
@@ -75,10 +75,10 @@ export function DealRequestForm({ dealId }: Props) {
         </fieldset>
 
         <label className="block text-sm">
-          <span className="mb-1 block text-xs text-zinc-500">Reason</span>
+          <span className="mb-1 block text-xs text-muted-foreground">Reason</span>
           <textarea
             data-testid="deal-request-reason"
-            className="w-full rounded-md border border-zinc-200 bg-transparent p-2 text-sm dark:border-zinc-700"
+            className="w-full rounded-md border border-border bg-transparent p-2 text-sm-700"
             rows={3}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -90,7 +90,7 @@ export function DealRequestForm({ dealId }: Props) {
           type="submit"
           data-testid="deal-request-submit"
           disabled={isPending}
-          className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+          className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-50-100"
         >
           {isPending ? "Submitting…" : "Submit request"}
         </button>

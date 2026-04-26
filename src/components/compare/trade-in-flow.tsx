@@ -83,19 +83,19 @@ export function TradeInFlow() {
   return (
     <details
       data-testid="trade-in-flow"
-      className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs dark:border-zinc-800"
+      className="rounded-md border border-border px-2 py-1.5 text-xs-800"
     >
-      <summary className="cursor-pointer select-none font-semibold text-zinc-700 dark:text-zinc-200">
+      <summary className="cursor-pointer select-none font-semibold text-muted-foreground">
         Trade in a car
         {build.tradeIn?.estimatedValue !== undefined ? (
-          <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100">
+          <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800-900/40 dark:text-emerald-100">
             {usd(build.tradeIn.estimatedValue)} toward build
           </span>
         ) : null}
       </summary>
       <div className="mt-2 flex flex-col gap-2">
         <label className="flex flex-col gap-0.5">
-          <span className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
             VIN
           </span>
           <input
@@ -104,12 +104,12 @@ export function TradeInFlow() {
             onChange={(e) => setVin(e.target.value)}
             data-testid="trade-in-vin"
             placeholder="17-character VIN"
-            className="rounded border border-zinc-300 px-2 py-1 font-mono text-xs dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded border border-border px-2 py-1 font-mono text-xs-700-900"
             maxLength={17}
           />
         </label>
         <label className="flex flex-col gap-0.5">
-          <span className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
             Title status
           </span>
           <select
@@ -120,7 +120,7 @@ export function TradeInFlow() {
               )
             }
             data-testid="trade-in-title"
-            className="rounded border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded border border-border px-2 py-1 text-xs-700-900"
           >
             <option value="clean">Clean</option>
             <option value="rebuilt">Rebuilt</option>
@@ -140,7 +140,7 @@ export function TradeInFlow() {
             onClick={submit}
             disabled={pending}
             data-testid="trade-in-submit"
-            className="rounded bg-zinc-900 px-2 py-1 text-[11px] font-semibold text-white disabled:bg-zinc-400 dark:bg-white dark:text-zinc-900"
+            className="rounded bg-muted px-2 py-1 text-[11px] font-semibold text-primary-foreground disabled:bg-zinc-400"
           >
             {pending ? "Estimating…" : "Estimate"}
           </button>
@@ -149,7 +149,7 @@ export function TradeInFlow() {
               type="button"
               onClick={clear}
               data-testid="trade-in-clear"
-              className="text-[11px] text-zinc-600 underline hover:text-zinc-800 dark:text-zinc-300"
+              className="text-[11px] text-muted-foreground underline hover:text-zinc-800"
             >
               Remove
             </button>

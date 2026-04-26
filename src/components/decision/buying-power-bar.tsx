@@ -27,7 +27,7 @@ export function BuyingPowerVisualizationBar({ layer }: Props) {
       className="flex flex-col gap-2"
     >
       <div
-        className="flex h-3 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"
+        className="flex h-3 w-full overflow-hidden rounded-full bg-muted-800"
         role="meter"
         aria-valuemin={0}
         aria-valuemax={layer.totalCost}
@@ -37,20 +37,20 @@ export function BuyingPowerVisualizationBar({ layer }: Props) {
         <div
           data-testid="bp-cash-segment"
           style={{ width: `${cashPct}%` }}
-          className="h-full bg-emerald-500 dark:bg-emerald-400"
+          className="h-full bg-emerald-500-400"
         />
         {outsidePct > 0 ? (
           <div
             data-testid="bp-outside-segment"
             style={{ width: `${outsidePct}%` }}
-            className="h-full bg-amber-400 dark:bg-amber-500"
+            className="h-full bg-amber-400-500"
           />
         ) : null}
       </div>
-      <div className="flex flex-wrap items-center justify-between text-xs text-zinc-600 dark:text-zinc-300">
+      <div className="flex flex-wrap items-center justify-between text-xs text-muted-foreground">
         <span data-testid="bp-your-cash">
-          <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 align-middle dark:bg-emerald-400" />{" "}
-          Your cash <strong className="text-zinc-900 dark:text-white">{usd(layer.yourCash)}</strong>
+          <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 align-middle-400" />{" "}
+          Your cash <strong className="text-foreground">{usd(layer.yourCash)}</strong>
         </span>
         {covered ? (
           <span data-testid="bp-covered" className="text-emerald-600 dark:text-emerald-400">
@@ -58,9 +58,9 @@ export function BuyingPowerVisualizationBar({ layer }: Props) {
           </span>
         ) : (
           <span data-testid="bp-outside">
-            <span className="inline-block h-2 w-2 rounded-full bg-amber-400 align-middle dark:bg-amber-500" />{" "}
+            <span className="inline-block h-2 w-2 rounded-full bg-amber-400 align-middle-500" />{" "}
             Outside money needed{" "}
-            <strong className="text-zinc-900 dark:text-white">
+            <strong className="text-foreground">
               {usd(layer.outsideMoneyNeeded)}
             </strong>
           </span>

@@ -15,7 +15,7 @@ export default async function AdminPaymentsPage() {
         className="w-full text-left text-sm"
         data-testid="admin-payments-table"
       >
-        <thead className="text-xs text-zinc-500">
+        <thead className="text-xs text-muted-foreground">
           <tr>
             <th className="pb-2">When</th>
             <th className="pb-2">Kind</th>
@@ -31,7 +31,7 @@ export default async function AdminPaymentsPage() {
             <tr
               key={p.id}
               data-testid={`admin-payment-row-${p.id}`}
-              className="border-t border-zinc-100 text-xs dark:border-zinc-900"
+              className="border-t border-zinc-100 text-xs-900"
             >
               <td className="py-2">
                 {new Date(p.createdAt).toLocaleString()}
@@ -48,13 +48,13 @@ export default async function AdminPaymentsPage() {
                 </Link>
               </td>
               <td className="py-2">{p.dealId ?? "—"}</td>
-              <td className="py-2 text-zinc-500">{p.mercuryRef}</td>
+              <td className="py-2 text-muted-foreground">{p.mercuryRef}</td>
             </tr>
           ))}
         </tbody>
       </table>
       {sorted.length === 0 ? (
-        <p className="text-sm text-zinc-500">No payments yet.</p>
+        <p className="text-sm text-muted-foreground">No payments yet.</p>
       ) : null}
     </section>
   );

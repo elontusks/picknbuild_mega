@@ -17,14 +17,14 @@ export function DealRequestRow({ request }: { request: DealRequest }) {
   return (
     <li
       data-testid={`deal-request-${request.id}`}
-      className="flex items-center justify-between rounded-md border border-zinc-200 p-2 text-xs dark:border-zinc-800"
+      className="flex items-center justify-between rounded-md border border-border p-2 text-xs-800"
     >
       <div className="flex flex-col gap-0.5">
         <span className="font-semibold">
           {request.kind} · {request.dealId}
         </span>
-        <span className="text-zinc-500">by {request.userId}</span>
-        <span className="text-zinc-600 dark:text-zinc-400">
+        <span className="text-muted-foreground">by {request.userId}</span>
+        <span className="text-muted-foreground">
           {request.reason}
         </span>
       </div>
@@ -33,11 +33,11 @@ export function DealRequestRow({ request }: { request: DealRequest }) {
           type="button"
           disabled={pending}
           onClick={onAck}
-          className="rounded-md bg-zinc-900 px-3 py-1 text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+          className="rounded-md bg-muted px-3 py-1 text-primary-foreground disabled:opacity-50-100"
         >
           Acknowledge
         </button>
-        {message ? <span className="text-zinc-500">{message}</span> : null}
+        {message ? <span className="text-muted-foreground">{message}</span> : null}
       </div>
     </li>
   );

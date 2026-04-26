@@ -82,7 +82,7 @@ export function FeedEngagementControls({
   return (
     <div
       data-testid={`engagement-${postId}`}
-      className="flex flex-col gap-2 border-t border-zinc-100 pt-2 dark:border-zinc-900"
+      className="flex flex-col gap-2 border-t border-zinc-100 pt-2-900"
     >
       <div className="flex items-center gap-3 text-xs">
         <button
@@ -92,21 +92,21 @@ export function FeedEngagementControls({
           disabled={!canInteract || pending}
           className={`rounded-full px-2 py-1 font-medium transition ${
             liked
-              ? "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-200"
-              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+              ? "bg-rose-100 text-rose-800-900/30 dark:text-rose-200"
+              : "bg-muted text-muted-foreground-800"
           } disabled:opacity-50`}
           aria-pressed={liked}
         >
           {liked ? "♥" : "♡"} {likeCount}
         </button>
-        <span className="text-zinc-500 dark:text-zinc-400">
+        <span className="text-muted-foreground">
           {commentCount} {commentCount === 1 ? "comment" : "comments"}
         </span>
         <button
           type="button"
           data-testid="share-btn"
           onClick={handleShare}
-          className="text-zinc-600 hover:underline dark:text-zinc-300"
+          className="text-muted-foreground hover:underline"
         >
           Share
         </button>
@@ -128,7 +128,7 @@ export function FeedEngagementControls({
             value={commentDraft}
             onChange={(e) => setCommentDraft(e.target.value)}
             placeholder="Write a comment or @reply..."
-            className="flex-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+            className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm-800-950"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -141,13 +141,13 @@ export function FeedEngagementControls({
             data-testid="comment-btn"
             onClick={handleComment}
             disabled={pending || commentDraft.trim().length === 0}
-            className="rounded-md bg-zinc-900 px-3 py-1 text-sm font-medium text-white disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900"
+            className="rounded-md bg-muted px-3 py-1 text-sm font-medium text-primary-foreground disabled:opacity-40-100"
           >
             Post
           </button>
         </div>
       ) : (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="text-xs text-muted-foreground">
           Sign in to like, comment, or share.
         </p>
       )}

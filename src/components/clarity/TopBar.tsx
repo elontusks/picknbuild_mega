@@ -1,7 +1,6 @@
 'use client';
 
-import { Sun, Moon, Menu } from 'lucide-react';
-import { useTheme } from '../ThemeProvider';
+import { Menu } from 'lucide-react';
 import AccountMenu from './AccountMenu';
 
 interface TopBarProps {
@@ -15,17 +14,16 @@ interface TopBarProps {
   onSignOut?: () => void;
 }
 
-export default function TopBar({ 
-  pickedCount, 
-  onGarageClick, 
-  garageOpen, 
-  onReferralClick, 
+export default function TopBar({
+  pickedCount,
+  onGarageClick,
+  garageOpen,
+  onReferralClick,
   onSellClick,
   onSignInClick,
   currentUser,
   onSignOut
 }: TopBarProps) {
-  const { theme, toggleTheme } = useTheme();
 
   return (
     <header style={{ borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'var(--background)' }}>
@@ -89,20 +87,6 @@ export default function TopBar({
               Invite & Earn $500
             </button>
           )}
-
-          <button
-            onClick={toggleTheme}
-            style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'var(--muted)', border: 'none', cursor: 'pointer', opacity: 1, transition: 'opacity 200ms' }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.75')}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? (
-              <Sun size={20} style={{ color: 'var(--foreground)' }} />
-            ) : (
-              <Moon size={20} style={{ color: 'var(--foreground)' }} />
-            )}
-          </button>
 
           {/* Sign In / Account Menu */}
           {!currentUser ? (

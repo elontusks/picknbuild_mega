@@ -8,7 +8,7 @@ export function RefundStatusDisplay({ refunds }: Props) {
     return (
       <p
         data-testid="refund-status-empty"
-        className="text-sm text-zinc-500"
+        className="text-sm text-muted-foreground"
       >
         No refunds on file.
       </p>
@@ -17,7 +17,7 @@ export function RefundStatusDisplay({ refunds }: Props) {
   return (
     <ul
       data-testid="refund-status-list"
-      className="divide-y divide-zinc-200 rounded-md border border-zinc-200 text-sm dark:divide-zinc-800 dark:border-zinc-800"
+      className="divide-y divide-zinc-200 rounded-md border border-border text-sm dark:divide-zinc-800-800"
     >
       {refunds.map((r) => (
         <li
@@ -28,14 +28,14 @@ export function RefundStatusDisplay({ refunds }: Props) {
         >
           <span>
             <strong className="font-mono">{formatUsd(r.amount)}</strong>{" "}
-            <span className="text-zinc-500">refunded</span>
+            <span className="text-muted-foreground">refunded</span>
           </span>
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             {formatDate(r.createdAt)}
           </span>
           <span
             data-testid={`refund-status-${r.id}`}
-            className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs capitalize text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+            className="rounded-full bg-muted px-2 py-0.5 text-xs capitalize text-muted-foreground-800"
           >
             {r.status}
           </span>

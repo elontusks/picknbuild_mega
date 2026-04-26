@@ -13,7 +13,7 @@ export default async function AdminUserDetailPage({
   const user = await getUserForAdmin(id);
   if (!user) {
     return (
-      <section className="text-sm text-zinc-500" data-testid="admin-user-missing">
+      <section className="text-sm text-muted-foreground" data-testid="admin-user-missing">
         User not found. <Link className="underline" href="/admin/users">Back</Link>
       </section>
     );
@@ -37,7 +37,7 @@ export default async function AdminUserDetailPage({
         <h2 className="text-lg font-semibold">
           {user.displayName ?? user.email ?? user.id}
         </h2>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-muted-foreground">
           {user.role} · {user.zip} · {user.email ?? user.phone}
         </p>
       </header>
@@ -63,7 +63,7 @@ export default async function AdminUserDetailPage({
       <div>
         <h3 className="pb-2 text-sm font-semibold">Deals</h3>
         {deals.length === 0 ? (
-          <p className="text-xs text-zinc-500">No deals yet.</p>
+          <p className="text-xs text-muted-foreground">No deals yet.</p>
         ) : (
           <ul className="flex flex-col gap-1">
             {deals.map((d) => (
@@ -82,8 +82,8 @@ export default async function AdminUserDetailPage({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-zinc-200 p-3 dark:border-zinc-800">
-      <div className="text-zinc-500">{label}</div>
+    <div className="rounded-md border border-border p-3-800">
+      <div className="text-muted-foreground">{label}</div>
       <div className="font-semibold">{value}</div>
     </div>
   );

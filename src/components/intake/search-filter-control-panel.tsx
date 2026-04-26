@@ -144,11 +144,11 @@ export function SearchFilterControlPanel() {
           readOnly
           value={state.location.zip}
           aria-describedby="zip-helper"
-          className={`${INPUT_CLASS} bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400`}
+          className={`${INPUT_CLASS} bg-muted text-muted-foreground-800`}
         />
         <p
           id="zip-helper"
-          className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400"
+          className="mt-1 text-[11px] text-muted-foreground"
         >
           Change in your profile.
         </p>
@@ -158,7 +158,7 @@ export function SearchFilterControlPanel() {
 }
 
 const INPUT_CLASS =
-  "h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
+  "h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground shadow-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none-700-900";
 
 function Field({
   label,
@@ -169,7 +169,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
       {children}

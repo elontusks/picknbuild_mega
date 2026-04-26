@@ -60,7 +60,7 @@ export function NotificationPreferencesPanel({
       aria-label="Notification preferences"
     >
       <div>
-        <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <h3 className="text-sm font-medium text-foreground">
           Channels
         </h3>
         <div className="mt-2 flex flex-col gap-1">
@@ -79,7 +79,7 @@ export function NotificationPreferencesPanel({
       </div>
 
       <div>
-        <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <h3 className="text-sm font-medium text-foreground">
           Categories
         </h3>
         <div className="mt-2 flex flex-col gap-1">
@@ -102,7 +102,7 @@ export function NotificationPreferencesPanel({
           type="button"
           onClick={save}
           disabled={isPending}
-          className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
         >
           {isPending ? "Saving…" : "Save preferences"}
         </button>

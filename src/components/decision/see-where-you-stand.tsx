@@ -66,7 +66,7 @@ export function SeeWhereYouStandPanel({
       <section
         data-decision="see-where-you-stand"
         data-testid="see-where-you-stand-empty"
-        className="rounded-2xl border border-dashed border-zinc-200 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+        className="rounded-2xl border border-dashed border-border bg-background p-4 text-sm text-muted-foreground-800-950"
       >
         Pick a vehicle to see where you stand on each path.
       </section>
@@ -83,11 +83,11 @@ export function SeeWhereYouStandPanel({
       data-decision="see-where-you-stand"
       data-testid="see-where-you-stand"
       data-active-path={activePath}
-      className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="flex flex-col gap-4 rounded-2xl border border-border bg-background p-4-800-950"
     >
       <header className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+          <h2 className="text-base font-semibold text-foreground">
             See where you stand
           </h2>
           <ChooseYourTerm enabled={termEnabled} />

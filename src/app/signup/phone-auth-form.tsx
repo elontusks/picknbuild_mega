@@ -99,10 +99,10 @@ export function PhoneAuthForm({ mode }: Props) {
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-6 px-6 py-12">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           {mode === "signup" ? "Create your account" : "Welcome back"}
         </h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-300">
+        <p className="text-sm text-muted-foreground">
           {step === "phone"
             ? "Sign in with your mobile number — we'll text you a one-time code."
             : `Enter the 6-digit code sent to ${phone}.`}
@@ -112,7 +112,7 @@ export function PhoneAuthForm({ mode }: Props) {
       {step === "phone" ? (
         <form onSubmit={onSendCode} className="flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-zinc-700 dark:text-zinc-200">
+            <span className="font-medium text-muted-foreground">
               Mobile number
             </span>
             <input
@@ -123,13 +123,13 @@ export function PhoneAuthForm({ mode }: Props) {
               placeholder="+1 555 555 0100"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-base outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-white"
+              className="h-11 rounded-lg border border-border bg-background px-3 text-base outline-none focus:border-zinc-950-700-900 dark:focus:border-white"
             />
           </label>
           <button
             type="submit"
             disabled={pending}
-            className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-muted disabled:opacity-50 dark:hover:bg-muted"
           >
             {pending ? "Sending..." : "Send code"}
           </button>
@@ -137,7 +137,7 @@ export function PhoneAuthForm({ mode }: Props) {
       ) : (
         <form onSubmit={onVerify} className="flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-zinc-700 dark:text-zinc-200">
+            <span className="font-medium text-muted-foreground">
               Verification code
             </span>
             <input
@@ -148,13 +148,13 @@ export function PhoneAuthForm({ mode }: Props) {
               maxLength={8}
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-base tracking-widest outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-white"
+              className="h-11 rounded-lg border border-border bg-background px-3 text-base tracking-widest outline-none focus:border-zinc-950-700-900 dark:focus:border-white"
             />
           </label>
           <button
             type="submit"
             disabled={pending}
-            className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-muted disabled:opacity-50 dark:hover:bg-muted"
           >
             {pending ? "Verifying..." : "Verify and continue"}
           </button>
@@ -165,7 +165,7 @@ export function PhoneAuthForm({ mode }: Props) {
               setCode("");
               setError(null);
             }}
-            className="text-xs text-zinc-500 underline"
+            className="text-xs text-muted-foreground underline"
           >
             Use a different number
           </button>

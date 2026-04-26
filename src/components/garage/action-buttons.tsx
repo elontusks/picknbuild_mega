@@ -83,7 +83,7 @@ export function GarageActionButtons({ listing, conversionState }: Props) {
       {conversionInProgress ? (
         <span
           data-testid="garage-action-in-progress"
-          className="inline-flex items-center rounded-md bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100"
+          className="inline-flex items-center rounded-md bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800-900/40 dark:text-emerald-100"
         >
           In progress · {conversionState.replace("-", " ")}
         </span>
@@ -91,7 +91,7 @@ export function GarageActionButtons({ listing, conversionState }: Props) {
         <Link
           data-testid="garage-action-start-picknbuild"
           href={`/configurator/${listing.id}`}
-          className="inline-flex items-center rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900"
+          className="inline-flex items-center rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-muted"
         >
           Start picknbuild
         </Link>
@@ -99,7 +99,7 @@ export function GarageActionButtons({ listing, conversionState }: Props) {
       <Link
         data-testid="garage-action-compare"
         href={`/listings/${listing.id}`}
-        className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+        className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-background-700 dark:hover:bg-muted"
       >
         Compare all paths
       </Link>
@@ -107,7 +107,7 @@ export function GarageActionButtons({ listing, conversionState }: Props) {
         <Link
           data-testid="garage-action-view-thread"
           href={`/inbox/${threadId}`}
-          className="inline-flex items-center rounded-md border border-emerald-300 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-200"
+          className="inline-flex items-center rounded-md border border-emerald-300 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50-800 dark:text-emerald-200"
         >
           Open thread
         </Link>
@@ -118,7 +118,7 @@ export function GarageActionButtons({ listing, conversionState }: Props) {
           data-kind={messageKind}
           onClick={openThread}
           disabled={isPending}
-          className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+          className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-background disabled:opacity-60-700 dark:hover:bg-muted"
         >
           {isPending ? "Opening…" : KIND_LABEL[messageKind]}
         </button>

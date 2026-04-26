@@ -11,9 +11,9 @@ const VERDICT_LABEL: Record<PricingGuidance["verdict"], string> = {
 };
 
 const VERDICT_CLASS: Record<PricingGuidance["verdict"], string> = {
-  low: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100",
-  fair: "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100",
-  high: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100",
+  low: "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
+  fair: "bg-muted text-zinc-800-800",
+  high: "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
 };
 
 const usd = (n: number): string => `$${n.toLocaleString()}`;
@@ -24,10 +24,10 @@ export function PricingGuidancePanel({ guidance }: PricingGuidancePanelProps) {
       data-testid="pricing-guidance"
       data-verdict={guidance.verdict}
       aria-label="Pricing guidance"
-      className="space-y-1 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
+      className="space-y-1 rounded-lg border border-border bg-background p-3-800-950"
     >
       <header className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-zinc-950 dark:text-white">
+        <h3 className="text-sm font-semibold text-foreground">
           Pricing guidance
         </h3>
         <span
@@ -36,21 +36,21 @@ export function PricingGuidancePanel({ guidance }: PricingGuidancePanelProps) {
           {VERDICT_LABEL[guidance.verdict]}
         </span>
       </header>
-      <p className="text-xs text-zinc-600 dark:text-zinc-300">
+      <p className="text-xs text-muted-foreground">
         {guidance.reasonLine}
       </p>
       {guidance.marketRange ? (
-        <p className="text-xs text-zinc-600 dark:text-zinc-300">
+        <p className="text-xs text-muted-foreground">
           Comparable listings:{" "}
-          <span className="font-medium text-zinc-900 dark:text-zinc-100">
+          <span className="font-medium text-foreground">
             {usd(guidance.marketRange[0])}–{usd(guidance.marketRange[1])}
           </span>
         </p>
       ) : null}
       {guidance.negotiationAnchor !== undefined ? (
-        <p className="text-xs text-zinc-600 dark:text-zinc-300">
+        <p className="text-xs text-muted-foreground">
           Consider starting at{" "}
-          <span className="font-medium text-zinc-900 dark:text-zinc-100">
+          <span className="font-medium text-foreground">
             {usd(guidance.negotiationAnchor)}
           </span>
           .

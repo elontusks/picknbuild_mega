@@ -17,7 +17,7 @@ export default async function AdminSubscriptionsPage() {
         className="w-full text-left text-sm"
         data-testid="admin-subscriptions-table"
       >
-        <thead className="text-xs text-zinc-500">
+        <thead className="text-xs text-muted-foreground">
           <tr>
             <th className="pb-2">User</th>
             <th className="pb-2">Plan</th>
@@ -30,7 +30,7 @@ export default async function AdminSubscriptionsPage() {
           {sorted.map((s) => (
             <tr
               key={s.id}
-              className="border-t border-zinc-100 text-xs dark:border-zinc-900"
+              className="border-t border-zinc-100 text-xs-900"
             >
               <td className="py-2">
                 <Link
@@ -53,7 +53,7 @@ export default async function AdminSubscriptionsPage() {
         </tbody>
       </table>
       {sorted.length === 0 ? (
-        <p className="text-sm text-zinc-500">No subscriptions yet.</p>
+        <p className="text-sm text-muted-foreground">No subscriptions yet.</p>
       ) : null}
     </section>
   );

@@ -19,13 +19,13 @@ export default async function NotificationsPage() {
   return (
     <main className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-6 p-4 md:grid-cols-[2fr_1fr]">
       <section className="flex flex-col gap-3">
-        <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+        <h1 className="text-lg font-semibold text-foreground">
           Notifications
         </h1>
         <NotificationHistoryDisplay notifications={notifications} />
       </section>
-      <aside className="flex flex-col gap-3 border-t border-zinc-200 pt-4 md:border-l md:border-t-0 md:pl-4 md:pt-0 dark:border-zinc-800">
-        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+      <aside className="flex flex-col gap-3 border-t border-border pt-4 md:border-l md:border-t-0 md:pl-4 md:pt-0-800">
+        <h2 className="text-sm font-semibold text-foreground">
           Preferences
         </h2>
         <NotificationPreferencesPanel initial={preferences} />

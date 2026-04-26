@@ -21,7 +21,7 @@ export function DownPaymentDisplay({ quotes, className }: DownPaymentDisplayProp
       data-testid="down-payment-display"
       className={
         className ??
-        "grid grid-cols-2 gap-3 rounded-lg border border-zinc-200 bg-white p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950 sm:grid-cols-4"
+        "grid grid-cols-2 gap-3 rounded-lg border border-border bg-background p-3 text-sm-800-950 sm:grid-cols-4"
       }
     >
       {quotes.map((quote) => {
@@ -39,10 +39,10 @@ export function DownPaymentDisplay({ quotes, className }: DownPaymentDisplayProp
             data-testid={`down-${quote.path}`}
             className="flex flex-col gap-0.5"
           >
-            <dt className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
               {PATH_LABEL[quote.path]} down
             </dt>
-            <dd className="text-sm font-semibold text-zinc-950 dark:text-white">
+            <dd className="text-sm font-semibold text-foreground">
               {downLabel}
             </dd>
           </div>

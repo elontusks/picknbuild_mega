@@ -41,7 +41,7 @@ export default async function AdminListingsPage({
         className="w-full text-left text-sm"
         data-testid="admin-listings-table"
       >
-        <thead className="text-xs text-zinc-500">
+        <thead className="text-xs text-muted-foreground">
           <tr>
             <th className="pb-2">Listing</th>
             <th className="pb-2">Source</th>
@@ -57,7 +57,7 @@ export default async function AdminListingsPage({
         </tbody>
       </table>
       {listings.length === 0 ? (
-        <p className="text-sm text-zinc-500">No listings match this filter.</p>
+        <p className="text-sm text-muted-foreground">No listings match this filter.</p>
       ) : null}
     </section>
   );
@@ -73,7 +73,7 @@ function FilterBar({
   return (
     <div className="flex flex-wrap gap-4 text-xs">
       <div className="flex flex-wrap gap-1">
-        <span className="text-zinc-500">Source:</span>
+        <span className="text-muted-foreground">Source:</span>
         <FilterLink href={`/admin/listings${statusQs(status)}`} active={!source} label="any" />
         {SOURCES.map((s) => (
           <FilterLink
@@ -85,7 +85,7 @@ function FilterBar({
         ))}
       </div>
       <div className="flex flex-wrap gap-1">
-        <span className="text-zinc-500">Status:</span>
+        <span className="text-muted-foreground">Status:</span>
         <FilterLink
           href={`/admin/listings${source ? `?source=${source}` : ""}`}
           active={!status}
@@ -118,8 +118,8 @@ function FilterLink({
       href={href}
       className={`rounded-full border px-2 py-0.5 ${
         active
-          ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-          : "border-zinc-200 text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
+          ? "border-zinc-900 bg-muted text-white-100-100"
+          : "border-border text-muted-foreground-800"
       }`}
     >
       {label}
@@ -133,7 +133,7 @@ function statusQs(status?: ListingStatus) {
 
 function ListingRow({ listing }: { listing: ListingObject }) {
   return (
-    <tr className="border-t border-zinc-100 dark:border-zinc-900">
+    <tr className="border-t border-zinc-100-900">
       <td className="py-2">
         <Link
           href={`/admin/listings/${listing.id}`}
@@ -141,7 +141,7 @@ function ListingRow({ listing }: { listing: ListingObject }) {
         >
           {listing.year} {listing.make} {listing.model}
         </Link>
-        <div className="text-xs text-zinc-500">{listing.id}</div>
+        <div className="text-xs text-muted-foreground">{listing.id}</div>
       </td>
       <td className="py-2 text-xs">{listing.source}</td>
       <td className="py-2 text-xs">{listing.status}</td>
@@ -152,7 +152,7 @@ function ListingRow({ listing }: { listing: ListingObject }) {
             ? `bid $${listing.currentBid}`
             : "—"}
       </td>
-      <td className="py-2 text-xs text-zinc-500">
+      <td className="py-2 text-xs text-muted-foreground">
         {new Date(listing.lastRefreshedAt).toLocaleDateString()}
       </td>
     </tr>

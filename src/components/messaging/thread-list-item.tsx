@@ -19,20 +19,20 @@ export function ThreadListItem({
     <Link
       href={`/inbox/${thread.id}`}
       data-testid="thread-list-item"
-      className="flex items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white px-3 py-2 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
+      className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2 hover:bg-background-800-950 dark:hover:bg-muted"
     >
       <div className="flex flex-col">
-        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <span className="text-sm font-medium text-foreground">
           {kindLabel[thread.kind]} · {other}
         </span>
         {thread.listingId ? (
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             Re: listing {thread.listingId}
           </span>
         ) : null}
       </div>
       <time
-        className="text-xs text-zinc-500"
+        className="text-xs text-muted-foreground"
         dateTime={thread.lastMessageAt}
       >
         {new Date(thread.lastMessageAt).toLocaleString()}

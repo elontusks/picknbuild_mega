@@ -15,9 +15,9 @@ export function BarrierToEntryLine({ path, line }: Props) {
     <p
       data-testid={`barrier-line-${path}`}
       data-decision="barrier-to-entry"
-      className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs leading-5 text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+      className="rounded-lg border border-border bg-background px-3 py-2 text-xs leading-5 text-muted-foreground-800-900"
     >
-      <span className="font-semibold uppercase tracking-wide text-[10px] text-zinc-500 dark:text-zinc-400">
+      <span className="font-semibold uppercase tracking-wide text-[10px] text-muted-foreground">
         Barrier to entry
       </span>
       <br />

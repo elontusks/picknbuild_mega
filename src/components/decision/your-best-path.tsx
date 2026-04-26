@@ -83,7 +83,7 @@ export function YourBestPathRightNow({
       <aside
         data-decision="your-best-path"
         data-testid="your-best-path-empty"
-        className="rounded-2xl border border-dashed border-zinc-200 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+        className="rounded-2xl border border-dashed border-border bg-background p-4 text-sm text-muted-foreground-800-950"
       >
         Pick a vehicle to see your best path right now.
       </aside>
@@ -96,7 +96,7 @@ export function YourBestPathRightNow({
         data-decision="your-best-path"
         data-testid="your-best-path-loading"
         aria-busy={loading}
-        className="rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400"
+        className="rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground-800-950"
       >
         Calculating your best path…
       </aside>
@@ -108,7 +108,7 @@ export function YourBestPathRightNow({
       data-decision="your-best-path"
       data-testid="your-best-path"
       data-recommended-path={output.recommendedPath}
-      className="sticky top-2 z-10 flex flex-col gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 p-4 shadow-sm dark:border-emerald-700/60 dark:bg-emerald-950/40"
+      className="sticky top-2 z-10 flex flex-col gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 p-4 shadow-sm-700/60-950/40"
     >
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
@@ -117,7 +117,7 @@ export function YourBestPathRightNow({
           </p>
           <h2
             data-testid="best-path-name"
-            className="text-lg font-semibold text-zinc-900 dark:text-white"
+            className="text-lg font-semibold text-foreground"
           >
             {PATH_LABEL[output.recommendedPath]}
           </h2>
@@ -126,21 +126,21 @@ export function YourBestPathRightNow({
           type="button"
           data-testid="best-path-cta"
           onClick={() => onSelectPath?.(output.recommendedPath)}
-          className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+          className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-emerald-700-500 dark:hover:bg-emerald-400"
         >
           {output.primaryCta.label}
         </button>
       </header>
       <p
         data-testid="best-path-reason"
-        className="text-sm text-zinc-700 dark:text-zinc-200"
+        className="text-sm text-muted-foreground"
       >
         {output.reason}
       </p>
       {output.supportingBullets.length > 0 ? (
         <ul
           data-testid="best-path-bullets"
-          className="ml-4 list-disc text-xs text-zinc-700 dark:text-zinc-200"
+          className="ml-4 list-disc text-xs text-muted-foreground"
         >
           {output.supportingBullets.map((b, i) => (
             <li key={i}>{b}</li>
@@ -150,7 +150,7 @@ export function YourBestPathRightNow({
       {output.alternatives.length > 0 ? (
         <p
           data-testid="best-path-alternatives"
-          className="text-xs text-zinc-500 dark:text-zinc-400"
+          className="text-xs text-muted-foreground"
         >
           Also worth considering:{" "}
           {output.alternatives.map((p) => PATH_LABEL[p]).join(" · ")}

@@ -136,9 +136,9 @@ export function AlreadyHaveACarFlow() {
   return (
     <details
       data-testid="already-have-a-car-flow"
-      className="rounded-md border border-zinc-200 px-2 py-1.5 text-xs dark:border-zinc-800"
+      className="rounded-md border border-border px-2 py-1.5 text-xs-800"
     >
-      <summary className="cursor-pointer select-none font-semibold text-zinc-700 dark:text-zinc-200">
+      <summary className="cursor-pointer select-none font-semibold text-muted-foreground">
         Already have a car? Customize it
       </summary>
       <div className="mt-2 flex flex-col gap-2">
@@ -164,7 +164,7 @@ export function AlreadyHaveACarFlow() {
         </div>
         {useVin ? (
           <label className="flex flex-col gap-0.5">
-            <span className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
               VIN
             </span>
             <input
@@ -174,7 +174,7 @@ export function AlreadyHaveACarFlow() {
               data-testid="ahac-vin"
               maxLength={17}
               placeholder="17-character VIN"
-              className="rounded border border-zinc-300 px-2 py-1 font-mono text-xs dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded border border-border px-2 py-1 font-mono text-xs-700-900"
             />
           </label>
         ) : (
@@ -185,7 +185,7 @@ export function AlreadyHaveACarFlow() {
               onChange={(e) => setYear(e.target.value)}
               data-testid="ahac-year"
               placeholder="Year"
-              className="rounded border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded border border-border px-2 py-1 text-xs-700-900"
             />
             <input
               type="text"
@@ -193,7 +193,7 @@ export function AlreadyHaveACarFlow() {
               onChange={(e) => setMake(e.target.value)}
               data-testid="ahac-make"
               placeholder="Make"
-              className="rounded border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded border border-border px-2 py-1 text-xs-700-900"
             />
             <input
               type="text"
@@ -201,7 +201,7 @@ export function AlreadyHaveACarFlow() {
               onChange={(e) => setModel(e.target.value)}
               data-testid="ahac-model"
               placeholder="Model"
-              className="rounded border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded border border-border px-2 py-1 text-xs-700-900"
             />
             <input
               type="text"
@@ -209,7 +209,7 @@ export function AlreadyHaveACarFlow() {
               onChange={(e) => setTrim(e.target.value)}
               data-testid="ahac-trim"
               placeholder="Trim"
-              className="rounded border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded border border-border px-2 py-1 text-xs-700-900"
             />
             <input
               type="number"
@@ -217,12 +217,12 @@ export function AlreadyHaveACarFlow() {
               onChange={(e) => setMileage(e.target.value)}
               data-testid="ahac-mileage"
               placeholder="Mileage"
-              className="col-span-2 rounded border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+              className="col-span-2 rounded border border-border px-2 py-1 text-xs-700-900"
             />
           </div>
         )}
         <label className="flex flex-col gap-0.5">
-          <span className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
             Work you want done (comma-separated)
           </span>
           <input
@@ -231,7 +231,7 @@ export function AlreadyHaveACarFlow() {
             onChange={(e) => setWork(e.target.value)}
             data-testid="ahac-work"
             placeholder="wrap, seats, paint…"
-            className="rounded border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded border border-border px-2 py-1 text-xs-700-900"
           />
         </label>
         {error ? (
@@ -245,7 +245,7 @@ export function AlreadyHaveACarFlow() {
         {state.status === "ok" ? (
           <div
             data-testid="ahac-estimate"
-            className="rounded bg-emerald-50 p-1.5 text-[11px] text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100"
+            className="rounded bg-emerald-50 p-1.5 text-[11px] text-emerald-900-950/30 dark:text-emerald-100"
           >
             Estimated spend: {usd(state.estimate)}
             {state.assumptions.length > 0 ? (
@@ -260,7 +260,7 @@ export function AlreadyHaveACarFlow() {
         {state.status === "quote-required" ? (
           <p
             data-testid="ahac-quote-required"
-            className="rounded bg-amber-50 p-1.5 text-[11px] text-amber-900 dark:bg-amber-950/30 dark:text-amber-100"
+            className="rounded bg-amber-50 p-1.5 text-[11px] text-amber-900-950/30 dark:text-amber-100"
           >
             This scope of work needs a custom quote. We&rsquo;ll follow up on
             commit.
@@ -272,7 +272,7 @@ export function AlreadyHaveACarFlow() {
             onClick={submit}
             disabled={pending}
             data-testid="ahac-submit"
-            className="rounded bg-zinc-900 px-2 py-1 text-[11px] font-semibold text-white disabled:bg-zinc-400 dark:bg-white dark:text-zinc-900"
+            className="rounded bg-muted px-2 py-1 text-[11px] font-semibold text-primary-foreground disabled:bg-zinc-400"
           >
             {pending ? "Estimating…" : "Estimate"}
           </button>
@@ -281,7 +281,7 @@ export function AlreadyHaveACarFlow() {
               type="button"
               onClick={clear}
               data-testid="ahac-clear"
-              className="text-[11px] text-zinc-600 underline hover:text-zinc-800 dark:text-zinc-300"
+              className="text-[11px] text-muted-foreground underline hover:text-zinc-800"
             >
               Remove
             </button>

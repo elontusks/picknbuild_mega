@@ -14,7 +14,7 @@ export function CleanRebuiltTooltip() {
         aria-expanded={open}
         aria-label="What is clean vs rebuilt?"
         data-intake="clean-rebuilt-tooltip-trigger"
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-semibold text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground hover:bg-muted-600 dark:hover:bg-muted"
       >
         ?
       </button>
@@ -22,7 +22,7 @@ export function CleanRebuiltTooltip() {
         <div
           role="tooltip"
           data-intake="clean-rebuilt-tooltip"
-          className="absolute left-6 top-0 z-20 w-72 rounded-lg border border-zinc-200 bg-white p-3 text-xs leading-5 text-zinc-700 shadow-lg dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+          className="absolute left-6 top-0 z-20 w-72 rounded-lg border border-border bg-background p-3 text-xs leading-5 text-muted-foreground shadow-lg-700-900"
         >
           {getDisclaimer("clean-vs-rebuilt")}
         </div>

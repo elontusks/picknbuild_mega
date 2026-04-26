@@ -27,7 +27,7 @@ export default async function FeedPostPage({
     >
       <Link
         href="/feed"
-        className="text-xs text-zinc-500 hover:underline dark:text-zinc-400"
+        className="text-xs text-muted-foreground hover:underline"
       >
         ← Back to feed
       </Link>

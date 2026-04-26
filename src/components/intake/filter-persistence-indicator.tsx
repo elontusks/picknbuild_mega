@@ -23,7 +23,7 @@ export function FilterPersistenceIndicator() {
     <div
       data-intake="filter-persistence"
       data-active-count={diffs.length}
-      className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white dark:bg-white dark:text-black"
+      className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium text-primary-foreground"
     >
       <span>
         {diffs.length} filter{diffs.length === 1 ? "" : "s"} active
@@ -31,7 +31,7 @@ export function FilterPersistenceIndicator() {
       <button
         type="button"
         onClick={reset}
-        className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium hover:bg-white/20 dark:bg-black/10 dark:hover:bg-black/20"
+        className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium hover:bg-white/20/10 dark:hover:bg-black/20"
       >
         Clear
       </button>

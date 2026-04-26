@@ -89,7 +89,7 @@ export function UserVehicleUploadForm() {
     <form
       data-testid="vehicle-upload-form"
       onSubmit={onSubmit}
-      className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+      className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 shadow-sm-800-950"
     >
       <h2 className="text-sm font-semibold">Post a vehicle for sale</h2>
 
@@ -100,7 +100,7 @@ export function UserVehicleUploadForm() {
             required
             value={year}
             onChange={(e) => setYear(e.target.value)}
-            className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-md border border-border bg-background px-2 py-1-800-950"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -109,7 +109,7 @@ export function UserVehicleUploadForm() {
             required
             value={make}
             onChange={(e) => setMake(e.target.value)}
-            className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-md border border-border bg-background px-2 py-1-800-950"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -118,7 +118,7 @@ export function UserVehicleUploadForm() {
             required
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-md border border-border bg-background px-2 py-1-800-950"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -126,7 +126,7 @@ export function UserVehicleUploadForm() {
           <input
             value={trim}
             onChange={(e) => setTrim(e.target.value)}
-            className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-md border border-border bg-background px-2 py-1-800-950"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -134,7 +134,7 @@ export function UserVehicleUploadForm() {
           <input
             value={mileage}
             onChange={(e) => setMileage(e.target.value)}
-            className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-md border border-border bg-background px-2 py-1-800-950"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -142,7 +142,7 @@ export function UserVehicleUploadForm() {
           <input
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-md border border-border bg-background px-2 py-1-800-950"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -150,7 +150,7 @@ export function UserVehicleUploadForm() {
           <input
             value={vin}
             onChange={(e) => setVin(e.target.value)}
-            className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-md border border-border bg-background px-2 py-1-800-950"
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -158,7 +158,7 @@ export function UserVehicleUploadForm() {
           <select
             value={titleStatus}
             onChange={(e) => setTitleStatus(e.target.value as TitleStatus)}
-            className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-md border border-border bg-background px-2 py-1-800-950"
           >
             <option value="clean">clean</option>
             <option value="rebuilt">rebuilt</option>
@@ -170,7 +170,7 @@ export function UserVehicleUploadForm() {
           <input
             value={locationZip}
             onChange={(e) => setLocationZip(e.target.value)}
-            className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-md border border-border bg-background px-2 py-1-800-950"
           />
         </label>
       </div>
@@ -188,7 +188,7 @@ export function UserVehicleUploadForm() {
           onChange={(e) => setFeedBody(e.target.value)}
           placeholder="Tell the community about this car — leave blank to skip the feed post."
           rows={2}
-          className="rounded-md border border-zinc-200 bg-white px-2 py-1 dark:border-zinc-800 dark:bg-zinc-950"
+          className="rounded-md border border-border bg-background px-2 py-1-800-950"
         />
       </label>
 
@@ -197,7 +197,7 @@ export function UserVehicleUploadForm() {
           type="submit"
           data-testid="vehicle-upload-submit"
           disabled={pending}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900"
+          className="rounded-md bg-muted px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-40-100"
         >
           {pending ? "Uploading..." : "Upload vehicle"}
         </button>

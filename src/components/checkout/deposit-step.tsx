@@ -39,11 +39,11 @@ export function DepositStep({ buildRecordId, agreementId, amount }: Props) {
   return (
     <section
       data-testid="deposit-step"
-      className="space-y-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="space-y-3 rounded-lg border border-border bg-background p-4-800-950"
     >
       <header className="space-y-1">
         <h2 className="text-lg font-semibold">Deposit</h2>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-muted-foreground">
           Your $1,000 deposit locks the build. Non-refundable once charged.
         </p>
       </header>

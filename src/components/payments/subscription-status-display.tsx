@@ -14,7 +14,7 @@ export function SubscriptionStatusDisplay({ subscription }: Props) {
     return (
       <p
         data-testid="subscription-status-empty"
-        className="text-sm text-zinc-500"
+        className="text-sm text-muted-foreground"
       >
         No active dealer subscription.
       </p>
@@ -25,28 +25,28 @@ export function SubscriptionStatusDisplay({ subscription }: Props) {
     <section
       data-testid="subscription-status"
       data-status={status}
-      className="rounded-lg border border-zinc-200 bg-white p-4 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+      className="rounded-lg border border-border bg-background p-4 text-sm-800-950"
     >
       <header className="mb-2 flex items-baseline justify-between">
         <h3 className="text-sm font-semibold capitalize">
           {plan.replace("dealer-", "Dealer ")} plan
         </h3>
         <span
-          className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+          className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground-800"
           data-testid="subscription-status-label"
         >
           {STATUS_LABEL[status]}
         </span>
       </header>
-      <p className="text-zinc-500">
-        <span className="font-mono text-zinc-700 dark:text-zinc-200">
+      <p className="text-muted-foreground">
+        <span className="font-mono text-muted-foreground">
           {formatUsd(amountUsd)}
         </span>{" "}
         / month
       </p>
-      <p className="text-zinc-500">
+      <p className="text-muted-foreground">
         {status === "cancelled" ? "Ended" : "Renews"} on{" "}
-        <strong className="text-zinc-700 dark:text-zinc-200">
+        <strong className="text-muted-foreground">
           {formatDate(currentPeriodEnd)}
         </strong>
       </p>

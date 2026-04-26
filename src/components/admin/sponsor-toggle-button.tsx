@@ -20,7 +20,7 @@ export function SponsorToggleButton({
           await toggleSponsorActiveAction({ id, active: !active });
         })
       }
-      className="rounded-md border border-zinc-300 px-2 py-0.5 text-xs disabled:opacity-50 dark:border-zinc-700"
+      className="rounded-md border border-border px-2 py-0.5 text-xs disabled:opacity-50-700"
     >
       {active ? "Disable" : "Enable"}
     </button>

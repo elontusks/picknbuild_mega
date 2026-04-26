@@ -55,7 +55,7 @@ export function GarageItemCard({
       data-testid="garage-item-card"
       data-listing-id={listing.id}
       data-decision={decision ?? "none"}
-      className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+      className="flex flex-col gap-3 rounded-xl border border-border bg-background p-3 shadow-sm-800-950"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">

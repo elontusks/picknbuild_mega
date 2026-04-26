@@ -16,13 +16,13 @@ const KIND_LABEL: Record<FeedPost["kind"], string> = {
 };
 
 const KIND_CHIP_CLASS: Record<FeedPost["kind"], string> = {
-  deal: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100",
-  problem: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100",
-  question: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-100",
-  build: "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-100",
+  deal: "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
+  problem: "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
+  question: "bg-sky-100 text-sky-800-900/40 dark:text-sky-100",
+  build: "bg-violet-100 text-violet-800-900/40 dark:text-violet-100",
   recommendation:
-    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-100",
-  warning: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-100",
+    "bg-indigo-100 text-indigo-800-900/40 dark:text-indigo-100",
+  warning: "bg-rose-100 text-rose-800-900/40 dark:text-rose-100",
 };
 
 export function PostKindChip({ kind }: { kind: FeedPost["kind"] }) {
@@ -85,7 +85,7 @@ export function BuildPostTemplate({ post }: { post: FeedPost }) {
     <div data-testid="tpl-build" className="grid grid-cols-2 gap-2 text-xs">
       {before ? (
         <div className="flex flex-col gap-1">
-          <span className="text-zinc-500 dark:text-zinc-400">Before</span>
+          <span className="text-muted-foreground">Before</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={before}
@@ -96,7 +96,7 @@ export function BuildPostTemplate({ post }: { post: FeedPost }) {
       ) : null}
       {after ? (
         <div className="flex flex-col gap-1">
-          <span className="text-zinc-500 dark:text-zinc-400">After</span>
+          <span className="text-muted-foreground">After</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={after}

@@ -15,13 +15,13 @@ export function AdminNav() {
   return (
     <nav
       data-testid="admin-nav"
-      className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3 text-sm dark:border-zinc-800"
+      className="flex flex-wrap gap-2 border-b border-border pb-3 text-sm-800"
     >
       {TABS.map((tab) => (
         <Link
           key={tab.href}
           href={tab.href}
-          className="rounded-md border border-zinc-200 bg-white px-3 py-1 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          className="rounded-md border border-border bg-background px-3 py-1 text-muted-foreground hover:bg-background-800-950 dark:hover:bg-muted"
         >
           {tab.label}
         </Link>

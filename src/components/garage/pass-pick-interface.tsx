@@ -69,8 +69,8 @@ export function PassPickDecisionInterface({
         disabled={isPending}
         className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
           optimistic === "pick"
-            ? "bg-emerald-500 text-white"
-            : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+            ? "bg-emerald-500 text-primary-foreground"
+            : "bg-muted text-muted-foreground hover:bg-muted-800 dark:hover:bg-zinc-700"
         }`}
       >
         Pick
@@ -83,8 +83,8 @@ export function PassPickDecisionInterface({
         disabled={isPending}
         className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
           optimistic === "pass"
-            ? "bg-rose-500 text-white"
-            : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+            ? "bg-rose-500 text-primary-foreground"
+            : "bg-muted text-muted-foreground hover:bg-muted-800 dark:hover:bg-zinc-700"
         }`}
       >
         Pass

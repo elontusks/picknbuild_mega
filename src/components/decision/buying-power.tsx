@@ -23,10 +23,10 @@ export function BuyingPowerLayerView({ quote }: Props) {
       className="flex flex-col gap-2"
     >
       <header className="flex items-center justify-between text-xs">
-        <h4 className="font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <h4 className="font-semibold uppercase tracking-wide text-muted-foreground">
           Your buying power
         </h4>
-        <span className="text-zinc-500 dark:text-zinc-400">
+        <span className="text-muted-foreground">
           All-in ${layer.totalCost.toLocaleString()}
         </span>
       </header>

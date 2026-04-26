@@ -34,10 +34,10 @@ export default async function GaragePage() {
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 md:px-6">
       <header className="flex items-baseline justify-between">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
+        <h1 className="text-xl font-semibold text-foreground">
           Garage
         </h1>
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="text-xs text-muted-foreground">
           {hydrated.length} saved
         </span>
       </header>

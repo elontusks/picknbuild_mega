@@ -9,32 +9,32 @@ export function DashboardSummary({ deal }: Props) {
   return (
     <section
       data-testid="dashboard-summary"
-      className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="rounded-lg border border-border bg-background p-4-800-950"
     >
       <header className="mb-3 flex items-baseline justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-zinc-500">Deal</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Deal</p>
           <h1 className="text-lg font-semibold">
             {deal.committedSpec.makeModelYearRange || "picknbuild build"}
           </h1>
         </div>
         <div className="text-right">
-          <p className="text-xs uppercase tracking-wide text-zinc-500">Package</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Package</p>
           <p className="text-sm font-medium capitalize">{deal.package}</p>
         </div>
       </header>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm md:grid-cols-4">
-        <dt className="text-zinc-500">Total</dt>
+        <dt className="text-muted-foreground">Total</dt>
         <dd className="font-mono">{formatUsd(deal.pricing.total)}</dd>
-        <dt className="text-zinc-500">Down</dt>
+        <dt className="text-muted-foreground">Down</dt>
         <dd className="font-mono">{formatUsd(deal.pricing.down)}</dd>
-        <dt className="text-zinc-500">Bi-weekly</dt>
+        <dt className="text-muted-foreground">Bi-weekly</dt>
         <dd className="font-mono">{formatUsd(deal.pricing.biweekly)}</dd>
-        <dt className="text-zinc-500">Term</dt>
+        <dt className="text-muted-foreground">Term</dt>
         <dd>{deal.pricing.term}</dd>
-        <dt className="text-zinc-500">Started</dt>
+        <dt className="text-muted-foreground">Started</dt>
         <dd>{formatDate(deal.createdAt)}</dd>
-        <dt className="text-zinc-500">Title</dt>
+        <dt className="text-muted-foreground">Title</dt>
         <dd className="capitalize">{deal.committedSpec.titleType}</dd>
       </dl>
     </section>

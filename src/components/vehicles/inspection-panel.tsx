@@ -27,33 +27,33 @@ export function InspectionPanel({ inspection }: InspectionPanelProps) {
       data-testid="inspection-panel"
       data-status={inspection.status}
       aria-label="Inspection"
-      className="space-y-1 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
+      className="space-y-1 rounded-lg border border-border bg-background p-3-800-950"
     >
       <header className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-zinc-950 dark:text-white">
+        <h3 className="text-sm font-semibold text-foreground">
           Inspection
         </h3>
-        <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium uppercase text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium uppercase text-muted-foreground-800">
           {STATUS_LABEL[inspection.status]}
         </span>
       </header>
       {inspection.partnerName ? (
-        <p className="text-xs text-zinc-600 dark:text-zinc-300">
+        <p className="text-xs text-muted-foreground">
           Partner:{" "}
-          <span className="font-medium text-zinc-900 dark:text-zinc-100">
+          <span className="font-medium text-foreground">
             {inspection.partnerName}
           </span>
         </p>
       ) : null}
       {inspection.conditionSummary ? (
-        <p className="text-xs text-zinc-600 dark:text-zinc-300">
+        <p className="text-xs text-muted-foreground">
           {inspection.conditionSummary}
         </p>
       ) : null}
       {inspection.recommendation ? (
         <p
           data-testid="inspection-reco"
-          className="text-xs font-medium text-zinc-900 dark:text-zinc-100"
+          className="text-xs font-medium text-foreground"
         >
           Recommendation: {RECO_LABEL[inspection.recommendation]}
         </p>

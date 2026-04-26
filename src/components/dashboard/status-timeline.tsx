@@ -20,10 +20,10 @@ export function StatusTimeline({ timeline }: Props) {
   return (
     <section
       data-testid="status-timeline"
-      className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="rounded-lg border border-border bg-background p-4-800-950"
     >
       <header className="mb-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Status timeline
         </h2>
       </header>
@@ -38,7 +38,7 @@ export function StatusTimeline({ timeline }: Props) {
             <span className="font-medium">
               {labelForStage(entry.stage)}
             </span>
-            <time className="text-xs text-zinc-500">
+            <time className="text-xs text-muted-foreground">
               {formatDate(entry.occurredAt)}
             </time>
           </li>

@@ -23,12 +23,12 @@ export function ChatWindow({
       data-testid="chat-window"
       aria-label="Chat window"
     >
-      <header className="border-b border-zinc-200 pb-2 dark:border-zinc-800">
-        <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+      <header className="border-b border-border pb-2-800">
+        <h2 className="text-sm font-medium text-foreground">
           {kindTitle[thread.kind]}
         </h2>
         {thread.listingId ? (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted-foreground">
             Listing: {thread.listingId}
           </p>
         ) : null}

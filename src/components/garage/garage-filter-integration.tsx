@@ -32,7 +32,7 @@ export function GarageFilterIntegration({
     <div
       data-testid="garage-filter-integration"
       data-active-filter-count={active.length}
-      className="flex flex-wrap items-center gap-2 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+      className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground-800-900"
     >
       <span className="font-medium">
         {hasFilters
@@ -40,7 +40,7 @@ export function GarageFilterIntegration({
           : `Showing all ${totalCount} saved vehicle${totalCount === 1 ? "" : "s"}`}
       </span>
       {hidden > 0 ? (
-        <span data-testid="garage-filter-hidden-count" className="text-zinc-500 dark:text-zinc-400">
+        <span data-testid="garage-filter-hidden-count" className="text-muted-foreground">
           {hidden} hidden by intake
         </span>
       ) : null}
@@ -48,7 +48,7 @@ export function GarageFilterIntegration({
         <Link
           data-testid="garage-filter-adjust"
           href="/search"
-          className="ml-auto inline-flex items-center rounded-md border border-zinc-300 px-2 py-0.5 font-medium text-zinc-800 hover:bg-white dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
+          className="ml-auto inline-flex items-center rounded-md border border-border px-2 py-0.5 font-medium text-zinc-800 hover:bg-white-700 dark:hover:bg-muted"
         >
           Adjust on search
         </Link>

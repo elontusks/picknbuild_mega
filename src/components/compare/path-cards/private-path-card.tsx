@@ -44,18 +44,18 @@ export function PrivateSellerPathCard({
         </>
       }
       body={
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-zinc-700 dark:text-zinc-200">
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
           {askPrice !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Ask</dt>
+              <dt className="text-muted-foreground">Ask</dt>
               <dd className="text-right">{usd(askPrice)}</dd>
             </>
           ) : null}
-          <dt className="text-zinc-500 dark:text-zinc-400">All-in</dt>
+          <dt className="text-muted-foreground">All-in</dt>
           <dd className="text-right">{usd(quote.total)}</dd>
           {negotiable ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Negotiable</dt>
+              <dt className="text-muted-foreground">Negotiable</dt>
               <dd
                 className="text-right text-amber-700 dark:text-amber-300"
                 data-testid="path-card-private-negotiable"

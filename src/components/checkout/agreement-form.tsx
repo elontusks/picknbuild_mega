@@ -59,7 +59,7 @@ export function AgreementForm({
   return (
     <form
       data-testid="agreement-form"
-      className="space-y-4 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      className="space-y-4 rounded-lg border border-border bg-background p-4-800-950"
       onSubmit={(e) => {
         e.preventDefault();
         submit();
@@ -67,7 +67,7 @@ export function AgreementForm({
     >
       <header className="space-y-1">
         <h2 className="text-lg font-semibold">Agreement</h2>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-muted-foreground">
           Review the spec, acknowledge the notices, and sign to continue to the
           $1,000 deposit.
         </p>
@@ -77,7 +77,7 @@ export function AgreementForm({
         <h3 className="text-sm font-semibold">Spec</h3>
         <pre
           data-testid="agreement-spec"
-          className="whitespace-pre-wrap break-words rounded bg-zinc-50 p-3 font-mono text-xs dark:bg-zinc-900"
+          className="whitespace-pre-wrap break-words rounded bg-background p-3 font-mono text-xs-900"
         >
           {specSummary}
         </pre>
@@ -90,16 +90,16 @@ export function AgreementForm({
             <li
               key={c.id}
               data-testid={`clause-${c.id}`}
-              className="rounded border border-zinc-200 p-2 dark:border-zinc-800"
+              className="rounded border border-border p-2-800"
             >
               <strong className="block text-sm">{c.title}</strong>
-              <p className="text-zinc-600 dark:text-zinc-400">{c.body}</p>
+              <p className="text-muted-foreground">{c.body}</p>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-950/40">
+      <section className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3-700-950/40">
         <h3
           data-testid="insurance-required-notice"
           className="text-sm font-semibold"
@@ -121,7 +121,7 @@ export function AgreementForm({
         </label>
       </section>
 
-      <section className="space-y-2 rounded-md border border-rose-300 bg-rose-50 p-3 dark:border-rose-700 dark:bg-rose-950/40">
+      <section className="space-y-2 rounded-md border border-rose-300 bg-rose-50 p-3-700-950/40">
         <h3
           data-testid="non-refundable-notice"
           className="text-sm font-semibold"
@@ -162,7 +162,7 @@ export function AgreementForm({
         type="submit"
         data-testid="agreement-submit"
         disabled={isPending || missing.length > 0}
-        className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900"
+        className="w-full rounded-md bg-muted px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
       >
         {isPending ? "Signing…" : "Sign + continue to deposit"}
       </button>

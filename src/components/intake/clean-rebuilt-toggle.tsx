@@ -20,7 +20,7 @@ export function CleanRebuiltToggle() {
       className="flex flex-col gap-1.5"
     >
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Title
         </span>
         <CleanRebuiltTooltip />
@@ -28,7 +28,7 @@ export function CleanRebuiltToggle() {
       <div
         role="radiogroup"
         aria-label="Title preference"
-        className="inline-flex rounded-lg border border-zinc-200 bg-white p-0.5 dark:border-zinc-700 dark:bg-zinc-900"
+        className="inline-flex rounded-lg border border-border bg-background p-0.5-700-900"
       >
         {OPTIONS.map((opt) => {
           const active = state.titlePreference === opt.value;
@@ -47,8 +47,8 @@ export function CleanRebuiltToggle() {
               }
               className={`h-8 rounded-md px-3 text-sm font-medium transition ${
                 active
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-black"
-                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  ? "bg-muted text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted dark:hover:bg-muted"
               }`}
             >
               {opt.label}

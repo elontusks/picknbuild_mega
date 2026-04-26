@@ -27,7 +27,7 @@ export function MobileNavBar() {
     <nav
       aria-label="Primary"
       data-shell-slot="mobile-nav"
-      className="md:hidden sticky bottom-0 left-0 right-0 z-30 flex items-stretch border-t border-zinc-200 bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-black/95"
+      className="md:hidden sticky bottom-0 left-0 right-0 z-30 flex items-stretch border-t border-border bg-background/95 backdrop-blur-800/95"
     >
       {TABS.map((tab) => {
         const active = isActive(pathname, tab.href);
@@ -39,8 +39,8 @@ export function MobileNavBar() {
             data-active={active}
             className={`flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium ${
               active
-                ? "text-zinc-950 dark:text-white"
-                : "text-zinc-500 dark:text-zinc-400"
+                ? "text-foreground"
+                : "text-muted-foreground"
             }`}
           >
             <span aria-hidden="true" className="text-base">

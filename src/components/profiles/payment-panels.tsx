@@ -19,7 +19,7 @@ export function ListingPriceModalTrigger({ listingId }: TriggerProps) {
         data-testid="listing-price-modal-trigger"
         data-listing-id={listingId}
         onClick={() => setOpen(true)}
-        className="rounded-md border border-zinc-300 px-2.5 py-1 text-xs dark:border-zinc-700"
+        className="rounded-md border border-border px-2.5 py-1 text-xs-700"
       >
         Pay listing fee
       </button>

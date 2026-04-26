@@ -40,12 +40,12 @@ export default async function DashboardPage({
       >
         <h1 className="text-lg font-semibold">Dashboard</h1>
         {result.reason === "no-deals" && params.deposit ? (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm text-muted-foreground">
             Deposit received — payment id {params.deposit}. Your build is
             being prepared; this page will populate in a moment.
           </p>
         ) : result.reason === "no-deals" ? (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm text-muted-foreground">
             You don't have any deals yet. Sign a picknbuild agreement and
             place a deposit to get started.
           </p>
@@ -70,7 +70,7 @@ export default async function DashboardPage({
       {params.deposit ? (
         <p
           data-testid="deposit-banner"
-          className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/20 dark:text-emerald-300"
+          className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800-900/40-950/20 dark:text-emerald-300"
         >
           Deposit received — payment id {params.deposit}.
         </p>

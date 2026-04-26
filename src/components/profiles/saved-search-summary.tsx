@@ -44,12 +44,12 @@ export function SavedSearchSummary({ userId }: Props) {
   if (state === null) {
     return (
       <div data-testid="saved-search-empty" className="space-y-1">
-        <p className="text-sm text-zinc-600 dark:text-zinc-300">
+        <p className="text-sm text-muted-foreground">
           No saved search yet.
         </p>
         <Link
           href="/search"
-          className="text-sm font-medium text-zinc-900 underline dark:text-white"
+          className="text-sm font-medium text-foreground underline"
         >
           Start a search
         </Link>
@@ -64,7 +64,7 @@ export function SavedSearchSummary({ userId }: Props) {
         {parts.map((p) => (
           <li
             key={p}
-            className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+            className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground-800"
           >
             {p}
           </li>
@@ -72,7 +72,7 @@ export function SavedSearchSummary({ userId }: Props) {
       </ul>
       <Link
         href="/search"
-        className="text-sm font-medium text-zinc-900 underline dark:text-white"
+        className="text-sm font-medium text-foreground underline"
       >
         Edit search
       </Link>

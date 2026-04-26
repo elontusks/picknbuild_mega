@@ -49,24 +49,24 @@ export function PaymentProcessingInterface({
   return (
     <form
       data-testid="payment-processing"
-      className="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+      className="space-y-3 rounded-lg border border-border p-4-800"
       onSubmit={(e) => {
         e.preventDefault();
         void handle();
       }}
     >
       <div className="flex items-baseline justify-between">
-        <span className="text-sm text-zinc-500">{label}</span>
+        <span className="text-sm text-muted-foreground">{label}</span>
         <strong className="font-mono text-lg">{formatUsd(amount)}</strong>
       </div>
-      <label className="block text-xs text-zinc-500">
+      <label className="block text-xs text-muted-foreground">
         Payment method id
         <input
           data-testid="payment-method-input"
           value={pm}
           onChange={(e) => setPm(e.target.value)}
           disabled={busy || disabled}
-          className="mt-1 w-full rounded border border-zinc-300 bg-white px-2 py-1 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="mt-1 w-full rounded border border-border bg-background px-2 py-1 font-mono text-sm-700-900"
         />
       </label>
       {state.kind === "error" ? (
@@ -81,7 +81,7 @@ export function PaymentProcessingInterface({
         type="submit"
         data-testid="payment-submit"
         disabled={busy || disabled}
-        className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900"
+        className="w-full rounded-md bg-muted px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
       >
         {busy ? "Processing…" : `Pay ${formatUsd(amount)}`}
       </button>

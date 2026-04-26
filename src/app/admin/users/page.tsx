@@ -22,7 +22,7 @@ export default async function AdminUsersPage({
     <section data-testid="admin-users" className="flex flex-col gap-3">
       <RoleFilter current={role} />
       <table className="w-full text-left text-sm" data-testid="admin-users-table">
-        <thead className="text-xs text-zinc-500">
+        <thead className="text-xs text-muted-foreground">
           <tr>
             <th className="pb-2">User</th>
             <th className="pb-2">Role</th>
@@ -38,7 +38,7 @@ export default async function AdminUsersPage({
         </tbody>
       </table>
       {users.length === 0 ? (
-        <p className="text-sm text-zinc-500">No users match this filter.</p>
+        <p className="text-sm text-muted-foreground">No users match this filter.</p>
       ) : null}
     </section>
   );
@@ -61,8 +61,8 @@ function RoleFilter({ current }: { current?: UserRole }) {
           href={opt.href}
           className={`rounded-full border px-3 py-1 ${
             opt.active
-              ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-              : "border-zinc-200 text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
+              ? "border-zinc-900 bg-muted text-white-100-100"
+              : "border-border text-muted-foreground-800"
           }`}
         >
           {opt.label}
@@ -74,7 +74,7 @@ function RoleFilter({ current }: { current?: UserRole }) {
 
 function UserRow({ user }: { user: AdminUserRow }) {
   return (
-    <tr className="border-t border-zinc-100 dark:border-zinc-900">
+    <tr className="border-t border-zinc-100-900">
       <td className="py-2">
         <Link
           href={`/admin/users/${user.id}`}
@@ -83,13 +83,13 @@ function UserRow({ user }: { user: AdminUserRow }) {
           {user.displayName ?? user.email ?? user.id}
         </Link>
         {user.email ? (
-          <div className="text-xs text-zinc-500">{user.email}</div>
+          <div className="text-xs text-muted-foreground">{user.email}</div>
         ) : null}
       </td>
       <td className="py-2">{user.role}</td>
       <td className="py-2">{user.zip ?? "—"}</td>
       <td className="py-2">{user.onboarded ? "yes" : "no"}</td>
-      <td className="py-2 text-xs text-zinc-500">
+      <td className="py-2 text-xs text-muted-foreground">
         {new Date(user.createdAt).toLocaleDateString()}
       </td>
     </tr>

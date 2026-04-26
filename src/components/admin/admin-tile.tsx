@@ -13,12 +13,12 @@ export function AdminTile({ href, label, value, hint, testId }: Props) {
     <Link
       href={href}
       data-testid={testId}
-      className="flex flex-col gap-1 rounded-lg border border-zinc-200 bg-white p-4 hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-600 dark:hover:bg-zinc-900"
+      className="flex flex-col gap-1 rounded-lg border border-border bg-background p-4 hover:border-zinc-400 hover:bg-background-800-950 dark:hover:bg-muted"
     >
-      <span className="text-sm text-zinc-500 dark:text-zinc-400">{label}</span>
+      <span className="text-sm text-muted-foreground">{label}</span>
       <span className="text-2xl font-semibold">{value}</span>
       {hint ? (
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">{hint}</span>
+        <span className="text-xs text-muted-foreground">{hint}</span>
       ) : null}
     </Link>
   );

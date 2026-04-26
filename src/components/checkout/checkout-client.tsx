@@ -31,7 +31,7 @@ export function CheckoutClient({
     >
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Commit + deposit</h1>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted-foreground">
           Sign the agreement, then place your $1,000 deposit to start the
           build.
         </p>

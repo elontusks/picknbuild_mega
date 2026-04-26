@@ -25,7 +25,7 @@ export function PicknbuildCustomizationToggles() {
       data-testid="picknbuild-customization-toggles"
       className="flex flex-col gap-1.5"
     >
-      <legend className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <legend className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         Customize on picknbuild
       </legend>
       <ul className="grid grid-cols-2 gap-1.5">
@@ -36,8 +36,8 @@ export function PicknbuildCustomizationToggles() {
               <label
                 className={`flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1 text-xs transition ${
                   checked
-                    ? "border-emerald-400 bg-emerald-50 text-emerald-900 dark:border-emerald-500/60 dark:bg-emerald-950/30 dark:text-emerald-100"
-                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+                    ? "border-emerald-400 bg-emerald-50 text-emerald-900-500/60-950/30 dark:text-emerald-100"
+                    : "border-border bg-background text-muted-foreground hover:border-border-800-950"
                 }`}
               >
                 <input
@@ -49,7 +49,7 @@ export function PicknbuildCustomizationToggles() {
                 />
                 <span className="flex flex-col leading-tight">
                   <span className="font-semibold">{label}</span>
-                  <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                  <span className="text-[10px] text-muted-foreground">
                     {hint}
                   </span>
                 </span>

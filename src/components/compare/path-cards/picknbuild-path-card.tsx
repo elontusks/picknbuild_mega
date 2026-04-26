@@ -81,31 +81,31 @@ export function PicknbuildPathCard({
         </>
       }
       body={
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-zinc-700 dark:text-zinc-200">
-          <dt className="text-zinc-500 dark:text-zinc-400">Down %</dt>
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+          <dt className="text-muted-foreground">Down %</dt>
           <dd className="text-right">{pctLabel(downPct)}</dd>
           {quote.down !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Down</dt>
+              <dt className="text-muted-foreground">Down</dt>
               <dd className="text-right">{usd(quote.down)}</dd>
             </>
           ) : null}
           {quote.biweekly !== undefined ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Biweekly</dt>
+              <dt className="text-muted-foreground">Biweekly</dt>
               <dd className="text-right">{usd(quote.biweekly)}</dd>
             </>
           ) : null}
           {quote.term ? (
             <>
-              <dt className="text-zinc-500 dark:text-zinc-400">Term</dt>
+              <dt className="text-muted-foreground">Term</dt>
               <dd className="text-right">{TERM_LABEL[quote.term]}</dd>
             </>
           ) : null}
         </dl>
       }
       extras={
-        <div className="flex flex-col gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-800">
+        <div className="flex flex-col gap-2 border-t border-border pt-2-800">
           <PicknbuildCustomizationToggles />
           <TradeInFlow />
           <AlreadyHaveACarFlow />

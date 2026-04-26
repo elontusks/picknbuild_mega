@@ -110,10 +110,10 @@ export function OnboardingWizard({
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-6 py-12">
       <header className="flex flex-col gap-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Step {stepIdx + 1} of {STEPS.length}
         </p>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           {STEP_LABELS[step]}
         </h1>
       </header>
@@ -122,7 +122,7 @@ export function OnboardingWizard({
         {step === "zip" ? (
           <>
             <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-zinc-700 dark:text-zinc-200">
+              <span className="font-medium text-muted-foreground">
                 ZIP code (used for distance, never auto-updated)
               </span>
               <input
@@ -134,11 +134,11 @@ export function OnboardingWizard({
                 onChange={(e) =>
                   setState((s) => ({ ...s, zip: e.target.value.replace(/\D+/g, "") }))
                 }
-                className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-base outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-white"
+                className="h-11 rounded-lg border border-border bg-background px-3 text-base outline-none focus:border-zinc-950-700-900 dark:focus:border-white"
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-zinc-700 dark:text-zinc-200">
+              <span className="font-medium text-muted-foreground">
                 Display name (optional)
               </span>
               <input
@@ -147,7 +147,7 @@ export function OnboardingWizard({
                 onChange={(e) =>
                   setState((s) => ({ ...s, displayName: e.target.value }))
                 }
-                className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-base outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-white"
+                className="h-11 rounded-lg border border-border bg-background px-3 text-base outline-none focus:border-zinc-950-700-900 dark:focus:border-white"
               />
             </label>
           </>
@@ -155,7 +155,7 @@ export function OnboardingWizard({
 
         {step === "budget" ? (
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-zinc-700 dark:text-zinc-200">
+            <span className="font-medium text-muted-foreground">
               Cash you can put down today (USD)
             </span>
             <input
@@ -166,7 +166,7 @@ export function OnboardingWizard({
               onChange={(e) =>
                 setState((s) => ({ ...s, budget: e.target.value.replace(/[^\d]/g, "") }))
               }
-              className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-base outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-white"
+              className="h-11 rounded-lg border border-border bg-background px-3 text-base outline-none focus:border-zinc-950-700-900 dark:focus:border-white"
             />
           </label>
         ) : null}
@@ -174,7 +174,7 @@ export function OnboardingWizard({
         {step === "credit" ? (
           <>
             <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-zinc-700 dark:text-zinc-200">
+              <span className="font-medium text-muted-foreground">
                 Estimated credit score (300–850)
               </span>
               <input
@@ -188,7 +188,7 @@ export function OnboardingWizard({
                     creditScore: e.target.value.replace(/[^\d]/g, ""),
                   }))
                 }
-                className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-base outline-none focus:border-zinc-950 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-white"
+                className="h-11 rounded-lg border border-border bg-background px-3 text-base outline-none focus:border-zinc-950 disabled:opacity-50-700-900 dark:focus:border-white"
               />
             </label>
             <label className="flex items-center gap-2 text-sm">
@@ -211,7 +211,7 @@ export function OnboardingWizard({
         {step === "preferences" ? (
           <>
             <fieldset className="flex flex-col gap-2 text-sm">
-              <legend className="font-medium text-zinc-700 dark:text-zinc-200">
+              <legend className="font-medium text-muted-foreground">
                 Best-fit preference
               </legend>
               <label className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export function OnboardingWizard({
               </label>
             </fieldset>
             <fieldset className="flex flex-col gap-2 text-sm">
-              <legend className="font-medium text-zinc-700 dark:text-zinc-200">
+              <legend className="font-medium text-muted-foreground">
                 Notification channels
               </legend>
               {(["in-app", "email", "digest"] as const).map((ch) => (
@@ -272,7 +272,7 @@ export function OnboardingWizard({
           type="button"
           onClick={back}
           disabled={stepIdx === 0 || pending}
-          className="text-sm text-zinc-500 disabled:opacity-50"
+          className="text-sm text-muted-foreground disabled:opacity-50"
         >
           Back
         </button>
@@ -281,7 +281,7 @@ export function OnboardingWizard({
             type="button"
             onClick={submit}
             disabled={pending}
-            className="inline-flex h-11 items-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            className="inline-flex h-11 items-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-muted disabled:opacity-50 dark:hover:bg-muted"
           >
             {pending ? "Saving..." : "Finish"}
           </button>
@@ -290,7 +290,7 @@ export function OnboardingWizard({
             type="button"
             onClick={next}
             disabled={pending}
-            className="inline-flex h-11 items-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            className="inline-flex h-11 items-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-muted disabled:opacity-50 dark:hover:bg-muted"
           >
             Continue
           </button>

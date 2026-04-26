@@ -14,14 +14,14 @@ export async function InboxEntry({ userId }: Props) {
     <Link
       href="/inbox"
       aria-label={`Inbox (${count} threads)`}
-      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted dark:hover:bg-muted"
       data-shell-slot="inbox-entry"
     >
       <span aria-hidden="true">✉️</span>
       {count > 0 ? (
         <span
           data-testid="inbox-count"
-          className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-semibold leading-none text-white"
+          className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-semibold leading-none text-primary-foreground"
         >
           {count > 9 ? "9+" : count}
         </span>

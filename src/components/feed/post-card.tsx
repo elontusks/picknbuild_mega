@@ -63,7 +63,7 @@ export async function FeedPostCard({
       data-testid="feed-post-card"
       data-post-id={post.id}
       data-kind={post.kind}
-      className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+      className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 shadow-sm-800-950"
     >
       <header className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -72,14 +72,14 @@ export async function FeedPostCard({
         </div>
         <Link
           href={`/feed/${post.id}`}
-          className="text-xs text-zinc-500 hover:underline dark:text-zinc-400"
+          className="text-xs text-muted-foreground hover:underline"
           data-testid="feed-post-permalink"
         >
           {createdAt.toLocaleString()}
         </Link>
       </header>
 
-      <p className="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-100">
+      <p className="whitespace-pre-wrap text-sm text-foreground">
         {post.body}
       </p>
 
@@ -126,10 +126,10 @@ export async function FeedPostCard({
       {comments.length > 0 ? (
         <ul
           data-testid="post-comments"
-          className="flex flex-col gap-1 border-t border-zinc-100 pt-2 dark:border-zinc-900"
+          className="flex flex-col gap-1 border-t border-zinc-100 pt-2-900"
         >
           {comments.slice(-3).map((c) => (
-            <li key={c.id} className="text-xs text-zinc-700 dark:text-zinc-300">
+            <li key={c.id} className="text-xs text-muted-foreground">
               <ProfileLinkFromFeedPost userId={c.userId} /> {c.body}
             </li>
           ))}

@@ -75,13 +75,13 @@ export default async function VehicleDetailPage({ params }: PageProps) {
   return (
     <section className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6 md:py-10">
       <header className="flex flex-col gap-1">
-        <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
           Vehicle detail
         </p>
-        <h1 className="text-2xl font-semibold text-zinc-950 dark:text-white">
+        <h1 className="text-2xl font-semibold text-foreground">
           {`${listing.year} ${listing.make} ${listing.model}${listing.trim ? ` ${listing.trim}` : ""}`}
         </h1>
-        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-600 dark:text-zinc-300">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <DistanceDisplay
             userZip={user.zip}
             listingZip={listing.locationZip}

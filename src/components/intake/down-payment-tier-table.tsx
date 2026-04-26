@@ -33,18 +33,18 @@ export function DownPaymentTierTable() {
   return (
     <div
       data-intake="down-payment-tiers"
-      className="flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
+      className="flex flex-col gap-2 rounded-xl border border-border bg-background p-3-800-900"
     >
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           picknbuild down-payment ladder
         </h4>
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="text-xs text-muted-foreground">
           Floor 22% · Ceiling 12%
         </span>
       </div>
       <table className="w-full text-left text-sm">
-        <thead className="text-xs uppercase text-zinc-500 dark:text-zinc-400">
+        <thead className="text-xs uppercase text-muted-foreground">
           <tr>
             <th className="py-1 pr-2 font-medium">Score</th>
             <th className="py-1 pr-2 font-medium">Down</th>
@@ -60,8 +60,8 @@ export function DownPaymentTierTable() {
                 data-active={isActive || undefined}
                 className={
                   isActive
-                    ? "bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-white"
-                    : "text-zinc-700 dark:text-zinc-300"
+                    ? "bg-muted text-foreground-800"
+                    : "text-muted-foreground"
                 }
               >
                 <td className="py-1 pr-2 font-medium">{row.range}</td>

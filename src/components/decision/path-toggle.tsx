@@ -37,7 +37,7 @@ export function PathToggleGapView({
       data-auto-cycle-stopped={autoCycleStopped ? "true" : "false"}
       role="tablist"
       aria-label="Active path"
-      className="inline-flex flex-wrap gap-1 rounded-lg border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-950"
+      className="inline-flex flex-wrap gap-1 rounded-lg border border-border bg-background p-1-800-950"
     >
       {PATH_ORDER.filter((p) => available.has(p)).map((p) => {
         const isActive = p === activePath;
@@ -51,8 +51,8 @@ export function PathToggleGapView({
             onClick={() => onChange(p)}
             className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
               isActive
-                ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                ? "bg-muted text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted dark:hover:bg-muted"
             }`}
           >
             {PATH_LABEL[p]}

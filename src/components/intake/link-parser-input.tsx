@@ -68,7 +68,7 @@ export function LinkParserInput({ onParsed }: Props) {
     <div data-intake="link-parser" className="flex flex-col gap-2">
       <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row">
         <label className="flex flex-1 flex-col gap-1">
-          <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Already found a car?
           </span>
           <input
@@ -76,13 +76,13 @@ export function LinkParserInput({ onParsed }: Props) {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste a Copart / IAAI / Craigslist / dealer URL"
-            className="h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground shadow-sm-700-900"
           />
         </label>
         <button
           type="submit"
           disabled={pending || url.trim() === ""}
-          className="h-10 self-end rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white shadow-sm hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200 sm:self-auto sm:mt-[1.375rem]"
+          className="h-10 self-end rounded-lg bg-muted px-4 text-sm font-medium text-primary-foreground shadow-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto sm:mt-[1.375rem]"
         >
           {pending ? "Parsing…" : "Parse link"}
         </button>
@@ -198,9 +198,9 @@ export function ManualFallbackEntry({ initialUrl, onParsed }: FallbackProps) {
     <form
       data-intake="manual-fallback"
       onSubmit={submit}
-      className="flex flex-col gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-900/60"
+      className="flex flex-col gap-2 rounded-lg border border-dashed border-border bg-background p-3-700-900/60"
     >
-      <p className="text-xs text-zinc-600 dark:text-zinc-300">
+      <p className="text-xs text-muted-foreground">
         Manual fallback — enter the basics and we&apos;ll compare paths.
       </p>
       <div className="grid gap-2 sm:grid-cols-3">
@@ -268,7 +268,7 @@ export function ManualFallbackEntry({ initialUrl, onParsed }: FallbackProps) {
       <button
         type="submit"
         disabled={pending}
-        className="h-9 self-start rounded-lg bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+        className="h-9 self-start rounded-lg bg-muted px-3 text-xs font-medium text-primary-foreground hover:bg-muted disabled:opacity-50 dark:hover:bg-muted"
       >
         {pending ? "Saving…" : "Use these details"}
       </button>
@@ -277,4 +277,4 @@ export function ManualFallbackEntry({ initialUrl, onParsed }: FallbackProps) {
 }
 
 const FIELD =
-  "h-9 rounded-md border border-zinc-200 bg-white px-2 text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
+  "h-9 rounded-md border border-border bg-background px-2 text-xs text-foreground-700-900";
