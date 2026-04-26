@@ -38,6 +38,15 @@ When you're running as an agent, your CWD is the team worktree — not the paren
 
 Auction scrapers (Copart/IAAI), Craigslist scrapers, and any other external source are assumed to exist upstream. **Do not implement or wire up a scraper.** Everything consumes `ListingObject` rows emitted by ingestion — that shape is in `src/contracts/listing-object.ts`. If you find yourself writing scraper code, stop.
 
+## Strip before production
+
+The repo carries a few dev-only conveniences that must be removed (or hard-gated) before any production deploy. They're in-tree because local dev needs them; they're listed here so nothing slips out.
+
+- `src/app/api/dev/admin-login/route.ts` — password sign-in for the dummy admin. Already returns 404 when `NODE_ENV === "production"`, but delete the file (and its directory) before shipping; defense-in-depth, no dev surface in prod.
+- `scripts/seed-dummy-admin.mjs` — provisions the dummy admin account (`admin-dummy@picknbuild.local` / fixed password). Local-only seeder; do not run against prod Supabase. Delete or move under a `dev/` folder excluded from prod builds.
+- `supabase/migrations/20260425000000_seed_listings_ohio.sql` — six seed listings around ZIP 43065 for local testing. Idempotent, but seed data does not belong in prod. Either drop the migration before pushing schema to prod, or guard it with an environment check inside the SQL.
+- `AUDIT_TODO.md` — internal audit punch list. Ship-safe, but it's a working doc; treat it as part of internal docs, not customer-facing material.
+
 ## Dropped items (quick reference)
 
 Do NOT build any of these. If a task seems to require one, flag it and stop. Full list + reasoning in ARCHITECTURE §7 + `docs/requirements/chud/DROPPED.md`.

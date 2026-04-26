@@ -111,6 +111,12 @@ const sameRange = (
  * Build the query string we send to /api/listings. Title filter is handed to
  * the backend so "clean only" / "rebuilt only" lookups skip unknowns server-
  * side; "both" omits the param so the server returns everything.
+ *
+ * ZIP is intentionally NOT sent. `state.location.zip` is the user's profile
+ * ZIP, used for distance display and pricing context — not as a hard filter.
+ * The listings store does exact-match on `location_zip`, so passing it would
+ * silently exclude every row not in that exact 5-digit code. Match Mode
+ * (POST /api/search/match) handles geographic ranking separately.
  */
 export const intakeToListingsQuery = (state: IntakeState): string => {
   const p = new URLSearchParams();
@@ -124,7 +130,6 @@ export const intakeToListingsQuery = (state: IntakeState): string => {
     p.set("mileageMax", String(state.mileageMax));
   if (state.titlePreference !== "both")
     p.set("titlePreference", state.titlePreference);
-  if (state.location.zip) p.set("zip", state.location.zip);
   p.set("limit", "24");
   return p.toString();
 };
