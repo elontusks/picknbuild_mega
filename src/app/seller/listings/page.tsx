@@ -329,13 +329,13 @@ export default function MyListingsPage() {
 
               {Object.keys(formErrors).length > 0 && (
                 <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '6px', fontSize: '13px', color: '#dc2626', border: '1px solid #fecaca' }}>
-                  <strong>Fix the following errors:</strong>
-                  <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
-                    {formErrors.make && <li>{formErrors.make}</li>}
-                    {formErrors.model && <li>{formErrors.model}</li>}
-                    {formErrors.year && <li>{formErrors.year}</li>}
-                    {formErrors.price && <li>{formErrors.price}</li>}
-                  </ul>
+                  <div style={{ fontWeight: '600', marginBottom: '8px' }}>Fix the following errors:</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {formErrors.make && <div>• {formErrors.make}</div>}
+                    {formErrors.model && <div>• {formErrors.model}</div>}
+                    {formErrors.year && <div>• {formErrors.year}</div>}
+                    {formErrors.price && <div>• {formErrors.price}</div>}
+                  </div>
                 </div>
               )}
 
