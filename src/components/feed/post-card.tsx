@@ -12,6 +12,7 @@ import { FeedEngagementControls } from "./engagement-controls";
 import { ProfileLinkFromFeedPost } from "./profile-link";
 import { VehicleCardInFeed } from "./vehicle-card-in-feed";
 import { PostKindChip, PostKindTemplate } from "./templates";
+import { PostActionMenu } from "./post-action-menu";
 
 // Accepts either shape:
 //   - FeedPost: full row from getFeedPost() (has mediaRefs inline)
@@ -63,47 +64,55 @@ export async function FeedPostCard({
       data-testid="feed-post-card"
       data-post-id={post.id}
       data-kind={post.kind}
-      className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 shadow-sm-800-950"
+      className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
     >
-      <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1">
           <ProfileLinkFromFeedPost userId={post.authorId} />
           <PostKindChip kind={post.kind} />
         </div>
-        <Link
-          href={`/feed/${post.id}`}
-          className="text-xs text-muted-foreground hover:underline"
-          data-testid="feed-post-permalink"
-        >
-          {createdAt.toLocaleString()}
-        </Link>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Link
+            href={`/feed/${post.id}`}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            data-testid="feed-post-permalink"
+            title={createdAt.toLocaleString()}
+          >
+            {createdAt.toLocaleDateString()}
+          </Link>
+          {viewerId === post.authorId && (
+            <PostActionMenu postId={post.id} postBody={post.body} extras={post.extras} />
+          )}
+        </div>
       </header>
 
-      <p className="whitespace-pre-wrap text-sm text-foreground">
-        {post.body}
-      </p>
+      <div className="space-y-4">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+          {post.body}
+        </p>
 
-      <PostKindTemplate post={post} />
+        <PostKindTemplate post={post} />
 
-      {mediaRefs.length > 0 ? (
-        <div
-          className="grid gap-2"
-          data-testid="post-media"
-          style={{
-            gridTemplateColumns: `repeat(${Math.min(mediaRefs.length, 3)}, minmax(0, 1fr))`,
-          }}
-        >
-          {mediaRefs.map((src, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              src={src}
-              alt={`Media ${i + 1}`}
-              className="aspect-square w-full rounded-md object-cover"
-            />
-          ))}
-        </div>
-      ) : null}
+        {mediaRefs.length > 0 ? (
+          <div
+            className="grid gap-3 mt-3"
+            data-testid="post-media"
+            style={{
+              gridTemplateColumns: `repeat(${Math.min(mediaRefs.length, 3)}, minmax(0, 1fr))`,
+            }}
+          >
+            {mediaRefs.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={src}
+                alt={`Media ${i + 1}`}
+                className="aspect-square w-full rounded-lg object-cover border border-border"
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
 
       {listing ? (
         <VehicleCardInFeed
@@ -126,11 +135,12 @@ export async function FeedPostCard({
       {comments.length > 0 ? (
         <ul
           data-testid="post-comments"
-          className="flex flex-col gap-1 border-t border-zinc-100 pt-2-900"
+          className="flex flex-col gap-2 border-t border-border pt-3"
         >
           {comments.slice(-3).map((c) => (
-            <li key={c.id} className="text-xs text-muted-foreground">
-              <ProfileLinkFromFeedPost userId={c.userId} /> {c.body}
+            <li key={c.id} className="text-xs text-muted-foreground space-x-1">
+              <ProfileLinkFromFeedPost userId={c.userId} />
+              <span>{c.body}</span>
             </li>
           ))}
         </ul>

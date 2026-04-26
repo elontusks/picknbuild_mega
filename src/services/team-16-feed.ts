@@ -168,6 +168,32 @@ export const createFeedPost = async (
   return { ok: true, post };
 };
 
+export const updateFeedPost = async (
+  postId: string,
+  input: {
+    body?: string;
+    extras?: FeedPost["extras"];
+  },
+): Promise<{ ok: true; post: FeedPost } | { ok: false; error: string }> => {
+  const post = await Storage.getRecord<FeedPost>(FEED_POSTS_BUCKET, postId);
+  if (!post) {
+    return { ok: false, error: "Post not found" };
+  }
+
+  if (input.body !== undefined) {
+    const bodyCheck = validatePostBody(input.body);
+    if (!bodyCheck.ok) return bodyCheck;
+    post.body = input.body.trim();
+  }
+
+  if (input.extras !== undefined) {
+    post.extras = input.extras;
+  }
+
+  await Storage.putRecord(FEED_POSTS_BUCKET, postId, post);
+  return { ok: true, post };
+};
+
 // ---- likes -----------------------------------------------------------------
 
 type LikeMap = Record<string, true>;
