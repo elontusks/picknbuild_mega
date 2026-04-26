@@ -90,6 +90,7 @@ export function listingToCar(listing: ListingObject): Car {
 
   return {
     id: listing.id,
+    listingId: listing.id,
     make: listing.make,
     model: listing.model,
     year: listing.year,

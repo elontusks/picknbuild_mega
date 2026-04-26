@@ -69,6 +69,7 @@ function SearchPageInner(props: Props) {
     titleType: 'clean',
     matchModeEnabled: false,
   });
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const totalListings =
     initialDealerCars.length +
@@ -121,12 +122,35 @@ function SearchPageInner(props: Props) {
     });
   }, [pickedCars]);
 
-  const handlePickCar = useCallback((car: Car) => {
-    const pickedCar: PickedCar = {
-      ...car,
-      pickedAt: new Date(),
-    };
-    setPickedCars((prev) => [...prev, pickedCar]);
+  const handlePickCar = useCallback(async (car: Car) => {
+    if (!car.listingId) {
+      setToast({ message: "Cannot pick this car—no listing ID", type: "error" });
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/garage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listingId: car.listingId, decision: "pick" }),
+      });
+
+      if (!res.ok) {
+        setToast({ message: "Failed to add to garage", type: "error" });
+        return;
+      }
+
+      const pickedCar: PickedCar = {
+        ...car,
+        pickedAt: new Date(),
+      };
+      setPickedCars((prev) => [...prev, pickedCar]);
+      setToast({ message: "Added to garage!", type: "success" });
+
+      setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      setToast({ message: "Error adding to garage", type: "error" });
+    }
   }, []);
 
   const handleRemovePickedCar = useCallback((carId: string) => {
@@ -877,6 +901,27 @@ function SearchPageInner(props: Props) {
               Got it
             </button>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            padding: '12px 16px',
+            borderRadius: '6px',
+            backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
+            color: 'white',
+            fontSize: '13px',
+            fontWeight: '500',
+            zIndex: 1001,
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            animation: 'slideIn 0.3s ease-out',
+          }}
+        >
+          {toast.message}
         </div>
       )}
     </div>

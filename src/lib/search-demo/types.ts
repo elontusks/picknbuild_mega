@@ -8,6 +8,7 @@ export type SellerType = 'individual' | 'dealer';
 
 export interface Car {
   id: string;
+  listingId?: string;
   make: string;
   model: string;
   year: number;
