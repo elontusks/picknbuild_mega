@@ -82,41 +82,44 @@ export function FeedEngagementControls({
   return (
     <div
       data-testid={`engagement-${postId}`}
-      className="flex flex-col gap-2 border-t border-zinc-100 pt-2-900"
+      className="flex flex-col gap-3 border-t border-border/50 pt-4"
     >
-      <div className="flex items-center gap-3 text-xs">
+      <div className="flex items-center gap-2 text-xs">
         <button
           type="button"
           data-testid="like-btn"
           onClick={handleLike}
           disabled={!canInteract || pending}
-          className={`rounded-full px-2 py-1 font-medium transition ${
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium transition duration-200 ${
             liked
-              ? "bg-rose-100 text-rose-800-900/30 dark:text-rose-200"
-              : "bg-muted text-muted-foreground-800"
-          } disabled:opacity-50`}
+              ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+              : "bg-muted text-muted-foreground hover:bg-muted/80 active:scale-95"
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
           aria-pressed={liked}
         >
-          {liked ? "♥" : "♡"} {likeCount}
+          <span>{liked ? "♥" : "♡"}</span>
+          <span className="font-semibold">{likeCount}</span>
         </button>
-        <span className="text-muted-foreground">
-          {commentCount} {commentCount === 1 ? "comment" : "comments"}
-        </span>
+        <div className="flex items-center gap-1.5 px-2 py-1.5 text-muted-foreground">
+          <span>💬</span>
+          <span className="font-medium">{commentCount}</span>
+        </div>
         <button
           type="button"
           data-testid="share-btn"
           onClick={handleShare}
-          className="text-muted-foreground hover:underline"
+          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition duration-200"
         >
-          Share
+          <span>🔗</span>
+          <span className="font-medium">Share</span>
         </button>
         {shareMsg ? (
           <span
             role="status"
             data-testid="share-msg"
-            className="text-emerald-700 dark:text-emerald-300"
+            className="ml-auto text-emerald-600 dark:text-emerald-400 font-medium"
           >
-            {shareMsg}
+            ✓ {shareMsg}
           </span>
         ) : null}
       </div>
@@ -127,8 +130,8 @@ export function FeedEngagementControls({
             data-testid="comment-input"
             value={commentDraft}
             onChange={(e) => setCommentDraft(e.target.value)}
-            placeholder="Write a comment or @reply..."
-            className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm-800-950"
+            placeholder="Add a comment..."
+            className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -141,19 +144,19 @@ export function FeedEngagementControls({
             data-testid="comment-btn"
             onClick={handleComment}
             disabled={pending || commentDraft.trim().length === 0}
-            className="rounded-md bg-muted px-3 py-1 text-sm font-medium text-primary-foreground disabled:opacity-40-100"
+            className="rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm font-semibold hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
           >
-            Post
+            {pending ? "..." : "Post"}
           </button>
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">
-          Sign in to like, comment, or share.
+        <p className="text-xs text-muted-foreground italic">
+          👤 Sign in to like, comment, or share.
         </p>
       )}
       {error ? (
-        <p role="alert" className="text-xs text-red-600">
-          {error}
+        <p role="alert" className="text-xs text-red-600 font-medium">
+          ⚠️ {error}
         </p>
       ) : null}
     </div>

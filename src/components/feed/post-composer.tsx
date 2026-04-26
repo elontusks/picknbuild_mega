@@ -81,21 +81,21 @@ export function PostComposer() {
   return (
     <section
       data-testid="post-composer"
-      className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 shadow-sm-800-950"
+      className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-md hover:shadow-lg transition-shadow"
     >
-      <div className="flex items-center gap-2">
-        <label className="text-xs font-medium text-muted-foreground">
-          Type
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Post Type
         </label>
         <select
           data-testid="composer-kind"
           value={kind}
           onChange={(e) => setKind(e.target.value as FeedPostKind)}
-          className="rounded-md border border-border bg-background px-2 py-1 text-sm-800-950"
+          className="rounded-lg border border-border bg-background px-3 py-3 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition"
         >
           {FEED_POST_KINDS.map((k) => (
             <option key={k} value={k}>
-              {k}
+              {k.charAt(0).toUpperCase() + k.slice(1)}
             </option>
           ))}
         </select>
@@ -107,76 +107,76 @@ export function PostComposer() {
         onChange={(e) => setBody(e.target.value)}
         placeholder={KIND_PLACEHOLDER[kind]}
         rows={3}
-        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm-800-950"
+        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent transition resize-none"
       />
 
-      <div className="flex flex-col gap-2 text-xs">
-        <label className="flex items-center gap-2">
-          <span className="text-muted-foreground">Linked listing id (optional)</span>
+      <div className="flex flex-col gap-3">
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Linked listing id (optional)</span>
           <input
             data-testid="composer-listing-id"
             value={listingId}
             onChange={(e) => setListingId(e.target.value)}
             placeholder="e.g. listing_0001"
-            className="flex-1 rounded-md border border-border bg-background px-2 py-1-800-950"
+            className="w-full rounded-lg border border-border bg-background px-3 py-3 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent transition"
           />
         </label>
 
         {kind === "deal" ? (
-          <label className="flex items-center gap-2">
-            <span className="text-muted-foreground">Deal price</span>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Deal price</span>
             <input
               data-testid="composer-deal-price"
               type="number"
               value={dealPrice}
               onChange={(e) => setDealPrice(e.target.value)}
-              className="w-40 rounded-md border border-border bg-background px-2 py-1-800-950"
+              className="rounded-lg border border-border bg-background px-3 py-3 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent transition"
             />
           </label>
         ) : null}
 
         {kind === "build" ? (
           <>
-            <label className="flex items-center gap-2">
-              <span className="text-muted-foreground">Before image ref</span>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Before image ref</span>
               <input
                 value={buildBeforeRef}
                 onChange={(e) => setBuildBeforeRef(e.target.value)}
-                className="flex-1 rounded-md border border-border bg-background px-2 py-1-800-950"
+                className="w-full rounded-lg border border-border bg-background px-3 py-3 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent transition"
               />
             </label>
-            <label className="flex items-center gap-2">
-              <span className="text-muted-foreground">After image ref</span>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">After image ref</span>
               <input
                 value={buildAfterRef}
                 onChange={(e) => setBuildAfterRef(e.target.value)}
-                className="flex-1 rounded-md border border-border bg-background px-2 py-1-800-950"
+                className="w-full rounded-lg border border-border bg-background px-3 py-3 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent transition"
               />
             </label>
           </>
         ) : null}
 
         {kind === "recommendation" ? (
-          <label className="flex items-center gap-2">
-            <span className="text-muted-foreground">Recommending</span>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Recommending</span>
             <input
               value={recommendationTarget}
               onChange={(e) => setRecommendationTarget(e.target.value)}
-              className="flex-1 rounded-md border border-border bg-background px-2 py-1-800-950"
+              className="w-full rounded-lg border border-border bg-background px-3 py-3 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent transition"
             />
           </label>
         ) : null}
 
         {kind === "warning" ? (
-          <label className="flex items-center gap-2">
-            <span className="text-muted-foreground">Severity</span>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Severity</span>
             <select
               data-testid="composer-warning-severity"
               value={warningSeverity}
               onChange={(e) =>
                 setWarningSeverity(e.target.value as "low" | "med" | "high")
               }
-              className="rounded-md border border-border bg-background px-2 py-1-800-950"
+              className="rounded-lg border border-border bg-background px-3 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition"
             >
               <option value="low">low</option>
               <option value="med">med</option>

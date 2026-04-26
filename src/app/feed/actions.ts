@@ -113,13 +113,21 @@ export async function togglePostLike(input: {
   postId: string;
   liked: boolean;
 }): Promise<LikeResult> {
-  const viewer = await requireUser();
-  const result = input.liked
-    ? await unlikePost({ postId: input.postId, userId: viewer.id })
-    : await likePost({ postId: input.postId, userId: viewer.id });
-  revalidatePath("/feed");
-  revalidatePath(`/feed/${input.postId}`);
-  return result;
+  try {
+    const viewer = await requireUser();
+    const result = input.liked
+      ? await unlikePost({ postId: input.postId, userId: viewer.id })
+      : await likePost({ postId: input.postId, userId: viewer.id });
+    if (!result.ok) return result;
+    revalidatePath("/feed");
+    revalidatePath(`/feed/${input.postId}`);
+    return { ok: true, liked: result.liked, count: result.count };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Failed to toggle like",
+    };
+  }
 }
 
 export type CommentResult =

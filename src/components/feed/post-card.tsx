@@ -65,17 +65,26 @@ export async function FeedPostCard({
       data-testid="feed-post-card"
       data-post-id={post.id}
       data-kind={post.kind}
-      className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
+      className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-md transition-all duration-200 hover:shadow-lg hover:border-accent/50"
     >
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 flex-1">
-          <ProfileLinkFromFeedPost userId={post.authorId} />
-          <PostKindChip kind={post.kind} />
+      <header className="flex items-start justify-between gap-3 pb-3 border-b border-border/50">
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <div className="flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center">
+              <span className="text-xs font-bold text-accent-foreground">
+                {(post.authorId || "?").substring(0, 1).toUpperCase()}
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 min-w-0">
+            <ProfileLinkFromFeedPost userId={post.authorId} />
+            <PostKindChip kind={post.kind} />
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <Link
             href={`/feed/${post.id}`}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="text-xs text-muted-foreground hover:text-accent transition-colors whitespace-nowrap"
             data-testid="feed-post-permalink"
             title={createdAt.toLocaleString()}
           >
@@ -88,7 +97,7 @@ export async function FeedPostCard({
       </header>
 
       <div className="space-y-4">
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground font-medium">
           {post.body}
         </p>
 
@@ -134,25 +143,32 @@ export async function FeedPostCard({
       ) : null}
 
       {comments.length > 0 ? (
-        <ul
+        <div
           data-testid="post-comments"
-          className="flex flex-col gap-3 border-t border-border pt-3"
+          className="flex flex-col gap-3 border-t border-border/50 pt-4"
         >
-          {comments.slice(-3).map((c) => (
-            <li
-              key={c.id}
-              className="flex items-start justify-between gap-2 text-xs text-muted-foreground"
-            >
-              <div className="flex flex-col gap-1 flex-1">
-                <ProfileLinkFromFeedPost userId={c.userId} />
-                <p className="text-sm text-foreground break-words">{c.body}</p>
-              </div>
-              {viewerId === c.userId && (
-                <CommentActionButton commentId={c.id} postId={post.id} />
-              )}
-            </li>
-          ))}
-        </ul>
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Comments ({comments.length})
+          </div>
+          <ul className="flex flex-col gap-3">
+            {comments.slice(-3).map((c) => (
+              <li
+                key={c.id}
+                className="flex items-start justify-between gap-2 p-3 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                  <ProfileLinkFromFeedPost userId={c.userId} />
+                  <p className="text-sm text-foreground break-words leading-relaxed">
+                    {c.body}
+                  </p>
+                </div>
+                {viewerId === c.userId && (
+                  <CommentActionButton commentId={c.id} postId={post.id} />
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
     </article>
   );

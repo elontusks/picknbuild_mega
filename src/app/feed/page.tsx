@@ -17,17 +17,20 @@ export default async function FeedPage() {
   return (
     <main
       data-testid="feed-page"
-      className="mx-auto flex max-w-2xl flex-col gap-4 p-4"
+      className="mx-auto flex max-w-2xl flex-col gap-6 p-4 sm:p-6"
     >
-      <header className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Community feed</h1>
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Community Feed</h1>
+          <p className="text-sm text-muted-foreground mt-1">Share insights and connect with buyers</p>
+        </div>
         {viewer ? (
           <Link
             href="/feed/upload"
             data-testid="feed-upload-link"
-            className="rounded-md border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-background-800 dark:hover:bg-muted"
+            className="rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm font-semibold hover:opacity-90 transition inline-flex items-center gap-2 w-fit"
           >
-            Post a vehicle
+            <span>+</span> Post a Vehicle
           </Link>
         ) : null}
       </header>
@@ -37,30 +40,36 @@ export default async function FeedPage() {
       ) : (
         <section
           data-testid="feed-signin-prompt"
-          className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground-700"
+          className="rounded-lg border-2 border-dashed border-border bg-muted/30 p-6 text-center"
         >
-          Browsing as a guest.{" "}
+          <p className="text-sm text-muted-foreground mb-3">
+            👤 Browsing as a guest
+          </p>
           <Link
             href="/login"
-            className="font-medium text-foreground underline"
+            className="inline-flex items-center gap-2 font-semibold text-accent hover:text-accent/80 transition"
           >
-            Sign in
-          </Link>{" "}
-          to post, like, or comment.
+            Sign in to post, like, or comment
+            <span>→</span>
+          </Link>
         </section>
       )}
 
       {posts.length === 0 ? (
-        <p
+        <div
           data-testid="feed-empty"
-          className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground-800"
+          className="rounded-lg border-2 border-dashed border-border p-12 text-center"
         >
-          No posts yet — be the first to share.
-        </p>
+          <div className="text-4xl mb-3">📭</div>
+          <p className="text-sm font-semibold text-foreground mb-2">No posts yet</p>
+          <p className="text-sm text-muted-foreground">
+            Be the first to share your insights with the community!
+          </p>
+        </div>
       ) : (
         <ol
           data-testid="feed-list"
-          className="flex list-none flex-col gap-3"
+          className="flex list-none flex-col gap-4"
         >
           {posts.map((p) => (
             <li key={p.id}>
