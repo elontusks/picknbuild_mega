@@ -198,19 +198,21 @@ export default function MatchModeBar({ userProfile, userZip, onMatchModeChange, 
           </label>
         </div>
 
-        {/* Credit Tier Badge */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '8px 12px',
-          borderRadius: '6px',
-          backgroundColor: creditTier === 'green' ? '#10b981' : creditTier === 'yellow' ? '#fbbf24' : '#f87171',
-          color: creditTier === 'green' ? '#065f46' : creditTier === 'yellow' ? '#78350f' : '#7f1d1d',
-          fontSize: '13px',
-          fontWeight: '500'
-        }}>
-          Your Risk Tier: {getCreditLabel(creditTier)}
+        {/* Risk Tier Badge */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Risk Tier</label>
+          <div style={{
+            display: 'block',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            backgroundColor: creditTier === 'green' ? 'rgba(16, 185, 129, 0.15)' : creditTier === 'yellow' ? 'rgba(251, 191, 36, 0.15)' : 'rgba(248, 113, 113, 0.15)',
+            color: creditTier === 'green' ? '#10b981' : creditTier === 'yellow' ? '#fbbf24' : '#f87171',
+            fontSize: '13px',
+            fontWeight: '600',
+            textAlign: 'center'
+          }}>
+            {creditTier === 'green' ? 'Low Risk' : creditTier === 'yellow' ? 'Medium Risk' : 'High Risk'}
+          </div>
         </div>
 
         {/* Title Type Toggle */}
