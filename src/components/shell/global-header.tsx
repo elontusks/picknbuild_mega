@@ -84,26 +84,26 @@ export function GlobalHeader({ user, bellSlot, inboxSlot }: GlobalHeaderProps) {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3 ml-auto">
-          {/* Careers Link */}
+          {/* Careers Link - hidden on mobile */}
           <Link
             href="/careers"
-            className="px-3 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
+            className="hidden sm:block px-3 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
           >
             Careers
           </Link>
 
-          {/* Sell Your Car Button */}
+          {/* Sell Your Car Button - hidden on mobile */}
           <button
             onClick={() => setShowSellModal(true)}
-            className="px-3 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
+            className="hidden sm:block px-3 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
           >
             Sell Your Car
           </button>
 
-          {/* Invite & Earn Button */}
+          {/* Invite & Earn Button - hidden on mobile */}
           <button
             onClick={() => setShowReferralModal(true)}
-            className="px-3 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
+            className="hidden md:block px-3 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
           >
             Invite & Earn $500
           </button>
@@ -121,7 +121,7 @@ export function GlobalHeader({ user, bellSlot, inboxSlot }: GlobalHeaderProps) {
             <>
               <Link
                 href="/login"
-                className="px-4 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
+                className="hidden sm:block px-4 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
               >
                 Log in
               </Link>
