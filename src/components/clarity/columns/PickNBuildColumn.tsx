@@ -197,23 +197,11 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
             {userProfile.titleType === 'rebuilt' ? 'Rebuilt Title' : 'Clean Title'}
           </div>
 
-          <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: '600', padding: '4px 8px', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '4px', marginBottom: '12px', textTransform: 'uppercase' }}>
+          <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: '600', padding: '4px 8px', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '4px', marginBottom: '12px', marginRight: '8px', textTransform: 'uppercase' }}>
             Cash or Finance
           </div>
-          
-          <div
-            style={{
-              display: 'inline-block',
-              fontSize: '10px',
-              fontWeight: '600',
-              padding: '4px 8px',
-              backgroundColor: `${tierColor}20`,
-              color: tierColor,
-              borderRadius: '4px',
-              marginBottom: '12px',
-              textTransform: 'uppercase',
-            }}
-          >
+
+          <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: '600', padding: '4px 8px', backgroundColor: `${tierColor}20`, color: tierColor, borderRadius: '4px', marginBottom: '12px', textTransform: 'uppercase' }}>
             {tierLabel}
           </div>
           
