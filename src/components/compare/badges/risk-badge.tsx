@@ -7,9 +7,9 @@ const RISK_LABEL: Record<RiskLevel, string> = {
 };
 
 const CHIP_CLASS: Record<RiskLevel, string> = {
-  low: "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
-  med: "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
-  high: "bg-rose-100 text-rose-800-900/40 dark:text-rose-100",
+  low: "bg-emerald-400 text-emerald-950",
+  med: "bg-amber-300 text-amber-900",
+  high: "bg-rose-400 text-rose-950",
 };
 
 type Props = {
