@@ -23,8 +23,7 @@ export default async function AdminSubscriptionsPage() {
             <th className="pb-2">Plan</th>
             <th className="pb-2">Status</th>
             <th className="pb-2">Amount</th>
-            <th className="pb-2">Current period ends</th>
-            <th className="pb-2">Cancel at period end</th>
+            <th className="pb-2">Renews</th>
           </tr>
         </thead>
         <tbody>
@@ -45,9 +44,10 @@ export default async function AdminSubscriptionsPage() {
               <td className="py-2">{s.status}</td>
               <td className="py-2">${s.amountUsd}/mo</td>
               <td className="py-2">
-                {new Date(s.currentPeriodEnd).toLocaleDateString()}
+                {s.status === "cancelled"
+                  ? "—"
+                  : new Date(s.currentPeriodEnd).toLocaleDateString()}
               </td>
-              <td className="py-2">{s.cancelAtPeriodEnd ? "yes" : "no"}</td>
             </tr>
           ))}
         </tbody>

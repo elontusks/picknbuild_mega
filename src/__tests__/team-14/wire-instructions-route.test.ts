@@ -31,7 +31,7 @@ const makePayment = (over: Partial<PaymentRecord>): PaymentRecord => ({
   kind: "deposit",
   amount: 1000,
   currency: "USD",
-  stripeRef: "pi_1",
+  mercuryRef: "txn_1",
   status: "succeeded",
   createdAt: new Date().toISOString(),
   ...over,

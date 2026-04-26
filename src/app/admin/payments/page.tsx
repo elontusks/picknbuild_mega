@@ -23,7 +23,7 @@ export default async function AdminPaymentsPage() {
             <th className="pb-2">Status</th>
             <th className="pb-2">User</th>
             <th className="pb-2">Deal</th>
-            <th className="pb-2">Stripe ref</th>
+            <th className="pb-2">Mercury ref</th>
           </tr>
         </thead>
         <tbody>
@@ -48,7 +48,7 @@ export default async function AdminPaymentsPage() {
                 </Link>
               </td>
               <td className="py-2">{p.dealId ?? "—"}</td>
-              <td className="py-2 text-zinc-500">{p.stripeRef}</td>
+              <td className="py-2 text-zinc-500">{p.mercuryRef}</td>
             </tr>
           ))}
         </tbody>

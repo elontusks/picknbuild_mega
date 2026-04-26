@@ -11,10 +11,7 @@ const fakeSub = (overrides: Partial<Subscription> = {}): Subscription => ({
   userId: "u1",
   plan: "dealer-basic",
   status: "active",
-  stripeSubscriptionId: "sub_stripe_1",
-  stripeCustomerId: "cus_1",
   currentPeriodEnd: "2026-05-22T15:00:00Z",
-  cancelAtPeriodEnd: false,
   amountUsd: 99,
   createdAt: "2026-04-22T00:00:00Z",
   updatedAt: "2026-04-22T00:00:00Z",
@@ -50,11 +47,11 @@ describe("DealerSubscriptionManagementPanel", () => {
     expect(screen.getByTestId("subscription-status")).toBeTruthy();
   });
 
-  test("cancel calls DELETE /api/subscriptions with atPeriodEnd=true", async () => {
+  test("cancel calls DELETE /api/subscriptions", async () => {
     const fetchMock = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValue(
       new Response(
-        JSON.stringify({ subscription: fakeSub({ cancelAtPeriodEnd: true }) }),
+        JSON.stringify({ subscription: fakeSub({ status: "cancelled" }) }),
         { status: 200 },
       ),
     );

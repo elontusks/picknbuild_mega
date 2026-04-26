@@ -397,28 +397,35 @@ describe("submitDeposit", () => {
         amount: 1000,
         status: "succeeded",
       },
-      clientSecret: "cs_test",
-      paymentIntentId: "pi_test",
+      wireInstructions: {
+        routingNumber: "021000021",
+        accountNumber: "****1234",
+        bankName: "Silicon Valley Bank",
+        reference: "b_1",
+      },
     });
 
     const result = await submitDeposit({
       buildRecordId: "b_1",
       agreementId: "a_1",
-      paymentMethodId: "pm_card_visa",
     });
 
     expect(result).toEqual({
       ok: true,
       paymentId: "pay_1",
-      paymentIntentId: "pi_test",
       amount: 1000,
       status: "succeeded",
+      wireInstructions: {
+        routingNumber: "021000021",
+        accountNumber: "****1234",
+        bankName: "Silicon Valley Bank",
+        reference: "b_1",
+      },
     });
     expect(hoisted.createDepositCharge).toHaveBeenCalledWith({
       userId: "u_1",
       buildRecordId: "b_1",
       agreementId: "a_1",
-      paymentMethodId: "pm_card_visa",
     });
   });
 
@@ -442,7 +449,6 @@ describe("submitDeposit", () => {
     const result = await submitDeposit({
       buildRecordId: "b_1",
       agreementId: "a_1",
-      paymentMethodId: "pm_card_visa",
     });
 
     expect(result.ok).toBe(false);
@@ -469,7 +475,6 @@ describe("submitDeposit", () => {
     const result = await submitDeposit({
       buildRecordId: "b_1",
       agreementId: "a_1",
-      paymentMethodId: "pm_card_visa",
     });
 
     expect(result.ok).toBe(false);

@@ -31,9 +31,9 @@ export function PaymentReceipt({ payment }: Props) {
         <dt className="text-zinc-500">Reference</dt>
         <dd
           className="text-right font-mono text-xs text-zinc-500"
-          data-testid="payment-stripe-ref"
+          data-testid="payment-mercury-ref"
         >
-          {payment.stripeRef}
+          {payment.mercuryRef}
         </dd>
       </dl>
     </section>

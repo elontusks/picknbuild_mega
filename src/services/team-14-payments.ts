@@ -205,50 +205,33 @@ export const createDepositCharge = async (input: {
 export const chargeLeadUnlock = (input: {
   dealerId: string;
   leadId: string;
-  paymentMethodId?: string;
-  stripeCustomerId?: string;
 }): Promise<ChargeResult> =>
   createCharge({
     userId: input.dealerId,
     amount: LEAD_UNLOCK_AMOUNT_USD,
     kind: "lead-unlock",
-    paymentMethodId: input.paymentMethodId,
-    stripeCustomerId: input.stripeCustomerId,
-    description: "Dealer lead unlock",
-    metadata: { leadId: input.leadId },
   });
 
 export const chargeListingFee = (input: {
   dealerId: string;
   listingId: string;
-  paymentMethodId?: string;
-  stripeCustomerId?: string;
 }): Promise<ChargeResult> =>
   createCharge({
     userId: input.dealerId,
     amount: LISTING_FEE_AMOUNT_USD,
     kind: "listing-fee",
-    paymentMethodId: input.paymentMethodId,
-    stripeCustomerId: input.stripeCustomerId,
-    description: "Extra listing fee",
-    metadata: { listingId: input.listingId },
   });
 
 export const chargeBalance = (input: {
   userId: string;
   dealId: string;
   amount: number;
-  stripeCustomerId?: string;
-  paymentMethodId?: string;
 }): Promise<ChargeResult> =>
   createCharge({
     userId: input.userId,
     amount: input.amount,
     kind: "balance",
     dealId: input.dealId,
-    stripeCustomerId: input.stripeCustomerId,
-    paymentMethodId: input.paymentMethodId,
-    description: `Balance payment for deal ${input.dealId}`,
   });
 
 // -------------------------------------------------------------------------
@@ -335,7 +318,7 @@ export const retryFailedPayment = async (input: {
   // For Mercury, retry just means customer sends the payment again.
   // We don't initiate anything; update the original to pending so
   // it can be matched again when the next transaction arrives.
-  const updated = { ...original, status: "pending" };
+  const updated: PaymentRecord = { ...original, status: "pending" };
   await savePaymentRecord(updated);
   return updated;
 };

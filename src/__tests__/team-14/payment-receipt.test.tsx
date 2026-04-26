@@ -11,17 +11,17 @@ const record = (overrides: Partial<PaymentRecord> = {}): PaymentRecord => ({
   kind: "deposit",
   amount: 1000,
   currency: "USD",
-  stripeRef: "pi_abc",
+  mercuryRef: "txn_abc",
   status: "succeeded",
   createdAt: "2026-04-22T15:00:00Z",
   ...overrides,
 });
 
 describe("PaymentReceipt", () => {
-  test("renders amount formatted as USD and the stripe reference", () => {
+  test("renders amount formatted as USD and the mercury reference", () => {
     render(<PaymentReceipt payment={record()} />);
     expect(screen.getByText("$1,000.00")).toBeTruthy();
-    expect(screen.getByTestId("payment-stripe-ref").textContent).toBe("pi_abc");
+    expect(screen.getByTestId("payment-mercury-ref").textContent).toBe("txn_abc");
     expect(screen.getByTestId("payment-status").getAttribute("data-status")).toBe(
       "succeeded",
     );

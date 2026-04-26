@@ -105,8 +105,8 @@ describe("createRealMercuryClient.listTransactions", () => {
     });
 
     expect(txns).toHaveLength(1);
-    expect(txns[0].id).toBe("txn_1");
-    const [url] = fetchSpy.mock.calls[0] as [string];
+    expect(txns[0]?.id).toBe("txn_1");
+    const [url] = fetchSpy.mock.calls[0]! as [string];
     expect(url).toContain("status=posted");
   });
 });

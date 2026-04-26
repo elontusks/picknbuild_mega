@@ -7,7 +7,6 @@ const STATUS_LABEL: Record<Subscription["status"], string> = {
   active: "Active",
   past_due: "Past due",
   cancelled: "Cancelled",
-  incomplete: "Incomplete",
 };
 
 export function SubscriptionStatusDisplay({ subscription }: Props) {
@@ -21,8 +20,7 @@ export function SubscriptionStatusDisplay({ subscription }: Props) {
       </p>
     );
   }
-  const { status, plan, amountUsd, currentPeriodEnd, cancelAtPeriodEnd } =
-    subscription;
+  const { status, plan, amountUsd, currentPeriodEnd } = subscription;
   return (
     <section
       data-testid="subscription-status"
@@ -47,7 +45,7 @@ export function SubscriptionStatusDisplay({ subscription }: Props) {
         / month
       </p>
       <p className="text-zinc-500">
-        {cancelAtPeriodEnd ? "Ends" : "Renews"} on{" "}
+        {status === "cancelled" ? "Ended" : "Renews"} on{" "}
         <strong className="text-zinc-700 dark:text-zinc-200">
           {formatDate(currentPeriodEnd)}
         </strong>

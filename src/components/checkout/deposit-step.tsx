@@ -19,12 +19,11 @@ export function DepositStep({ buildRecordId, agreementId, amount }: Props) {
     | { kind: "error"; message: string }
   >({ kind: "idle" });
 
-  const onSubmit = async (paymentMethodId: string) => {
+  const onSubmit = async () => {
     setResult({ kind: "idle" });
     const r = await submitDeposit({
       buildRecordId,
       agreementId,
-      paymentMethodId,
     });
     if (!r.ok) {
       setResult({ kind: "error", message: r.error });
@@ -52,7 +51,7 @@ export function DepositStep({ buildRecordId, agreementId, amount }: Props) {
       <PaymentProcessingInterface
         amount={amount}
         label="picknbuild deposit"
-        onSubmit={onSubmit}
+        onSubmit={() => onSubmit()}
       />
 
       {result.kind === "success" ? (

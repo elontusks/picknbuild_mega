@@ -186,16 +186,20 @@ export async function signAgreement(
 export type SubmitDepositInput = {
   buildRecordId: string;
   agreementId: string;
-  paymentMethodId: string;
 };
 
 export type SubmitDepositResult =
   | {
       ok: true;
       paymentId: string;
-      paymentIntentId: string;
       amount: number;
       status: "succeeded" | "pending" | "failed" | "refunded";
+      wireInstructions: {
+        routingNumber: string;
+        accountNumber: string;
+        bankName: string;
+        reference: string;
+      };
     }
   | { ok: false; error: string };
 
@@ -238,14 +242,13 @@ export async function submitDeposit(
       userId: viewer.id,
       buildRecordId: build.record.id,
       agreementId: agreement.agreement.id,
-      paymentMethodId: input.paymentMethodId,
     });
     return {
       ok: true,
       paymentId: charge.record.id,
-      paymentIntentId: charge.paymentIntentId,
       amount: charge.record.amount,
       status: charge.record.status,
+      wireInstructions: charge.wireInstructions,
     };
   } catch (err) {
     return {

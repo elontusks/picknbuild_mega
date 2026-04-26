@@ -1,12 +1,12 @@
 import { listAdminLogs } from "@/services/team-15-logging";
 import * as Storage from "@/services/team-15-storage";
-import { STRIPE_EVENTS_BUCKET } from "@/services/team-14-payments";
+import { MERCURY_EVENTS_BUCKET } from "@/services/team-14-payments";
 import { listIngestionRuns } from "@/lib/admin/ingestion";
 
 export default async function AdminMonitoringPage() {
-  const [logs, stripeEvents, ingestion] = await Promise.all([
+  const [logs, mercuryEvents, ingestion] = await Promise.all([
     listAdminLogs(),
-    Storage.listRecords<unknown>(STRIPE_EVENTS_BUCKET),
+    Storage.listRecords<unknown>(MERCURY_EVENTS_BUCKET),
     listIngestionRuns(),
   ]);
 
@@ -14,8 +14,8 @@ export default async function AdminMonitoringPage() {
     <section data-testid="admin-monitoring" className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <Stat
-          label="Stripe webhook events"
-          value={String(stripeEvents.length)}
+          label="Mercury webhook events"
+          value={String(mercuryEvents.length)}
         />
         <Stat label="Admin log entries" value={String(logs.length)} />
         <Stat label="Ingestion runs" value={String(ingestion.length)} />

@@ -84,13 +84,11 @@ export function DealerSubscriptionManagementPanel({
         <button
           type="button"
           data-testid="subscription-cancel"
-          disabled={busy || subscription.cancelAtPeriodEnd}
+          disabled={busy}
           onClick={cancel}
           className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-50 dark:border-zinc-700"
         >
-          {subscription.cancelAtPeriodEnd
-            ? "Cancellation scheduled"
-            : "Cancel at period end"}
+          {busy ? "Cancelling…" : "Cancel subscription"}
         </button>
       ) : (
         <div className="flex items-center justify-between gap-3">
