@@ -4,6 +4,68 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { SellerListing } from '@/services/team-02-profiles';
 
+type FormErrors = {
+  make?: string;
+  model?: string;
+  year?: string;
+  price?: string;
+};
+
+const validateForm = (data: {
+  make: string;
+  model: string;
+  year: string;
+  price: string;
+  description: string;
+}): FormErrors => {
+  const errors: FormErrors = {};
+
+  if (!data.make.trim()) {
+    errors.make = 'Make is required';
+  } else if (data.make.trim().length < 2) {
+    errors.make = 'Make must be at least 2 characters';
+  } else if (data.make.trim().length > 50) {
+    errors.make = 'Make must be less than 50 characters';
+  }
+
+  if (!data.model.trim()) {
+    errors.model = 'Model is required';
+  } else if (data.model.trim().length < 2) {
+    errors.model = 'Model must be at least 2 characters';
+  } else if (data.model.trim().length > 50) {
+    errors.model = 'Model must be less than 50 characters';
+  }
+
+  if (!data.year.trim()) {
+    errors.year = 'Year is required';
+  } else if (!/^\d{4}$/.test(data.year.trim())) {
+    errors.year = 'Year must be a 4-digit number (e.g., 2024)';
+  } else {
+    const yearNum = parseInt(data.year.trim(), 10);
+    const currentYear = new Date().getFullYear();
+    if (yearNum < 1900) {
+      errors.year = 'Year must be 1900 or later';
+    } else if (yearNum > currentYear + 1) {
+      errors.year = `Year cannot be in the future`;
+    }
+  }
+
+  if (!data.price.trim()) {
+    errors.price = 'Price is required';
+  } else if (!/^\d+(\.\d{1,2})?$/.test(data.price.trim())) {
+    errors.price = 'Price must be a valid number (e.g., 25000 or 25000.50)';
+  } else {
+    const priceNum = parseFloat(data.price.trim());
+    if (priceNum <= 0) {
+      errors.price = 'Price must be greater than 0';
+    } else if (priceNum > 999999999) {
+      errors.price = 'Price must be less than $999,999,999';
+    }
+  }
+
+  return errors;
+};
+
 export default function MyListingsPage() {
   const router = useRouter();
   const [listings, setListings] = useState<SellerListing[]>([]);
@@ -11,6 +73,7 @@ export default function MyListingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [formData, setFormData] = useState({
     make: '',
     model: '',
@@ -39,9 +102,15 @@ export default function MyListingsPage() {
     }
   };
 
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
   const handleCreateListing = async () => {
-    if (!formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim()) {
-      setError('Please fill in all required fields');
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
 
@@ -53,10 +122,14 @@ export default function MyListingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      if (!response.ok) throw new Error('Failed to create listing');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create listing');
+      }
       const newListing = await response.json();
       setListings([newListing, ...listings]);
       setFormData({ make: '', model: '', year: '', price: '', description: '' });
+      setFormErrors({});
       setShowForm(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create listing');
@@ -105,60 +178,147 @@ export default function MyListingsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: 'var(--foreground)' }}>Create New Listing</h2>
 
-            <input
-              type="text"
-              placeholder="Make (e.g., Toyota)"
-              value={formData.make}
-              onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-              disabled={isSaving}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', opacity: isSaving ? 0.6 : 1 }}
-            />
+            {/* Make Field */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <input
+                type="text"
+                placeholder="Make (e.g., Toyota)"
+                value={formData.make}
+                onChange={(e) => handleFieldChange('make', e.target.value)}
+                disabled={isSaving}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  border: formErrors.make ? '1px solid #dc2626' : '1px solid var(--border)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  opacity: isSaving ? 0.6 : 1,
+                }}
+              />
+              {formErrors.make && (
+                <span style={{ fontSize: '12px', color: '#dc2626' }}>{formErrors.make}</span>
+              )}
+            </div>
 
-            <input
-              type="text"
-              placeholder="Model (e.g., Camry)"
-              value={formData.model}
-              onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-              disabled={isSaving}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', opacity: isSaving ? 0.6 : 1 }}
-            />
+            {/* Model Field */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <input
+                type="text"
+                placeholder="Model (e.g., Camry)"
+                value={formData.model}
+                onChange={(e) => handleFieldChange('model', e.target.value)}
+                disabled={isSaving}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  border: formErrors.model ? '1px solid #dc2626' : '1px solid var(--border)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  opacity: isSaving ? 0.6 : 1,
+                }}
+              />
+              {formErrors.model && (
+                <span style={{ fontSize: '12px', color: '#dc2626' }}>{formErrors.model}</span>
+              )}
+            </div>
 
-            <input
-              type="text"
-              placeholder="Year"
-              value={formData.year}
-              onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-              disabled={isSaving}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', opacity: isSaving ? 0.6 : 1 }}
-            />
+            {/* Year Field */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <input
+                type="text"
+                placeholder="Year (e.g., 2024)"
+                value={formData.year}
+                onChange={(e) => handleFieldChange('year', e.target.value)}
+                disabled={isSaving}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  border: formErrors.year ? '1px solid #dc2626' : '1px solid var(--border)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  opacity: isSaving ? 0.6 : 1,
+                }}
+              />
+              {formErrors.year && (
+                <span style={{ fontSize: '12px', color: '#dc2626' }}>{formErrors.year}</span>
+              )}
+            </div>
 
-            <input
-              type="text"
-              placeholder="Price"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              disabled={isSaving}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', opacity: isSaving ? 0.6 : 1 }}
-            />
+            {/* Price Field */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <input
+                type="text"
+                placeholder="Price (e.g., 25000)"
+                value={formData.price}
+                onChange={(e) => handleFieldChange('price', e.target.value)}
+                disabled={isSaving}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  border: formErrors.price ? '1px solid #dc2626' : '1px solid var(--border)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  opacity: isSaving ? 0.6 : 1,
+                }}
+              />
+              {formErrors.price && (
+                <span style={{ fontSize: '12px', color: '#dc2626' }}>{formErrors.price}</span>
+              )}
+            </div>
 
-            <textarea
-              placeholder="Description (optional)"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              disabled={isSaving}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', minHeight: '100px', resize: 'vertical', opacity: isSaving ? 0.6 : 1 }}
-            />
+            {/* Description Field */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <textarea
+                placeholder="Description (optional)"
+                value={formData.description}
+                onChange={(e) => handleFieldChange('description', e.target.value)}
+                disabled={isSaving}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  minHeight: '100px',
+                  resize: 'vertical',
+                  opacity: isSaving ? 0.6 : 1,
+                }}
+              />
+              <span style={{ fontSize: '12px', color: 'var(--muted-foreground)' }}>
+                {formData.description.length}/500 characters
+              </span>
+            </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={handleCreateListing}
-                disabled={isSaving}
-                style={{ flex: 1, padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', border: 'none', fontWeight: '600', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.6 : 1 }}
+                disabled={isSaving || Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim()}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  backgroundColor: Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'var(--muted)' : 'var(--accent)',
+                  color: Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'var(--muted-foreground)' : 'var(--accent-foreground)',
+                  border: 'none',
+                  fontWeight: '600',
+                  cursor: isSaving || Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'not-allowed' : 'pointer',
+                  opacity: isSaving ? 0.6 : 1,
+                }}
               >
                 {isSaving ? 'Creating...' : 'Create Listing'}
               </button>
               <button
-                onClick={() => { setShowForm(false); setError(null); }}
+                onClick={() => { setShowForm(false); setError(null); setFormErrors({}); }}
                 disabled={isSaving}
                 style={{ flex: 1, padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--muted)', color: 'var(--foreground)', border: '1px solid var(--border)', fontWeight: '600', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.6 : 1 }}
               >
