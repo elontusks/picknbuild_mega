@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { UserProfile, CreditTier } from '@/lib/search-demo/types';
 import { getCreditColor, getCreditLabel } from '@/lib/search-demo/matchModeUtils';
 
@@ -24,8 +24,41 @@ export default function MatchModeBar({ userProfile, userZip, onMatchModeChange, 
   const [year, setYear] = useState('');
   const [mileage, setMileage] = useState('');
   const [trim, setTrim] = useState('');
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const creditTier: CreditTier = userProfile.creditScore >= 700 ? 'green' : userProfile.creditScore >= 620 ? 'yellow' : 'red';
+
+  // Debounced save of profile changes
+  useEffect(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      const saveProfile = async () => {
+        try {
+          await fetch("/api/users/profile", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              availableCash: userProfile.availableCash,
+              creditScore: userProfile.creditScore,
+              zip: userZip,
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to save profile:", err);
+        }
+      };
+      saveProfile();
+    }, 1000);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [userProfile.availableCash, userProfile.creditScore, userZip]);
 
   return (
     <div style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--card)', padding: '16px 24px' }}>

@@ -79,7 +79,7 @@ function SearchPageInner(props: Props) {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
-    const loadGarage = async () => {
+    const loadGarageAndProfile = async () => {
       try {
         const res = await fetch("/api/garage");
         if (!res.ok) return;
@@ -94,8 +94,24 @@ function SearchPageInner(props: Props) {
       } catch (err) {
         console.error("Failed to load garage:", err);
       }
+
+      // Load user profile from API
+      try {
+        const profileRes = await fetch("/api/users/profile");
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          setUserProfile({
+            availableCash: profile.availableCash || 8000,
+            creditScore: profile.creditScore || 650,
+            titleType: profile.titleType || 'clean',
+            matchModeEnabled: false,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load user profile:", err);
+      }
     };
-    loadGarage();
+    loadGarageAndProfile();
   }, []);
 
   const totalListings =
