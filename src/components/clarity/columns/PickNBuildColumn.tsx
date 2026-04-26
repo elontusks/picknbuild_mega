@@ -1,7 +1,7 @@
 // @ts-nocheck — demo lift; strict TS errors to fix when wiring real services
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Car, UserProfile } from '@/lib/search-demo/types';
 import ColumnContainer from '../ColumnContainer';
@@ -80,34 +80,21 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
     }
     return 0;
   }, [tradeInVin, tradeInTitleType]);
-  
+
   // Update displayed trade-in value
-  if (calculatedTradeIn !== tradeInValue) {
-    setTradeInValue(calculatedTradeIn);
-  }
+  useEffect(() => {
+    if (calculatedTradeIn !== tradeInValue) {
+      setTradeInValue(calculatedTradeIn);
+    }
+  }, [calculatedTradeIn]);
 
   const subtitle = userProfile.matchModeEnabled && initialCount && cars.length < initialCount
     ? `Showing ${cars.length} affordable`
     : "Best Value";
 
-  if (cars.length === 0) {
-    return (
-      <ColumnContainer
-        title={<PicknbuildBrand />}
-        subtitle={subtitle}
-        description="We curate, inspect, and handle everything for you."
-        highlighted
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '14px', color: 'var(--muted-foreground)' }}>
-          No pick & build options available
-        </div>
-      </ColumnContainer>
-    );
-  }
-
-  const currentCar = cars[currentIndex];
-  const remaining = cars.length - currentIndex - 1;
-  const basePrice = currentCar.acv || 25000;
+  const currentCar = cars.length > 0 ? cars[currentIndex] : null;
+  const remaining = cars.length > 0 ? cars.length - currentIndex - 1 : 0;
+  const basePrice = currentCar?.acv || 25000;
   
   // Use continuous risk: pass null for credit score if no credit, otherwise pass the actual score
   const effectiveCreditScore = userProfile.hasNoCredit ? null : userProfile.creditScore;
@@ -135,6 +122,21 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
   const rebuiltDisplay = userProfile.titleType === 'rebuilt' ? ' ↓' : '';
   const tierColor = getCreditTierColor(pricing.riskTier);
   const tierLabel = getCreditTierLabel(pricing.riskTier);
+
+  if (cars.length === 0) {
+    return (
+      <ColumnContainer
+        title={<PicknbuildBrand />}
+        subtitle={subtitle}
+        description="We curate, inspect, and handle everything for you."
+        highlighted
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '14px', color: 'var(--muted-foreground)' }}>
+          No pick & build options available
+        </div>
+      </ColumnContainer>
+    );
+  }
 
   return (
     <ColumnContainer

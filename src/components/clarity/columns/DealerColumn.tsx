@@ -1,7 +1,7 @@
 // @ts-nocheck — demo lift; strict TS errors to fix when wiring real services
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Car, UserProfile } from '@/lib/search-demo/types';
 import ColumnContainer from '../ColumnContainer';
 import CarCard from '../CarCard';
@@ -53,20 +53,10 @@ export default function DealerColumn({ cars, onPick, onSelect, userProfile, init
     }
   };
 
-  if (!cars || cars.length === 0) {
-    return (
-      <ColumnContainer title="Dealer">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-          No dealer vehicles available
-        </div>
-      </ColumnContainer>
-    );
-  }
+  const currentCar = cars && cars.length > 0 ? cars[currentIndex] : null;
+  const remaining = cars && cars.length > 0 ? cars.length - currentIndex - 1 : 0;
+  const basePrice = currentCar?.acv || 25000;
 
-  const currentCar = cars[currentIndex];
-  const remaining = cars.length - currentIndex - 1;
-  const basePrice = currentCar.acv || 25000;
-  
   // Calculate trade-in value when VIN is provided
   const calculatedTradeIn = useMemo(() => {
     if (tradeInVin && tradeInVin.length >= 10) {
@@ -74,11 +64,13 @@ export default function DealerColumn({ cars, onPick, onSelect, userProfile, init
     }
     return 0;
   }, [tradeInVin, tradeInTitleType, basePrice]);
-  
+
   // Update displayed trade-in value
-  if (calculatedTradeIn !== tradeInValue) {
-    setTradeInValue(calculatedTradeIn);
-  }
+  useEffect(() => {
+    if (calculatedTradeIn !== tradeInValue) {
+      setTradeInValue(calculatedTradeIn);
+    }
+  }, [calculatedTradeIn]);
   
   // If hasNoCredit is true, treat as not approved by using score of 0
   const effectiveCreditScore = userProfile.hasNoCredit ? 0 : userProfile.creditScore;
@@ -115,6 +107,16 @@ export default function DealerColumn({ cars, onPick, onSelect, userProfile, init
   const subtitle = userProfile.matchModeEnabled && initialCount && cars.length < initialCount
     ? `Showing ${cars.length} affordable`
     : "Fastest Access";
+
+  if (!cars || cars.length === 0) {
+    return (
+      <ColumnContainer title="Dealer">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          No dealer vehicles available
+        </div>
+      </ColumnContainer>
+    );
+  }
 
   return (
     <ColumnContainer title="Dealer" subtitle={subtitle} description="Drive away quickly with dealer financing.">
