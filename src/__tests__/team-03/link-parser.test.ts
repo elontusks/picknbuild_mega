@@ -17,7 +17,7 @@ describe("classifyUrl", () => {
     );
   });
   test("identifies our own dealer domain", () => {
-    expect(classifyUrl("https://pickandbuild.example.com/dealer/x")).toBe(
+    expect(classifyUrl("https://picknbuild.example.com/dealer/x")).toBe(
       "dealer",
     );
   });

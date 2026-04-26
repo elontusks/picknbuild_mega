@@ -25,7 +25,7 @@ export const classifyUrl = (url: string): ListingSource | null => {
   if (host.includes("iaai.com") || host.includes("iaa-auction.com")) return "iaai";
   if (host.includes("craigslist.org")) return "craigslist";
   if (host.includes("facebook.com") || host.includes("fb.com")) return "parsed-link";
-  if (host.endsWith("pickandbuild.example.com")) return "dealer";
+  if (host.endsWith("picknbuild.example.com")) return "dealer";
   return "parsed-link";
 };
 

@@ -172,7 +172,7 @@ describe("saveDealerListing", () => {
         id: "l1",
         source: "dealer",
         ownerUserId: "d_owner",
-        sourceUrl: "https://pickandbuild.example.com/dealer-post/d_owner/2020-toyota-tacoma",
+        sourceUrl: "https://picknbuild.example.com/dealer-post/d_owner/2020-toyota-tacoma",
       }),
     );
     hoisted.upsertDealerListing.mockResolvedValue({
@@ -196,7 +196,7 @@ describe("saveDealerListing", () => {
       form: { sourceUrl?: string };
     };
     expect(call.form.sourceUrl).toBe(
-      "https://pickandbuild.example.com/dealer-post/d_owner/2020-toyota-tacoma",
+      "https://picknbuild.example.com/dealer-post/d_owner/2020-toyota-tacoma",
     );
   });
 });

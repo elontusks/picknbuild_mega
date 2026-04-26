@@ -170,7 +170,7 @@ async function submitOwnerListing(
   const v = validated.value;
   const sourceUrl =
     v.sourceUrl ??
-    `https://pickandbuild.example.com/${source}-post/${ownerUserId}/${v.year}-${v.make}-${v.model}`.toLowerCase();
+    `https://picknbuild.example.com/${source}-post/${ownerUserId}/${v.year}-${v.make}-${v.model}`.toLowerCase();
 
   const listing: Omit<ListingObject, "id"> = {
     source,
