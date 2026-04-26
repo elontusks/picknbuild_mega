@@ -10,6 +10,12 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { User } from '@/contracts';
 import { Car, PickedCar, GarageGroup, UserProfile } from '@/lib/search-demo/types';
 import { listingToCar } from '@/lib/search-demo/listing-to-car';
+import {
+  calculateDealerAffordability,
+  calculateAuctionAffordability,
+  calculatePicknBuildAffordability,
+  calculateIndividualAffordability,
+} from '@/lib/search-demo/matchModeUtils';
 import MatchModeBar from '@/components/clarity/MatchModeBar';
 import DealerColumn from '@/components/clarity/columns/DealerColumn';
 import AuctionDIYColumn from '@/components/clarity/columns/AuctionDIYColumn';
@@ -102,25 +108,70 @@ function SearchPageInner(props: Props) {
     return filteredCars.some(f => f.id === car.id);
   }, [filteredCars]);
 
-  const dealerCars = useMemo(
-    () => initialDealerCars.filter(filterMatch),
-    [initialDealerCars, filterMatch],
-  );
+  const dealerCars = useMemo(() => {
+    let filtered = initialDealerCars.filter(filterMatch);
 
-  const auctionCars = useMemo(
-    () => initialAuctionCars.filter(filterMatch),
-    [initialAuctionCars, filterMatch],
-  );
+    if (userProfile.matchModeEnabled) {
+      filtered = filtered.filter(car => {
+        const affordability = calculateDealerAffordability(
+          userProfile,
+          car.acv || 20000
+        );
+        return affordability.canAfford;
+      });
+    }
 
-  const picknbuildCars = useMemo(
-    () => initialPicknbuildCars.filter(filterMatch),
-    [initialPicknbuildCars, filterMatch],
-  );
+    return filtered;
+  }, [initialDealerCars, filterMatch, userProfile.matchModeEnabled, userProfile]);
 
-  const individualCars = useMemo(
-    () => initialIndividualCars.filter(filterMatch),
-    [initialIndividualCars, filterMatch],
-  );
+  const auctionCars = useMemo(() => {
+    let filtered = initialAuctionCars.filter(filterMatch);
+
+    if (userProfile.matchModeEnabled) {
+      filtered = filtered.filter(car => {
+        const affordability = calculateAuctionAffordability(
+          userProfile,
+          car.acv || 20000,
+          car.repairEstimate || 2000
+        );
+        return affordability.canAfford;
+      });
+    }
+
+    return filtered;
+  }, [initialAuctionCars, filterMatch, userProfile.matchModeEnabled, userProfile]);
+
+  const picknbuildCars = useMemo(() => {
+    let filtered = initialPicknbuildCars.filter(filterMatch);
+
+    if (userProfile.matchModeEnabled) {
+      filtered = filtered.filter(car => {
+        const affordability = calculatePicknBuildAffordability(
+          userProfile,
+          car.acv || 20000
+        );
+        return affordability.canAfford;
+      });
+    }
+
+    return filtered;
+  }, [initialPicknbuildCars, filterMatch, userProfile.matchModeEnabled, userProfile]);
+
+  const individualCars = useMemo(() => {
+    let filtered = initialIndividualCars.filter(filterMatch);
+
+    if (userProfile.matchModeEnabled) {
+      filtered = filtered.filter(car => {
+        const affordability = calculateIndividualAffordability(
+          userProfile,
+          car.totalCost || 25000
+        );
+        return affordability.canAfford;
+      });
+    }
+
+    return filtered;
+  }, [initialIndividualCars, filterMatch, userProfile.matchModeEnabled, userProfile]);
 
   // Group picked cars by make/model
   const garageGroups = useMemo(() => {
@@ -404,10 +455,10 @@ function SearchPageInner(props: Props) {
             </div>
           ) : (
             <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', padding: '24px', overflowY: 'auto' }}>
-              <DealerColumn cars={dealerCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} />
-              <AuctionDIYColumn cars={auctionCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} />
-              <PickNBuildColumn cars={picknbuildCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} onReferralClick={() => setShowReferralModal(true)} />
-              <IndividualColumn cars={individualCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} />
+              <DealerColumn cars={dealerCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} initialCount={initialDealerCars.length} />
+              <AuctionDIYColumn cars={auctionCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} initialCount={initialAuctionCars.length} />
+              <PickNBuildColumn cars={picknbuildCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} onReferralClick={() => setShowReferralModal(true)} initialCount={initialPicknbuildCars.length} />
+              <IndividualColumn cars={individualCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} initialCount={initialIndividualCars.length} />
             </div>
           )}
         </main>

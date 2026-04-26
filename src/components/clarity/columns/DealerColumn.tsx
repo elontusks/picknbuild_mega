@@ -14,6 +14,7 @@ interface ColumnProps {
   onPick: (car: Car) => void;
   onSelect: (car: Car) => void;
   userProfile: UserProfile;
+  initialCount?: number;
 }
 
 const TERM_OPTIONS = [
@@ -23,7 +24,7 @@ const TERM_OPTIONS = [
   { months: 72, label: '6Y' },
 ];
 
-export default function DealerColumn({ cars, onPick, onSelect, userProfile }: ColumnProps) {
+export default function DealerColumn({ cars, onPick, onSelect, userProfile, initialCount }: ColumnProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedTerm, setSelectedTerm] = useState(60);
   const [tradeInVin, setTradeInVin] = useState('');
@@ -111,8 +112,12 @@ export default function DealerColumn({ cars, onPick, onSelect, userProfile }: Co
   const aprColorBg = getColorWithOpacity(aprColor, 0.1);
   const aprColorBorder = getColorWithOpacity(aprColor, 0.4);
 
+  const subtitle = userProfile.matchModeEnabled && initialCount && cars.length < initialCount
+    ? `Showing ${cars.length} affordable`
+    : "Fastest Access";
+
   return (
-    <ColumnContainer title="Dealer" subtitle="Fastest Access" description="Drive away quickly with dealer financing.">
+    <ColumnContainer title="Dealer" subtitle={subtitle} description="Drive away quickly with dealer financing.">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
         {/* Found a Better Deal - Link Parser */}
         <div style={{ padding: '12px', backgroundColor: 'var(--muted)', borderRadius: '8px', border: '1px solid var(--border)' }}>

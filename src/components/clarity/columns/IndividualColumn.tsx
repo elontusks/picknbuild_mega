@@ -16,9 +16,10 @@ interface ColumnProps {
   onPick: (car: Car) => void;
   onSelect: (car: Car) => void;
   userProfile: UserProfile;
+  initialCount?: number;
 }
 
-export default function IndividualColumn({ cars, onPick, onSelect, userProfile }: ColumnProps) {
+export default function IndividualColumn({ cars, onPick, onSelect, userProfile, initialCount }: ColumnProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [pastedUrl, setPastedUrl] = useState('');
   const [parsedCar, setParsedCar] = useState<Car | null>(null);
@@ -45,11 +46,15 @@ export default function IndividualColumn({ cars, onPick, onSelect, userProfile }
     }
   };
 
+  const subtitle = userProfile.matchModeEnabled && initialCount && cars.length < initialCount
+    ? `Showing ${cars.length} affordable`
+    : "Lowest Cost";
+
   if (cars.length === 0) {
     return (
       <ColumnContainer
         title="Individual"
-        subtitle="Lowest Cost"
+        subtitle={subtitle}
         description="Buy directly from the seller. Inspect and negotiate yourself."
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '14px', color: 'var(--muted-foreground)' }}>
@@ -68,7 +73,7 @@ export default function IndividualColumn({ cars, onPick, onSelect, userProfile }
   return (
     <ColumnContainer
       title="Individual"
-      subtitle="Lowest Cost"
+      subtitle={subtitle}
       description="Buy directly from the seller. Inspect and negotiate yourself."
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>

@@ -24,6 +24,7 @@ interface ColumnProps {
   onSelect: (car: Car) => void;
   userProfile: UserProfile;
   onReferralClick?: () => void;
+  initialCount?: number;
 }
 
 const TERM_OPTIONS = [
@@ -34,7 +35,7 @@ const TERM_OPTIONS = [
   { months: 60, label: '5 Years' },
 ];
 
-export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, onReferralClick }: ColumnProps) {
+export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, onReferralClick, initialCount }: ColumnProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedTerm, setSelectedTerm] = useState(60);
   const [tradeInVin, setTradeInVin] = useState('');
@@ -83,11 +84,15 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
     setTradeInValue(calculatedTradeIn);
   }
 
+  const subtitle = userProfile.matchModeEnabled && initialCount && cars.length < initialCount
+    ? `Showing ${cars.length} affordable`
+    : "Best Value";
+
   if (cars.length === 0) {
     return (
       <ColumnContainer
         title={<PicknbuildBrand />}
-        subtitle="Best Value"
+        subtitle={subtitle}
         description="We curate, inspect, and handle everything for you."
         highlighted
       >
@@ -132,7 +137,7 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
   return (
     <ColumnContainer
       title={<PicknbuildBrand />}
-      subtitle="No Credit Required"
+      subtitle={subtitle}
       description="Everyone's approved, no searching, no repairs. You pick. We build."
       highlighted
     >
