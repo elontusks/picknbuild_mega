@@ -72,7 +72,13 @@ export default function MyListingsPage() {
 
   const handleFieldChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setFormErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (field === 'year' || field === 'price' || field === 'description') {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next[field as keyof FormErrors];
+        return next;
+      });
+    }
   };
 
   const handleCreateListing = async () => {
