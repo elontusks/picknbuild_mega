@@ -667,6 +667,56 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_listings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          make: string
+          model: string
+          price: string
+          seller_id: string
+          status: string
+          updated_at: string
+          views: number
+          year: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          make: string
+          model: string
+          price: string
+          seller_id: string
+          status?: string
+          updated_at?: string
+          views?: number
+          year: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          make?: string
+          model?: string
+          price?: string
+          seller_id?: string
+          status?: string
+          updated_at?: string
+          views?: number
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       scrape_runs: {
         Row: {
           created_at: string

@@ -1,19 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import type { SellerListing } from '@/services/team-02-profiles';
 
 export default function MyListingsPage() {
-  const [listings, setListings] = useState<Array<{
-    id: number;
-    make: string;
-    model: string;
-    year: string;
-    price: string;
-    description: string;
-    status: string;
-    views: number;
-  }>>([]);
+  const router = useRouter();
+  const [listings, setListings] = useState<SellerListing[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     make: '',
     model: '',
@@ -22,10 +19,61 @@ export default function MyListingsPage() {
     description: '',
   });
 
-  const handleCreateListing = () => {
-    setListings([...listings, { id: Date.now(), ...formData, status: 'active', views: 0 }]);
-    setFormData({ make: '', model: '', year: '', price: '', description: '' });
-    setShowForm(false);
+  useEffect(() => {
+    loadListings();
+  }, []);
+
+  const loadListings = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/seller/listings');
+      if (!response.ok) throw new Error('Failed to load listings');
+      const data = await response.json();
+      setListings(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load listings');
+      setListings([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateListing = async () => {
+    if (!formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim()) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setError(null);
+      const response = await fetch('/api/seller/listings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error('Failed to create listing');
+      const newListing = await response.json();
+      setListings([newListing, ...listings]);
+      setFormData({ make: '', model: '', year: '', price: '', description: '' });
+      setShowForm(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create listing');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteListing = async (listingId: string) => {
+    try {
+      setError(null);
+      const response = await fetch(`/api/seller/listings/${listingId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete listing');
+      setListings(listings.filter((l) => l.id !== listingId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete listing');
+    }
   };
 
   return (
@@ -35,8 +83,14 @@ export default function MyListingsPage() {
         <p style={{ fontSize: '16px', color: 'var(--muted-foreground)', margin: 0 }}>Manage all your car listings</p>
       </div>
 
+      {error && (
+        <div style={{ padding: '12px 16px', backgroundColor: '#fee2e2', color: '#dc2626', borderRadius: '6px', fontSize: '14px' }}>
+          {error}
+        </div>
+      )}
+
       {/* Create New Listing Button */}
-      {!showForm && (
+      {!showForm && !isLoading && (
         <button
           onClick={() => setShowForm(true)}
           style={{ alignSelf: 'flex-start', padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', border: 'none', fontWeight: '600', cursor: 'pointer' }}
@@ -56,7 +110,8 @@ export default function MyListingsPage() {
               placeholder="Make (e.g., Toyota)"
               value={formData.make}
               onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit' }}
+              disabled={isSaving}
+              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', opacity: isSaving ? 0.6 : 1 }}
             />
 
             <input
@@ -64,7 +119,8 @@ export default function MyListingsPage() {
               placeholder="Model (e.g., Camry)"
               value={formData.model}
               onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit' }}
+              disabled={isSaving}
+              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', opacity: isSaving ? 0.6 : 1 }}
             />
 
             <input
@@ -72,7 +128,8 @@ export default function MyListingsPage() {
               placeholder="Year"
               value={formData.year}
               onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit' }}
+              disabled={isSaving}
+              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', opacity: isSaving ? 0.6 : 1 }}
             />
 
             <input
@@ -80,26 +137,30 @@ export default function MyListingsPage() {
               placeholder="Price"
               value={formData.price}
               onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit' }}
+              disabled={isSaving}
+              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', opacity: isSaving ? 0.6 : 1 }}
             />
 
             <textarea
-              placeholder="Description"
+              placeholder="Description (optional)"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', minHeight: '100px', resize: 'vertical' }}
+              disabled={isSaving}
+              style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', fontFamily: 'inherit', minHeight: '100px', resize: 'vertical', opacity: isSaving ? 0.6 : 1 }}
             />
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={handleCreateListing}
-                style={{ flex: 1, padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', border: 'none', fontWeight: '600', cursor: 'pointer' }}
+                disabled={isSaving}
+                style={{ flex: 1, padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', border: 'none', fontWeight: '600', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.6 : 1 }}
               >
-                Create Listing
+                {isSaving ? 'Creating...' : 'Create Listing'}
               </button>
               <button
-                onClick={() => setShowForm(false)}
-                style={{ flex: 1, padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--muted)', color: 'var(--foreground)', border: '1px solid var(--border)', fontWeight: '600', cursor: 'pointer' }}
+                onClick={() => { setShowForm(false); setError(null); }}
+                disabled={isSaving}
+                style={{ flex: 1, padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--muted)', color: 'var(--foreground)', border: '1px solid var(--border)', fontWeight: '600', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.6 : 1 }}
               >
                 Cancel
               </button>
@@ -109,7 +170,11 @@ export default function MyListingsPage() {
       )}
 
       {/* Listings Table */}
-      {listings.length === 0 ? (
+      {isLoading ? (
+        <div style={{ padding: '40px 20px', textAlign: 'center', borderRadius: '8px', border: '2px dashed var(--border)', backgroundColor: 'var(--muted)' }}>
+          <div style={{ fontSize: '16px', color: 'var(--muted-foreground)' }}>Loading listings...</div>
+        </div>
+      ) : listings.length === 0 ? (
         <div style={{ padding: '40px 20px', textAlign: 'center', borderRadius: '8px', border: '2px dashed var(--border)', backgroundColor: 'var(--muted)' }}>
           <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: 'var(--foreground)' }}>No listings yet</div>
           <p style={{ fontSize: '14px', color: 'var(--muted-foreground)', margin: 0 }}>Create your first listing to start selling</p>
@@ -123,6 +188,7 @@ export default function MyListingsPage() {
                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', fontSize: '14px', color: 'var(--foreground)' }}>Price</th>
                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', fontSize: '14px', color: 'var(--foreground)' }}>Status</th>
                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', fontSize: '14px', color: 'var(--foreground)' }}>Views</th>
+                <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', fontSize: '14px', color: 'var(--foreground)' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -132,6 +198,14 @@ export default function MyListingsPage() {
                   <td style={{ padding: '12px' }}>${listing.price}</td>
                   <td style={{ padding: '12px' }}><span style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>{listing.status}</span></td>
                   <td style={{ padding: '12px' }}>{listing.views}</td>
+                  <td style={{ padding: '12px' }}>
+                    <button
+                      onClick={() => handleDeleteListing(listing.id)}
+                      style={{ padding: '4px 12px', borderRadius: '4px', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
