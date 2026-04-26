@@ -16,13 +16,13 @@ const KIND_LABEL: Record<FeedPost["kind"], string> = {
 };
 
 const KIND_CHIP_CLASS: Record<FeedPost["kind"], string> = {
-  deal: "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
-  problem: "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
-  question: "bg-sky-100 text-sky-800-900/40 dark:text-sky-100",
-  build: "bg-violet-100 text-violet-800-900/40 dark:text-violet-100",
+  deal: "bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200",
+  problem: "bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-200",
+  question: "bg-sky-200 text-sky-900 dark:bg-sky-900 dark:text-sky-200",
+  build: "bg-violet-200 text-violet-900 dark:bg-violet-900 dark:text-violet-200",
   recommendation:
-    "bg-indigo-100 text-indigo-800-900/40 dark:text-indigo-100",
-  warning: "bg-rose-100 text-rose-800-900/40 dark:text-rose-100",
+    "bg-indigo-200 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-200",
+  warning: "bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-200",
 };
 
 export function PostKindChip({ kind }: { kind: FeedPost["kind"] }) {

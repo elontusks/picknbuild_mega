@@ -13,6 +13,7 @@ import { ProfileLinkFromFeedPost } from "./profile-link";
 import { VehicleCardInFeed } from "./vehicle-card-in-feed";
 import { PostKindChip, PostKindTemplate } from "./templates";
 import { PostActionMenu } from "./post-action-menu";
+import { CommentActionButton } from "./comment-action-button";
 
 // Accepts either shape:
 //   - FeedPost: full row from getFeedPost() (has mediaRefs inline)
@@ -135,12 +136,20 @@ export async function FeedPostCard({
       {comments.length > 0 ? (
         <ul
           data-testid="post-comments"
-          className="flex flex-col gap-2 border-t border-border pt-3"
+          className="flex flex-col gap-3 border-t border-border pt-3"
         >
           {comments.slice(-3).map((c) => (
-            <li key={c.id} className="text-xs text-muted-foreground space-x-1">
-              <ProfileLinkFromFeedPost userId={c.userId} />
-              <span>{c.body}</span>
+            <li
+              key={c.id}
+              className="flex items-start justify-between gap-2 text-xs text-muted-foreground"
+            >
+              <div className="flex flex-col gap-1 flex-1">
+                <ProfileLinkFromFeedPost userId={c.userId} />
+                <p className="text-sm text-foreground break-words">{c.body}</p>
+              </div>
+              {viewerId === c.userId && (
+                <CommentActionButton commentId={c.id} postId={post.id} />
+              )}
             </li>
           ))}
         </ul>

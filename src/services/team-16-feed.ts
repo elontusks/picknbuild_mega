@@ -321,3 +321,69 @@ export const listComments = async (postId: string): Promise<FeedComment[]> => {
     .filter((c): c is FeedComment => c !== null)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 };
+
+// ---- delete ----------------------------------------------------------------
+
+export const deleteFeedPost = async (postId: string): Promise<boolean> => {
+  const post = await Storage.getRecord<FeedPost>(FEED_POSTS_BUCKET, postId);
+  if (!post) return false;
+
+  // Delete post and remove from indices
+  await Promise.all([
+    Storage.removeRecord(FEED_POSTS_BUCKET, postId),
+    Storage.removeRecord(FEED_LIKES_BUCKET, postId),
+    Storage.removeRecord(FEED_COMMENTS_BUCKET, postId),
+    Storage.removeRecord(FEED_COMMENTS_INDEX_BUCKET, postId),
+  ]);
+
+  // Remove from global and user indices
+  const globalIds =
+    (await Storage.getRecord<string[]>(
+      FEED_POSTS_INDEX_BUCKET,
+      FEED_INDEX_KEY,
+    )) ?? [];
+  const userIds =
+    (await Storage.getRecord<string[]>(
+      FEED_POSTS_BY_USER_BUCKET,
+      post.authorId,
+    )) ?? [];
+
+  await Promise.all([
+    Storage.putRecord(
+      FEED_POSTS_INDEX_BUCKET,
+      FEED_INDEX_KEY,
+      globalIds.filter((id) => id !== postId),
+    ),
+    Storage.putRecord(
+      FEED_POSTS_BY_USER_BUCKET,
+      post.authorId,
+      userIds.filter((id) => id !== postId),
+    ),
+  ]);
+
+  return true;
+};
+
+export const deleteComment = async (commentId: string): Promise<boolean> => {
+  const comment = await Storage.getRecord<FeedComment>(
+    FEED_COMMENTS_BUCKET,
+    commentId,
+  );
+  if (!comment) return false;
+
+  await Storage.removeRecord(FEED_COMMENTS_BUCKET, commentId);
+
+  // Remove from post's comment index
+  const commentIds =
+    (await Storage.getRecord<string[]>(
+      FEED_COMMENTS_INDEX_BUCKET,
+      comment.postId,
+    )) ?? [];
+  await Storage.putRecord(
+    FEED_COMMENTS_INDEX_BUCKET,
+    comment.postId,
+    commentIds.filter((id) => id !== commentId),
+  );
+
+  return true;
+};

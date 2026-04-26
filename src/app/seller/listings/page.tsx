@@ -38,6 +38,7 @@ export default function MyListingsPage() {
   const router = useRouter();
   const [listings, setListings] = useState<SellerListing[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +82,7 @@ export default function MyListingsPage() {
     }
   };
 
-  const handleCreateListing = async () => {
+  const handleSaveListing = async () => {
     const errors = validateForm(formData);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -91,25 +92,65 @@ export default function MyListingsPage() {
     try {
       setIsSaving(true);
       setError(null);
-      const response = await fetch('/api/seller/listings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create listing');
+
+      if (editingId) {
+        // Update existing listing
+        const response = await fetch(`/api/seller/listings/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to update listing');
+        }
+        const updatedListing = await response.json();
+        setListings(listings.map((l) => (l.id === editingId ? updatedListing : l)));
+      } else {
+        // Create new listing
+        const response = await fetch('/api/seller/listings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to create listing');
+        }
+        const newListing = await response.json();
+        setListings([newListing, ...listings]);
       }
-      const newListing = await response.json();
-      setListings([newListing, ...listings]);
+
       setFormData({ make: '', model: '', year: '', price: '', description: '' });
       setFormErrors({});
       setShowForm(false);
+      setEditingId(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create listing');
+      setError(err instanceof Error ? err.message : 'Failed to save listing');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleEditListing = (listing: SellerListing) => {
+    setFormData({
+      make: listing.make,
+      model: listing.model,
+      year: listing.year,
+      price: listing.price,
+      description: listing.description || '',
+    });
+    setEditingId(listing.id);
+    setShowForm(true);
+    setError(null);
+  };
+
+  const handleCancelEdit = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setFormData({ make: '', model: '', year: '', price: '', description: '' });
+    setFormErrors({});
+    setError(null);
   };
 
   const handleDeleteListing = async (listingId: string) => {
@@ -139,7 +180,11 @@ export default function MyListingsPage() {
       {/* Create New Listing Button */}
       {!showForm && !isLoading && (
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setEditingId(null);
+            setFormData({ make: '', model: '', year: '', price: '', description: '' });
+            setShowForm(true);
+          }}
           style={{ alignSelf: 'flex-start', padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', border: 'none', fontWeight: '600', cursor: 'pointer' }}
         >
           + Create New Listing
@@ -150,7 +195,9 @@ export default function MyListingsPage() {
       {showForm && (
         <div style={{ maxWidth: '600px', padding: '24px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--card)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: 'var(--foreground)' }}>Create New Listing</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: 'var(--foreground)' }}>
+              {editingId ? 'Edit Listing' : 'Create New Listing'}
+            </h2>
 
             {/* Make Field */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -270,7 +317,7 @@ export default function MyListingsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button
-                  onClick={handleCreateListing}
+                  onClick={handleSaveListing}
                   disabled={isSaving || Object.keys(formErrors).length > 0}
                   style={{
                     flex: 1,
@@ -284,10 +331,10 @@ export default function MyListingsPage() {
                     opacity: isSaving ? 0.6 : 1,
                   }}
                 >
-                  {isSaving ? 'Creating...' : 'Create Listing'}
+                  {isSaving ? (editingId ? 'Updating...' : 'Creating...') : (editingId ? 'Update Listing' : 'Create Listing')}
                 </button>
                 <button
-                  onClick={() => { setShowForm(false); setError(null); setFormErrors({}); }}
+                  onClick={handleCancelEdit}
                   disabled={isSaving}
                   style={{ flex: 1, padding: '12px 24px', borderRadius: '8px', backgroundColor: 'var(--muted)', color: 'var(--foreground)', border: '1px solid var(--border)', fontWeight: '600', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.6 : 1 }}
                 >
@@ -338,7 +385,13 @@ export default function MyListingsPage() {
                   <td style={{ padding: '12px' }}>${listing.price}</td>
                   <td style={{ padding: '12px' }}><span style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>{listing.status}</span></td>
                   <td style={{ padding: '12px' }}>{listing.views}</td>
-                  <td style={{ padding: '12px' }}>
+                  <td style={{ padding: '12px', display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => handleEditListing(listing)}
+                      style={{ padding: '4px 12px', borderRadius: '4px', backgroundColor: 'var(--muted)', color: 'var(--foreground)', border: '1px solid var(--border)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                      Edit
+                    </button>
                     <button
                       onClick={() => handleDeleteListing(listing.id)}
                       style={{ padding: '4px 12px', borderRadius: '4px', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}

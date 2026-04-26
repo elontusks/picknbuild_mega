@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MoreVertical, Edit2 } from 'lucide-react';
+import { MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import type { FeedPost } from '@/lib/feed/types';
 
 type PostActionMenuProps = {
@@ -15,6 +15,7 @@ export function PostActionMenu({ postId, postBody, extras }: PostActionMenuProps
   const [isEditing, setIsEditing] = useState(false);
   const [editedBody, setEditedBody] = useState(postBody);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleSaveEdit = async () => {
     if (!editedBody.trim()) return;
@@ -42,24 +43,55 @@ export function PostActionMenu({ postId, postBody, extras }: PostActionMenuProps
     }
   };
 
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      const response = await fetch(`/api/feed/${postId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete post');
+
+      window.location.reload();
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      alert('Failed to delete post. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-1 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
         title="Post options"
+        disabled={isDeleting}
       >
         <MoreVertical size={16} />
       </button>
 
       {isOpen && !isEditing && (
-        <div className="absolute right-0 top-full mt-1 rounded-md bg-card border border-border shadow-lg z-10">
+        <div className="absolute right-0 top-full mt-1 rounded-md bg-card border border-border shadow-lg z-10 min-w-40">
           <button
             onClick={() => setIsEditing(true)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors rounded-md text-left"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left border-b border-border"
           >
             <Edit2 size={14} />
             Edit post
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-colors text-left disabled:opacity-50"
+          >
+            <Trash2 size={14} />
+            {isDeleting ? 'Deleting...' : 'Delete post'}
           </button>
         </div>
       )}
