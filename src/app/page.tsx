@@ -5,7 +5,7 @@ import { loadSession } from "@/services/team-01-auth";
 export default async function Home() {
   const session = await loadSession();
 
-  if (session.state === "ready") redirect("/search");
+  if (session.state === "ready") redirect("/browse");
 
   if (session.state === "anonymous") {
     return (

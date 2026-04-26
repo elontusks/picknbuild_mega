@@ -9,7 +9,7 @@ type HeaderProps = {
 };
 
 const NAV_LINKS = [
-  { href: "/search", label: "Search" },
+  { href: "/browse", label: "Browse" },
   { href: "/garage", label: "Garage" },
   { href: "/feed", label: "Feed" },
 ] as const;

@@ -15,7 +15,7 @@ type GlobalHeaderProps = {
 };
 
 const NAV_LINKS = [
-  { href: '/search', label: 'Search' },
+  { href: '/browse', label: 'Browse' },
   { href: '/garage', label: 'Garage' },
   { href: '/feed', label: 'Feed' },
   { href: '/inbox', label: 'Inbox' },
@@ -27,7 +27,7 @@ export function GlobalHeader({ user, bellSlot, inboxSlot }: GlobalHeaderProps) {
   const [showReferralModal, setShowReferralModal] = useState(false);
 
   const isActive = (href: string) => {
-    if (href === '/search') return pathname.startsWith('/search') || pathname === '/';
+    if (href === '/browse') return pathname.startsWith('/browse') || pathname === '/';
     return pathname.startsWith(href);
   };
 

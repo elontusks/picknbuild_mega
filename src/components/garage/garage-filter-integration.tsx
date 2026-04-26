@@ -47,10 +47,10 @@ export function GarageFilterIntegration({
       {hasFilters ? (
         <Link
           data-testid="garage-filter-adjust"
-          href="/search"
+          href="/browse"
           className="ml-auto inline-flex items-center rounded-md border border-border px-2 py-0.5 font-medium text-zinc-800 hover:bg-white-700 dark:hover:bg-muted"
         >
-          Adjust on search
+          Adjust filters
         </Link>
       ) : null}
     </div>

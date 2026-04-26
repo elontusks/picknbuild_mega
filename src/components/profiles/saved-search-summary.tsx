@@ -48,7 +48,7 @@ export function SavedSearchSummary({ userId }: Props) {
           No saved search yet.
         </p>
         <Link
-          href="/search"
+          href="/browse"
           className="text-sm font-medium text-foreground underline"
         >
           Start a search
@@ -71,7 +71,7 @@ export function SavedSearchSummary({ userId }: Props) {
         ))}
       </ul>
       <Link
-        href="/search"
+        href="/browse"
         className="text-sm font-medium text-foreground underline"
       >
         Edit search
