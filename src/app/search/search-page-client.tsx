@@ -566,7 +566,7 @@ function SearchPageInner(props: Props) {
               {[
                 { id: 'dealer', label: 'Dealer' },
                 { id: 'auction', label: 'Auction' },
-                { id: 'picknbuild', label: <>pic<span style={{ color: '#dc2626' }}>k</span>nbuild</> },
+                { id: 'picknbuild', label: <>pick<span style={{ color: '#dc2626' }}>n</span>build</> },
                 { id: 'private', label: 'Private' },
               ].map((path) => (
                 <button
