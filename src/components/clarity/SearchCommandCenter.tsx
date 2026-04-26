@@ -56,11 +56,11 @@ export default function SearchCommandCenter({ onSearch, onEstimateClick }: Searc
           <div style={{ gridColumn: '1 / 2' }}>
             <label style={{ fontSize: '11px', fontWeight: '600', color: 'var(--muted-foreground)', textTransform: 'uppercase' }}>Credit Score</label>
             <select disabled={filters.hasNoCredit} value={filters.creditScore} onChange={(e) => setFilters({ ...filters, creditScore: parseInt(e.target.value) })} style={{ width: '100%', padding: '8px', marginTop: '4px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px', fontFamily: 'inherit', opacity: filters.hasNoCredit ? 0.5 : 1, cursor: filters.hasNoCredit ? 'not-allowed' : 'pointer' }}>
-              <option value={580}>Poor</option>
+              <option value={550}>Poor</option>
               <option value={620}>Fair</option>
-              <option value={650}>Good</option>
+              <option value={670}>Good</option>
               <option value={720}>Very Good</option>
-              <option value={750}>Excellent</option>
+              <option value={760}>Excellent</option>
             </select>
           </div>
           <div style={{ gridColumn: '1 / 2' }}>

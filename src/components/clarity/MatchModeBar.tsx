@@ -148,11 +148,11 @@ export default function MatchModeBar({ userProfile, userZip, onMatchModeChange, 
             style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', opacity: userProfile.hasNoCredit ? 0.5 : 1, cursor: userProfile.hasNoCredit ? 'not-allowed' : 'pointer' }}
           >
             <option value="">Select credit tier</option>
-            <option value="550">550 (Sub-prime)</option>
-            <option value="620">620 (Red tier)</option>
-            <option value="670">670 (Yellow tier)</option>
-            <option value="720">720 (Green tier)</option>
-            <option value="760">760 (Green tier)</option>
+            <option value="550">Poor</option>
+            <option value="620">Fair</option>
+            <option value="670">Good</option>
+            <option value="720">Very Good</option>
+            <option value="760">Excellent</option>
           </select>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--muted-foreground)', cursor: 'pointer', userSelect: 'none', marginTop: '2px' }}>
             <input

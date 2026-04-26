@@ -18,11 +18,11 @@ const TONE_CLASSES: Record<
 };
 
 const CREDIT_SCORE_OPTIONS = [
-  { label: "550 (Sub-prime)", value: 550 },
-  { label: "620 (Red tier)", value: 620 },
-  { label: "670 (Yellow tier)", value: 670 },
-  { label: "720 (Green tier)", value: 720 },
-  { label: "760 (Green tier)", value: 760 },
+  { label: "Poor", value: 550 },
+  { label: "Fair", value: 620 },
+  { label: "Good", value: 670 },
+  { label: "Very Good", value: 720 },
+  { label: "Excellent", value: 760 },
 ];
 
 export function CreditScoreInput() {
