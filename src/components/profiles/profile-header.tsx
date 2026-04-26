@@ -20,26 +20,46 @@ export function ProfileHeader({ user, eyebrow, accentLabel }: Props) {
   return (
     <header
       data-testid="profile-header"
-      className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4-800-950"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        padding: '20px',
+        backgroundColor: 'var(--card)',
+        borderRadius: '8px',
+        border: '1px solid var(--border)',
+      }}
     >
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+      <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
         {eyebrow}
       </p>
-      <div className="flex items-center gap-3">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div
           aria-hidden
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-sm font-semibold text-zinc-800-800"
+          style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--accent)',
+            color: 'var(--accent-foreground)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '18px',
+            fontWeight: '700',
+            flexShrink: 0,
+          }}
         >
           {initials(user)}
         </div>
-        <div className="flex flex-col">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <h1
             data-testid="profile-display-name"
-            className="text-lg font-semibold text-foreground"
+            style={{ fontSize: '18px', fontWeight: '700', margin: 0, color: 'var(--foreground)' }}
           >
             {user.displayName ?? "PicknBuild member"}
           </h1>
-          <p className="text-xs text-muted-foreground">
+          <p style={{ fontSize: '12px', color: 'var(--muted-foreground)', margin: 0 }}>
             ZIP {user.zip}
             {accentLabel ? ` · ${accentLabel}` : ""}
           </p>
