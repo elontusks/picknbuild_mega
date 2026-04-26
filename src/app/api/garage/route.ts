@@ -12,7 +12,13 @@ const DECISIONS: readonly GarageDecision[] = ["pick", "pass", null];
 
 export const GET = requireCap(C.garage.view_own)(async (_req, _ctx, principal) => {
   const items = await listGarage(principal.id);
-  return NextResponse.json({ items });
+  const itemsWithListings = await Promise.all(
+    items.map(async (item) => {
+      const listing = await getListing(item.listingId);
+      return { ...item, listing };
+    })
+  );
+  return NextResponse.json({ items: itemsWithListings });
 });
 
 export const POST = requireCap(C.garage.pick)(async (req, _ctx, principal) => {

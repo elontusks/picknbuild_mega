@@ -9,6 +9,7 @@ const BUILD_VERSION = 'v12-all-elements-final';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { User } from '@/contracts';
 import { Car, PickedCar, GarageGroup, UserProfile } from '@/lib/search-demo/types';
+import { listingToCar } from '@/lib/search-demo/listing-to-car';
 import MatchModeBar from '@/components/clarity/MatchModeBar';
 import DealerColumn from '@/components/clarity/columns/DealerColumn';
 import AuctionDIYColumn from '@/components/clarity/columns/AuctionDIYColumn';
@@ -70,6 +71,26 @@ function SearchPageInner(props: Props) {
     matchModeEnabled: false,
   });
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    const loadGarage = async () => {
+      try {
+        const res = await fetch("/api/garage");
+        if (!res.ok) return;
+        const { items } = await res.json();
+        const picked = items
+          .filter((item: any) => item.decision === "pick" && item.listing)
+          .map((item: any) => ({
+            ...listingToCar(item.listing),
+            pickedAt: new Date(item.listing.createdAt || item.addedAt),
+          }));
+        setPickedCars(picked);
+      } catch (err) {
+        console.error("Failed to load garage:", err);
+      }
+    };
+    loadGarage();
+  }, []);
 
   const totalListings =
     initialDealerCars.length +
