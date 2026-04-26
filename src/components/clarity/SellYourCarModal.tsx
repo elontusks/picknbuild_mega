@@ -25,7 +25,7 @@ export default function SellYourCarModal({ isOpen, onClose }: SellYourCarModalPr
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', padding: '24px' }}>
-          <Link href="/seller/listings?type=individual" style={{ textDecoration: 'none' }}>
+          <Link href="/seller/listings?type=individual" style={{ textDecoration: 'none' }} onClick={onClose}>
             <div style={{ padding: '24px 16px', borderRadius: '8px', border: '2px solid var(--border)', backgroundColor: 'var(--background)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start', transition: 'all 200ms' }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.backgroundColor = 'var(--muted)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = 'var(--background)'; }}
@@ -42,7 +42,7 @@ export default function SellYourCarModal({ isOpen, onClose }: SellYourCarModalPr
             </div>
           </Link>
 
-          <Link href="/seller/claim" style={{ textDecoration: 'none' }}>
+          <Link href="/seller/claim" style={{ textDecoration: 'none' }} onClick={onClose}>
             <div style={{ padding: '24px 16px', borderRadius: '8px', border: '2px solid var(--border)', backgroundColor: 'var(--background)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start', transition: 'all 200ms' }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.backgroundColor = 'var(--muted)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = 'var(--background)'; }}
