@@ -132,50 +132,52 @@ export default function MatchModeBar({ userProfile, userZip, onMatchModeChange, 
           />
         </div>
 
-        {/* Credit Score — bounded 300–850, disabled when No Credit */}
+        {/* Credit Score — dropdown with preset tiers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Credit Score (300–850)</label>
-          <input
-            type="number"
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Credit Score</label>
+          <select
             value={userProfile.hasNoCredit ? '' : userProfile.creditScore}
             disabled={userProfile.hasNoCredit}
-            min={CREDIT_SCORE_MIN}
-            max={CREDIT_SCORE_MAX}
-            step={1}
             onChange={(e) => {
-              const raw = parseInt(e.target.value, 10);
-              if (Number.isNaN(raw)) {
-                onUserProfileChange({ ...userProfile, creditScore: CREDIT_SCORE_MIN });
+              if (e.target.value === '') {
+                onUserProfileChange({ ...userProfile, creditScore: 550 });
                 return;
               }
-              onUserProfileChange({ ...userProfile, creditScore: raw });
+              onUserProfileChange({ ...userProfile, creditScore: parseInt(e.target.value, 10) });
             }}
-            onBlur={(e) => {
-              const raw = parseInt(e.target.value, 10);
-              if (Number.isNaN(raw)) return;
-              const clamped = Math.min(CREDIT_SCORE_MAX, Math.max(CREDIT_SCORE_MIN, raw));
-              if (clamped !== userProfile.creditScore) {
-                onUserProfileChange({ ...userProfile, creditScore: clamped });
-              }
-            }}
-            placeholder="650"
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', opacity: userProfile.hasNoCredit ? 0.5 : 1, cursor: userProfile.hasNoCredit ? 'not-allowed' : 'text' }}
-          />
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', opacity: userProfile.hasNoCredit ? 0.5 : 1, cursor: userProfile.hasNoCredit ? 'not-allowed' : 'pointer' }}
+          >
+            <option value="">Select credit tier</option>
+            <option value="550">550 (Sub-prime)</option>
+            <option value="620">620 (Red tier)</option>
+            <option value="670">670 (Yellow tier)</option>
+            <option value="720">720 (Green tier)</option>
+            <option value="760">760 (Green tier)</option>
+          </select>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--muted-foreground)', cursor: 'pointer', userSelect: 'none', marginTop: '2px' }}>
             <input
               type="checkbox"
               checked={!!userProfile.hasNoCredit}
               onChange={(e) => onUserProfileChange({ ...userProfile, hasNoCredit: e.target.checked })}
-              style={{ width: '14px', height: '14px', cursor: 'pointer' }}
+              style={{ width: '14px', height: '14px', cursor: 'pointer', accentColor: 'var(--accent)' }}
             />
             No credit
           </label>
         </div>
 
         {/* Credit Tier Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '6px', backgroundColor: `${getCreditColor(creditTier)}20`, border: `1px solid ${getCreditColor(creditTier)}` }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getCreditColor(creditTier) }}></div>
-          <span style={{ fontSize: '13px', fontWeight: '500', color: getCreditColor(creditTier) }}>Your Risk Tier: {getCreditLabel(creditTier)}</span>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          backgroundColor: creditTier === 'green' ? '#10b981' : creditTier === 'yellow' ? '#fbbf24' : '#f87171',
+          color: creditTier === 'green' ? '#065f46' : creditTier === 'yellow' ? '#78350f' : '#7f1d1d',
+          fontSize: '13px',
+          fontWeight: '500'
+        }}>
+          Your Risk Tier: {getCreditLabel(creditTier)}
         </div>
 
         {/* Title Type Toggle */}
