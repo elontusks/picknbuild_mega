@@ -4,15 +4,21 @@ import { useState } from 'react';
 import { UserProfile, CreditTier } from '@/lib/search-demo/types';
 import { getCreditColor, getCreditLabel } from '@/lib/search-demo/matchModeUtils';
 
+const CREDIT_SCORE_MIN = 300;
+const CREDIT_SCORE_MAX = 850;
+
 interface MatchModeBarProps {
   userProfile: UserProfile;
+  userZip: string;
   onMatchModeChange: (enabled: boolean) => void;
   onUserProfileChange: (profile: UserProfile) => void;
 }
 
-export default function MatchModeBar({ userProfile, onMatchModeChange, onUserProfileChange }: MatchModeBarProps) {
-  const [location, setLocation] = useState('');
-  const [needByDate, setNeedByDate] = useState('');
+const requiredMark = (
+  <span aria-hidden="true" style={{ color: '#dc2626', marginLeft: '2px' }}>*</span>
+);
+
+export default function MatchModeBar({ userProfile, userZip, onMatchModeChange, onUserProfileChange }: MatchModeBarProps) {
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
@@ -24,56 +30,50 @@ export default function MatchModeBar({ userProfile, onMatchModeChange, onUserPro
   return (
     <div style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--card)', padding: '16px 24px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
-        {/* Location */}
+        {/* Location — auto-filled from user record, read-only */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Location</label>
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Location (ZIP)</label>
           <input
             type="text"
-            placeholder="City or ZIP"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px' }}
+            value={userZip}
+            readOnly
+            aria-readonly="true"
+            title="Your saved ZIP. Update it from your profile."
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--muted)', color: 'var(--foreground)', fontSize: '14px', cursor: 'not-allowed' }}
           />
         </div>
 
-        {/* Need By */}
+        {/* Make — required */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Need By</label>
-          <input
-            type="date"
-            value={needByDate}
-            onChange={(e) => setNeedByDate(e.target.value)}
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px' }}
-          />
-        </div>
-
-        {/* Make */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Make</label>
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Make{requiredMark}</label>
           <input
             type="text"
             placeholder="e.g., Toyota"
             value={make}
             onChange={(e) => setMake(e.target.value)}
+            required
+            aria-required="true"
             style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px' }}
           />
         </div>
 
-        {/* Model */}
+        {/* Model — required */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Model</label>
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Model{requiredMark}</label>
           <input
             type="text"
             placeholder="e.g., Camry"
             value={model}
             onChange={(e) => setModel(e.target.value)}
+            required
+            aria-required="true"
             style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px' }}
           />
         </div>
 
-        {/* Year */}
+        {/* Year — required */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Year</label>
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Year{requiredMark}</label>
           <input
             type="number"
             placeholder="2020"
@@ -81,19 +81,23 @@ export default function MatchModeBar({ userProfile, onMatchModeChange, onUserPro
             onChange={(e) => setYear(e.target.value)}
             min="1990"
             max={new Date().getFullYear()}
+            required
+            aria-required="true"
             style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px' }}
           />
         </div>
 
-        {/* Mileage */}
+        {/* Mileage — required */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Mileage</label>
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Mileage{requiredMark}</label>
           <select
             value={mileage}
             onChange={(e) => setMileage(e.target.value)}
+            required
+            aria-required="true"
             style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px' }}
           >
-            <option value="">Any</option>
+            <option value="">Select mileage</option>
             <option value="50k">Under 50k</option>
             <option value="100k">50k-100k</option>
             <option value="150k">100k-150k</option>
@@ -101,7 +105,7 @@ export default function MatchModeBar({ userProfile, onMatchModeChange, onUserPro
           </select>
         </div>
 
-        {/* Trim */}
+        {/* Trim — optional */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Trim</label>
           <input
@@ -113,28 +117,59 @@ export default function MatchModeBar({ userProfile, onMatchModeChange, onUserPro
           />
         </div>
 
-        {/* Available Cash Input */}
+        {/* Available Cash (Budget) — required */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Available Cash Right Now</label>
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Available Cash Right Now{requiredMark}</label>
           <input
             type="number"
             value={userProfile.availableCash}
             onChange={(e) => onUserProfileChange({ ...userProfile, availableCash: parseInt(e.target.value) || 0 })}
             placeholder="$0"
+            min={0}
+            required
+            aria-required="true"
             style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px' }}
           />
         </div>
 
-        {/* Credit Score Input */}
+        {/* Credit Score — bounded 300–850, disabled when No Credit */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Credit Score</label>
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Credit Score (300–850)</label>
           <input
             type="number"
-            value={userProfile.creditScore}
-            onChange={(e) => onUserProfileChange({ ...userProfile, creditScore: parseInt(e.target.value) || 500 })}
+            value={userProfile.hasNoCredit ? '' : userProfile.creditScore}
+            disabled={userProfile.hasNoCredit}
+            min={CREDIT_SCORE_MIN}
+            max={CREDIT_SCORE_MAX}
+            step={1}
+            onChange={(e) => {
+              const raw = parseInt(e.target.value, 10);
+              if (Number.isNaN(raw)) {
+                onUserProfileChange({ ...userProfile, creditScore: CREDIT_SCORE_MIN });
+                return;
+              }
+              onUserProfileChange({ ...userProfile, creditScore: raw });
+            }}
+            onBlur={(e) => {
+              const raw = parseInt(e.target.value, 10);
+              if (Number.isNaN(raw)) return;
+              const clamped = Math.min(CREDIT_SCORE_MAX, Math.max(CREDIT_SCORE_MIN, raw));
+              if (clamped !== userProfile.creditScore) {
+                onUserProfileChange({ ...userProfile, creditScore: clamped });
+              }
+            }}
             placeholder="650"
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px' }}
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', fontSize: '14px', opacity: userProfile.hasNoCredit ? 0.5 : 1, cursor: userProfile.hasNoCredit ? 'not-allowed' : 'text' }}
           />
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--muted-foreground)', cursor: 'pointer', userSelect: 'none', marginTop: '2px' }}>
+            <input
+              type="checkbox"
+              checked={!!userProfile.hasNoCredit}
+              onChange={(e) => onUserProfileChange({ ...userProfile, hasNoCredit: e.target.checked })}
+              style={{ width: '14px', height: '14px', cursor: 'pointer' }}
+            />
+            No credit
+          </label>
         </div>
 
         {/* Credit Tier Badge */}
@@ -145,7 +180,7 @@ export default function MatchModeBar({ userProfile, onMatchModeChange, onUserPro
 
         {/* Title Type Toggle */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Title</label>
+          <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--muted-foreground)' }}>Title (optional)</label>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
             {(['clean', 'rebuilt'] as const).map((titleType) => (
               <div key={titleType} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>

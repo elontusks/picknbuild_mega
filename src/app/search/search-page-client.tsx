@@ -10,7 +10,6 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { User } from '@/contracts';
 import { Car, PickedCar, GarageGroup, UserProfile } from '@/lib/search-demo/types';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import SearchCommandCenter from '@/components/clarity/SearchCommandCenter';
 import TopBar from '@/components/clarity/TopBar';
 import MatchModeBar from '@/components/clarity/MatchModeBar';
 import DealerColumn from '@/components/clarity/columns/DealerColumn';
@@ -23,7 +22,6 @@ import ComparisonModal from '@/components/clarity/ComparisonModal';
 import ReferralModal from '@/components/clarity/ReferralModal';
 import SellYourCarModal from '@/components/clarity/SellYourCarModal';
 import SignInModal from '@/components/clarity/SignInModal';
-import EstimateModal from '@/components/clarity/EstimateModal';
 import YourBestPathRightNow from '@/components/clarity/YourBestPathRightNow';
 import PlanningPanel from '@/components/clarity/PlanningPanel';
 
@@ -45,6 +43,7 @@ export function SearchPageClient(props: Props) {
 
 function SearchPageInner(props: Props) {
   const {
+    user,
     initialDealerCars,
     initialAuctionCars,
     initialIndividualCars,
@@ -57,16 +56,13 @@ function SearchPageInner(props: Props) {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [showSellModal, setShowSellModal] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
-  const [showEstimateModal, setShowEstimateModal] = useState(false);
   const [showPlanPanel, setShowPlanPanel] = useState(false);
   const [showGapViewModal, setShowGapViewModal] = useState(false);
   const [activePath, setActivePath] = useState('dealer');
   const [isAutoCycling, setIsAutoCycling] = useState(true);
   const [selectedTerm, setSelectedTerm] = useState<string>('cash');
   const [selectedCondition, setSelectedCondition] = useState<'clean' | 'rebuilt'>('clean');
-  const [filteredCars, setFilteredCars] = useState<Car[]>([]);
-  const [userLocation, setUserLocation] = useState('');
-  const [needByDate, setNeedByDate] = useState('');
+  const [filteredCars] = useState<Car[]>([]);
   const [currentUser, setCurrentUser] = useState<{ email: string; name?: string } | null>(null);
   const [referralStats, setReferralStats] = useState({
     invitesSent: 0,
@@ -152,19 +148,6 @@ function SearchPageInner(props: Props) {
   const handleSignOut = useCallback(() => {
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
-  }, []);
-
-  const handleSearch = useCallback((filters: any) => {
-    setUserProfile({
-      availableCash: filters.availableCash,
-      creditScore: filters.creditScore,
-      titleType: filters.titleType,
-      matchModeEnabled: filters.matchMode,
-      hasNoCredit: filters.hasNoCredit || false,
-    });
-    setUserLocation(filters.location);
-    setNeedByDate(filters.needByDate);
-    console.log('[v0] Search executed with filters:', filters);
   }, []);
 
   const handleSeeAvailableCars = useCallback(() => {
@@ -339,13 +322,9 @@ function SearchPageInner(props: Props) {
         onSignOut={handleSignOut}
       />
 
-      <SearchCommandCenter
-        onSearch={handleSearch}
-        onEstimateClick={() => setShowEstimateModal(true)}
-      />
-
       <MatchModeBar
         userProfile={userProfile}
+        userZip={user.zip}
         onMatchModeChange={(enabled) => setUserProfile({ ...userProfile, matchModeEnabled: enabled })}
         onUserProfileChange={setUserProfile}
       />
@@ -429,15 +408,6 @@ function SearchPageInner(props: Props) {
         isOpen={showSignInModal}
         onClose={() => setShowSignInModal(false)}
         onSignIn={handleSignIn}
-      />
-
-      <EstimateModal
-        isOpen={showEstimateModal}
-        onClose={() => setShowEstimateModal(false)}
-        onSubmit={() => {
-          setShowEstimateModal(false);
-          setShowSignInModal(true);
-        }}
       />
 
       {showPlanPanel && (
