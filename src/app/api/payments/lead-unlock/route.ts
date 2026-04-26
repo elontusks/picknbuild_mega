@@ -4,8 +4,6 @@ import { chargeLeadUnlock } from "@/services/team-14-payments";
 
 type Body = {
   leadId?: string;
-  paymentMethodId?: string;
-  stripeCustomerId?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -24,8 +22,6 @@ export async function POST(req: NextRequest) {
     const result = await chargeLeadUnlock({
       dealerId: principal.id,
       leadId: body.leadId,
-      paymentMethodId: body.paymentMethodId,
-      stripeCustomerId: body.stripeCustomerId,
     });
     return NextResponse.json(result, { status: 201 });
   } catch (err) {

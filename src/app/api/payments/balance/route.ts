@@ -5,8 +5,6 @@ import { chargeBalance } from "@/services/team-14-payments";
 type Body = {
   dealId?: string;
   amount?: number;
-  paymentMethodId?: string;
-  stripeCustomerId?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -26,8 +24,6 @@ export async function POST(req: NextRequest) {
       userId: principal.id,
       dealId: body.dealId,
       amount: body.amount,
-      paymentMethodId: body.paymentMethodId,
-      stripeCustomerId: body.stripeCustomerId,
     });
     return NextResponse.json(result, { status: 201 });
   } catch (err) {

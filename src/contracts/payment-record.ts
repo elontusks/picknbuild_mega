@@ -16,9 +16,11 @@ export type PaymentRecord = {
   kind: PaymentKind;
   amount: number;
   currency: "USD";
-  stripeRef: string;
+  mercuryRef: string;
   status: PaymentStatus;
   dealId?: string;
+  buildRecordId?: string; // For deposits: matched to deal creation
+  agreementId?: string; // For deposits: matched to deal creation
   createdAt: ISOTimestamp;
 };
 
@@ -30,7 +32,7 @@ export const makeFixturePaymentRecord = (
   kind: "deposit",
   amount: 1000,
   currency: "USD",
-  stripeRef: "ch_fixture",
+  mercuryRef: "txn_fixture",
   status: "succeeded",
   createdAt: nowIso(),
   ...overrides,

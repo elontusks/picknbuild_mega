@@ -5,8 +5,6 @@ import { createDepositCharge } from "@/services/team-14-payments";
 type Body = {
   buildRecordId?: string;
   agreementId?: string;
-  paymentMethodId?: string;
-  stripeCustomerId?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -26,8 +24,6 @@ export async function POST(req: NextRequest) {
       userId: principal.id,
       buildRecordId: body.buildRecordId,
       agreementId: body.agreementId,
-      paymentMethodId: body.paymentMethodId,
-      stripeCustomerId: body.stripeCustomerId,
     });
     return NextResponse.json(result, { status: 201 });
   } catch (err) {

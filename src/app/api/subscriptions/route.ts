@@ -8,8 +8,6 @@ import {
 
 type StartBody = {
   plan?: SubscriptionPlan;
-  email?: string;
-  stripeCustomerId?: string;
 };
 
 const VALID_PLANS: SubscriptionPlan[] = ["dealer-basic"];
@@ -30,8 +28,6 @@ export async function POST(req: NextRequest) {
     const subscription = await startSubscription({
       userId: principal.id,
       plan: body.plan,
-      email: body.email,
-      stripeCustomerId: body.stripeCustomerId,
     });
     return NextResponse.json({ subscription }, { status: 201 });
   } catch (err) {
@@ -42,8 +38,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-type CancelBody = { atPeriodEnd?: boolean };
-
 export async function DELETE(req: NextRequest) {
   const principal = await loadPrincipal();
   if (!principal) {
@@ -52,12 +46,9 @@ export async function DELETE(req: NextRequest) {
   if (!principal.roles.includes("dealer")) {
     return NextResponse.json({ error: "dealer-only" }, { status: 403 });
   }
-  const body =
-    (await req.json().catch(() => ({}))) as CancelBody | null;
   try {
     const subscription = await cancelSubscription({
       userId: principal.id,
-      atPeriodEnd: body?.atPeriodEnd ?? true,
     });
     return NextResponse.json({ subscription }, { status: 200 });
   } catch (err) {

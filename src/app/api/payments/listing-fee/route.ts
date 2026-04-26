@@ -4,8 +4,6 @@ import { chargeListingFee } from "@/services/team-14-payments";
 
 type Body = {
   listingId?: string;
-  paymentMethodId?: string;
-  stripeCustomerId?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -24,8 +22,6 @@ export async function POST(req: NextRequest) {
     const result = await chargeListingFee({
       dealerId: principal.id,
       listingId: body.listingId,
-      paymentMethodId: body.paymentMethodId,
-      stripeCustomerId: body.stripeCustomerId,
     });
     return NextResponse.json(result, { status: 201 });
   } catch (err) {
