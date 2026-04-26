@@ -17,19 +17,26 @@ export default async function NotificationsPage() {
     getPreferences(principal.id),
   ]);
   return (
-    <main className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-6 p-4 md:grid-cols-[2fr_1fr]">
-      <section className="flex flex-col gap-3">
-        <h1 className="text-lg font-semibold text-foreground">
-          Notifications
-        </h1>
-        <NotificationHistoryDisplay notifications={notifications} />
-      </section>
-      <aside className="flex flex-col gap-3 border-t border-border pt-4 md:border-l md:border-t-0 md:pl-4 md:pt-0-800">
-        <h2 className="text-sm font-semibold text-foreground">
-          Preferences
-        </h2>
-        <NotificationPreferencesPanel initial={preferences} />
-      </aside>
+    <main style={{ minHeight: '100vh', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: '700', margin: '0 0 8px 0', color: 'var(--foreground)' }}>
+              Notifications
+            </h1>
+            <p style={{ fontSize: '13px', color: 'var(--muted-foreground)', margin: 0 }}>Stay updated on messages, deals, and payments</p>
+          </div>
+          <NotificationHistoryDisplay notifications={notifications} />
+        </section>
+        <aside style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ padding: '16px', backgroundColor: 'var(--card)', borderRadius: '8px', border: `1px solid var(--border)` }}>
+            <h2 style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 16px 0', color: 'var(--foreground)' }}>
+              Preferences
+            </h2>
+            <NotificationPreferencesPanel initial={preferences} />
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }

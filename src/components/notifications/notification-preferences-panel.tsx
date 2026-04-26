@@ -55,68 +55,89 @@ export function NotificationPreferencesPanel({
 
   return (
     <section
-      className="flex flex-col gap-4"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+      }}
       data-testid="notification-preferences-panel"
       aria-label="Notification preferences"
     >
-      <div>
-        <h3 className="text-sm font-medium text-foreground">
-          Channels
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--muted-foreground)', textTransform: 'uppercase', margin: 0 }}>
+          Notification Channels
         </h3>
-        <div className="mt-2 flex flex-col gap-1">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {CHANNELS.map(({ key, label }) => (
-            <label key={key} className="flex items-center gap-2 text-sm">
+            <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'var(--foreground)', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={prefs.channels[key]}
                 onChange={() => toggleChannel(key)}
                 data-testid={`channel-${key}`}
+                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }}
               />
-              {label}
+              <span>{label}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div>
-        <h3 className="text-sm font-medium text-foreground">
-          Categories
+      <div style={{ height: '1px', backgroundColor: 'var(--border)' }} />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--muted-foreground)', textTransform: 'uppercase', margin: 0 }}>
+          Notification Types
         </h3>
-        <div className="mt-2 flex flex-col gap-1">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {CATEGORIES.map(({ key, label }) => (
-            <label key={key} className="flex items-center gap-2 text-sm">
+            <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'var(--foreground)', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={prefs.categories[key]}
                 onChange={() => toggleCategory(key)}
                 data-testid={`category-${key}`}
+                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }}
               />
-              {label}
+              <span>{label}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
         <button
           type="button"
           onClick={save}
           disabled={isPending}
-          className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+          style={{
+            padding: '10px 16px',
+            backgroundColor: 'var(--accent)',
+            color: 'var(--accent-foreground)',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: isPending ? 'not-allowed' : 'pointer',
+            opacity: isPending ? 0.6 : 1,
+            transition: 'all 200ms ease-out',
+          }}
+          onMouseEnter={(e) => !isPending && (e.currentTarget.style.opacity = '0.9')}
+          onMouseLeave={(e) => !isPending && (e.currentTarget.style.opacity = '1')}
         >
           {isPending ? "Saving…" : "Save preferences"}
         </button>
         {status === "saved" ? (
           <span
-            className="text-xs text-green-600"
+            style={{ fontSize: '12px', color: '#10b981', fontWeight: '500' }}
             data-testid="prefs-saved"
             role="status"
           >
-            Saved.
+            ✓ Preferences saved
           </span>
         ) : null}
         {status === "error" ? (
-          <span className="text-xs text-red-600" role="alert">
+          <span style={{ fontSize: '12px', color: '#ef4444', fontWeight: '500' }} role="alert">
             Failed to save. Try again.
           </span>
         ) : null}
