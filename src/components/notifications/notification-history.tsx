@@ -60,10 +60,9 @@ export function NotificationHistoryDisplay({
               gap: '12px',
               padding: '12px',
               backgroundColor: n.readAt ? 'var(--background)' : 'var(--accent)',
-              backgroundOpacity: n.readAt ? 1 : 0.08,
               border: `1px solid var(--border)`,
               borderRadius: '8px',
-              opacity: n.readAt ? 0.7 : 1,
+              opacity: n.readAt ? 0.7 : 0.12,
               transition: 'all 200ms ease-out',
             }}
           >

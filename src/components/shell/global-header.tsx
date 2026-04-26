@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import type { User } from '@/contracts';
+import SellYourCarModal from '../clarity/SellYourCarModal';
+import ReferralModal from '../clarity/ReferralModal';
 
 type GlobalHeaderProps = {
   user: User | null;
@@ -20,6 +23,8 @@ const NAV_LINKS = [
 
 export function GlobalHeader({ user, bellSlot, inboxSlot }: GlobalHeaderProps) {
   const pathname = usePathname();
+  const [showSellModal, setShowSellModal] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/search') return pathname.startsWith('/search') || pathname === '/';
@@ -79,6 +84,30 @@ export function GlobalHeader({ user, bellSlot, inboxSlot }: GlobalHeaderProps) {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3 ml-auto">
+          {/* Careers Link */}
+          <Link
+            href="/careers"
+            className="px-3 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
+          >
+            Careers
+          </Link>
+
+          {/* Sell Your Car Button */}
+          <button
+            onClick={() => setShowSellModal(true)}
+            className="px-3 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
+          >
+            Sell Your Car
+          </button>
+
+          {/* Invite & Earn Button */}
+          <button
+            onClick={() => setShowReferralModal(true)}
+            className="px-3 py-2 rounded text-sm text-foreground hover:bg-muted transition-all"
+          >
+            Invite & Earn $500
+          </button>
+
           {/* Notification Bell and Inbox */}
           {user ? (
             <>
@@ -113,6 +142,10 @@ export function GlobalHeader({ user, bellSlot, inboxSlot }: GlobalHeaderProps) {
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      <SellYourCarModal isOpen={showSellModal} onClose={() => setShowSellModal(false)} />
+      <ReferralModal isOpen={showReferralModal} onClose={() => setShowReferralModal(false)} />
     </header>
   );
 }
