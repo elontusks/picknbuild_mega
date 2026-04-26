@@ -5,10 +5,9 @@ import { useRouter } from 'next/navigation';
 import type { SellerListing } from '@/services/team-02-profiles';
 
 type FormErrors = {
-  make?: string;
-  model?: string;
   year?: string;
   price?: string;
+  description?: string;
 };
 
 const validateForm = (data: {
@@ -20,47 +19,16 @@ const validateForm = (data: {
 }): FormErrors => {
   const errors: FormErrors = {};
 
-  if (!data.make.trim()) {
-    errors.make = 'Make is required';
-  } else if (data.make.trim().length < 2) {
-    errors.make = 'Make must be at least 2 characters';
-  } else if (data.make.trim().length > 50) {
-    errors.make = 'Make must be less than 50 characters';
+  if (data.year.trim() && !/^\d{4}$/.test(data.year.trim())) {
+    errors.year = 'Year must be a 4-digit number';
   }
 
-  if (!data.model.trim()) {
-    errors.model = 'Model is required';
-  } else if (data.model.trim().length < 2) {
-    errors.model = 'Model must be at least 2 characters';
-  } else if (data.model.trim().length > 50) {
-    errors.model = 'Model must be less than 50 characters';
+  if (data.price.trim() && !/^\d+(\.\d{1,2})?$/.test(data.price.trim())) {
+    errors.price = 'Price must be a valid number';
   }
 
-  if (!data.year.trim()) {
-    errors.year = 'Year is required';
-  } else if (!/^\d{4}$/.test(data.year.trim())) {
-    errors.year = 'Year must be a 4-digit number (e.g., 2024)';
-  } else {
-    const yearNum = parseInt(data.year.trim(), 10);
-    const currentYear = new Date().getFullYear();
-    if (yearNum < 1900) {
-      errors.year = 'Year must be 1900 or later';
-    } else if (yearNum > currentYear + 1) {
-      errors.year = `Year cannot be in the future`;
-    }
-  }
-
-  if (!data.price.trim()) {
-    errors.price = 'Price is required';
-  } else if (!/^\d+(\.\d{1,2})?$/.test(data.price.trim())) {
-    errors.price = 'Price must be a valid number (e.g., 25000 or 25000.50)';
-  } else {
-    const priceNum = parseFloat(data.price.trim());
-    if (priceNum <= 0) {
-      errors.price = 'Price must be greater than 0';
-    } else if (priceNum > 999999999) {
-      errors.price = 'Price must be less than $999,999,999';
-    }
+  if (data.description.length > 500) {
+    errors.description = 'Description must be 500 characters or less';
   }
 
   return errors;
@@ -189,7 +157,7 @@ export default function MyListingsPage() {
                 style={{
                   padding: '10px 12px',
                   borderRadius: '6px',
-                  border: formErrors.make ? '1px solid #dc2626' : '1px solid var(--border)',
+                  border: '1px solid var(--border)',
                   backgroundColor: 'var(--background)',
                   color: 'var(--foreground)',
                   fontSize: '14px',
@@ -197,9 +165,6 @@ export default function MyListingsPage() {
                   opacity: isSaving ? 0.6 : 1,
                 }}
               />
-              {formErrors.make && (
-                <span style={{ fontSize: '12px', color: '#dc2626' }}>{formErrors.make}</span>
-              )}
             </div>
 
             {/* Model Field */}
@@ -213,7 +178,7 @@ export default function MyListingsPage() {
                 style={{
                   padding: '10px 12px',
                   borderRadius: '6px',
-                  border: formErrors.model ? '1px solid #dc2626' : '1px solid var(--border)',
+                  border: '1px solid var(--border)',
                   backgroundColor: 'var(--background)',
                   color: 'var(--foreground)',
                   fontSize: '14px',
@@ -221,9 +186,6 @@ export default function MyListingsPage() {
                   opacity: isSaving ? 0.6 : 1,
                 }}
               />
-              {formErrors.model && (
-                <span style={{ fontSize: '12px', color: '#dc2626' }}>{formErrors.model}</span>
-              )}
             </div>
 
             {/* Year Field */}
@@ -303,16 +265,16 @@ export default function MyListingsPage() {
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button
                   onClick={handleCreateListing}
-                  disabled={isSaving || Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim()}
+                  disabled={isSaving || Object.keys(formErrors).length > 0}
                   style={{
                     flex: 1,
                     padding: '12px 24px',
                     borderRadius: '8px',
-                    backgroundColor: Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'var(--muted)' : 'var(--accent)',
-                    color: Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'var(--muted-foreground)' : 'var(--accent-foreground)',
+                    backgroundColor: Object.keys(formErrors).length > 0 ? 'var(--muted)' : 'var(--accent)',
+                    color: Object.keys(formErrors).length > 0 ? 'var(--muted-foreground)' : 'var(--accent-foreground)',
                     border: 'none',
                     fontWeight: '600',
-                    cursor: isSaving || Object.keys(formErrors).length > 0 || !formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim() ? 'not-allowed' : 'pointer',
+                    cursor: isSaving || Object.keys(formErrors).length > 0 ? 'not-allowed' : 'pointer',
                     opacity: isSaving ? 0.6 : 1,
                   }}
                 >
@@ -329,23 +291,11 @@ export default function MyListingsPage() {
 
               {Object.keys(formErrors).length > 0 && (
                 <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '6px', fontSize: '13px', color: '#dc2626', border: '1px solid #fecaca' }}>
-                  <div style={{ fontWeight: '600', marginBottom: '8px' }}>Fix the following errors:</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {formErrors.make && <div>• {formErrors.make}</div>}
-                    {formErrors.model && <div>• {formErrors.model}</div>}
                     {formErrors.year && <div>• {formErrors.year}</div>}
                     {formErrors.price && <div>• {formErrors.price}</div>}
+                    {formErrors.description && <div>• {formErrors.description}</div>}
                   </div>
-                </div>
-              )}
-
-              {Object.keys(formErrors).length === 0 && (!formData.make.trim() || !formData.model.trim() || !formData.year.trim() || !formData.price.trim()) && (
-                <div style={{ padding: '12px', backgroundColor: '#fef2f2', borderRadius: '6px', fontSize: '13px', color: '#dc2626', border: '1px solid #fecaca' }}>
-                  Please fill in all required fields:
-                  {!formData.make.trim() && ' Make,'}
-                  {!formData.model.trim() && ' Model,'}
-                  {!formData.year.trim() && ' Year,'}
-                  {!formData.price.trim() && ' Price'}
                 </div>
               )}
             </div>
