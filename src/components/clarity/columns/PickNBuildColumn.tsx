@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Car, UserProfile } from '@/lib/search-demo/types';
 import ColumnContainer from '../ColumnContainer';
 import CarCard from '../CarCard';
@@ -36,6 +37,7 @@ const TERM_OPTIONS = [
 ];
 
 export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, onReferralClick, initialCount }: ColumnProps) {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedTerm, setSelectedTerm] = useState(60);
   const [tradeInVin, setTradeInVin] = useState('');
@@ -403,6 +405,31 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
           description="Warranty and insurance options"
           variant="picknbuild"
         />
+
+        {/* Start Building Button */}
+        <button
+          onClick={() => {
+            const carListingId = currentCar.listingId || currentCar.id;
+            if (carListingId) {
+              router.push(`/configurator?listingId=${carListingId}`);
+            }
+          }}
+          style={{
+            padding: '12px 16px',
+            borderRadius: '6px',
+            backgroundColor: 'var(--accent)',
+            color: 'var(--accent-foreground)',
+            border: 'none',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: currentCar.listingId || currentCar.id ? 'pointer' : 'not-allowed',
+            transition: 'opacity 200ms',
+          }}
+          onMouseEnter={(e) => (currentCar.listingId || currentCar.id) && (e.currentTarget.style.opacity = '0.9')}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+        >
+          🚀 Start Building
+        </button>
 
         <div style={{ flex: 1, minHeight: 0 }}>
           <CarCard
