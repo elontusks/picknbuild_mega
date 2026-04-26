@@ -44,9 +44,9 @@ export function GlobalHeader({ user, bellSlot, inboxSlot }: GlobalHeaderProps) {
 
           {/* Status Indicator Circles */}
           <div className="flex gap-1.5 items-center">
-            <div className="w-3 h-3 rounded-full bg-green-500" aria-label="green status" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500" aria-label="yellow status" />
-            <div className="w-3 h-3 rounded-full bg-red-500" aria-label="red status" />
+            <div className="w-3 h-3 rounded-full bg-emerald-400" aria-label="green status" />
+            <div className="w-3 h-3 rounded-full bg-amber-400" aria-label="yellow status" />
+            <div className="w-3 h-3 rounded-full bg-red-400" aria-label="red status" />
           </div>
 
           {/* Tagline */}
