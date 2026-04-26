@@ -24,9 +24,9 @@ export default function SearchCommandCenter({ onSearch, onEstimateClick }: Searc
   });
 
   const getRiskTier = (score: number) => {
-    if (score >= 700) return { label: 'Low Risk', color: '#dcfce7', textColor: '#166534' };
-    if (score >= 620) return { label: 'Medium Risk', color: '#fef3c7', textColor: '#92400e' };
-    return { label: 'High Risk', color: '#fee2e2', textColor: '#991b1b' };
+    if (score >= 700) return { label: 'Low Risk', color: '#10b981', textColor: '#065f46' };
+    if (score >= 620) return { label: 'Medium Risk', color: '#fbbf24', textColor: '#78350f' };
+    return { label: 'High Risk', color: '#f87171', textColor: '#7f1d1d' };
   };
 
   const risk = getRiskTier(filters.creditScore);

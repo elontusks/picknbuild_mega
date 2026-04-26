@@ -131,7 +131,7 @@ export default function IndividualColumn({ cars, onPick, onSelect, userProfile }
             <PriceAffordabilityIndicator totalPrice={sellerPrice} affordability={affordability} label="Asking Price" />
 
             {/* Title Badge */}
-            <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: '600', padding: '4px 8px', backgroundColor: userProfile.titleType === 'rebuilt' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)', color: userProfile.titleType === 'rebuilt' ? '#ef4444' : '#22c55e', borderRadius: '4px', marginTop: '8px', marginBottom: '8px', marginRight: '8px', textTransform: 'uppercase' }}>
+            <div style={{ display: 'inline-block', fontSize: '10px', fontWeight: '600', padding: '4px 8px', backgroundColor: userProfile.titleType === 'rebuilt' ? '#fbbf24' : '#10b981', color: userProfile.titleType === 'rebuilt' ? '#78350f' : '#065f46', borderRadius: '4px', marginTop: '8px', marginBottom: '8px', marginRight: '8px', textTransform: 'uppercase' }}>
               {userProfile.titleType === 'rebuilt' ? 'Rebuilt Title' : 'Clean Title'}
             </div>
 
