@@ -66,6 +66,7 @@ export function DecisionHighlightBadges({
           key={b.key}
           data-testid={`decision-badge-${b.key}`}
           className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${b.tone}`}
+          style={{ color: "#000000" }}
         >
           {b.label}
         </span>
