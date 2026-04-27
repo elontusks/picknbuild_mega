@@ -29,9 +29,9 @@ const TITLE_LABEL: Record<ListingObject["titleStatus"], string> = {
 };
 
 const TITLE_CHIP_CLASS: Record<ListingObject["titleStatus"], string> = {
-  clean: "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
-  rebuilt: "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
-  unknown: "bg-muted text-muted-foreground-800",
+  clean: "bg-emerald-100 !text-black dark:bg-emerald-900 dark:!text-emerald-100",
+  rebuilt: "bg-amber-100 !text-black dark:bg-amber-900 dark:!text-amber-100",
+  unknown: "bg-muted text-muted-foreground",
 };
 
 const RISK_LABEL: Record<"low" | "med" | "high", string> = {
@@ -41,9 +41,9 @@ const RISK_LABEL: Record<"low" | "med" | "high", string> = {
 };
 
 const RISK_CHIP_CLASS: Record<"low" | "med" | "high", string> = {
-  low: "bg-emerald-100 text-emerald-800-900/40 dark:text-emerald-100",
-  med: "bg-amber-100 text-amber-800-900/40 dark:text-amber-100",
-  high: "bg-rose-100 text-rose-800-900/40 dark:text-rose-100",
+  low: "bg-emerald-100 !text-black dark:bg-emerald-900 dark:!text-emerald-100",
+  med: "bg-amber-100 !text-black dark:bg-amber-900 dark:!text-amber-100",
+  high: "bg-rose-100 !text-black dark:bg-rose-900 dark:!text-rose-100",
 };
 
 const headlinePrice = (listing: ListingObject): { label: string; value: string } => {
