@@ -11,6 +11,7 @@ import PriceAffordabilityIndicator from '../PriceAffordabilityIndicator';
 import { calculateAuctionAffordability, getCreditTier } from '@/lib/search-demo/matchModeUtils';
 import { estimateAuctionBid, formatCurrency } from '@/lib/search-demo/pricingCalculations';
 import { parseLinkAndConvert } from '@/lib/search-demo/parse-link-client';
+import LiveScrapeProgress from '../LiveScrapeProgress';
 
 export type LiveScrapeState = 'idle' | 'pending' | 'success' | 'unavailable' | 'error';
 
@@ -121,13 +122,17 @@ export default function AuctionDIYColumn({
         description="Insurance and salvage auctions. Handle bidding and repairs yourself."
       >
         <div data-testid="auction-empty" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '4px 0' }}>
-          <div
-            data-testid="auction-empty-status"
-            data-state={liveScrapeState}
-            style={{ fontSize: '12px', color: 'var(--muted-foreground)', lineHeight: 1.5 }}
-          >
-            {scrapeStatusMessage}
-          </div>
+          {liveScrapeState === 'pending' ? (
+            <LiveScrapeProgress />
+          ) : (
+            <div
+              data-testid="auction-empty-status"
+              data-state={liveScrapeState}
+              style={{ fontSize: '12px', color: 'var(--muted-foreground)', lineHeight: 1.5 }}
+            >
+              {scrapeStatusMessage}
+            </div>
+          )}
 
           {hasSearch && (liveScrapeState === 'idle' || liveScrapeState === 'error' || liveScrapeState === 'unavailable') && onRequestLiveScrape ? (
             <button

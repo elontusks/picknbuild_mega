@@ -86,18 +86,21 @@ describe("AuctionDIYColumn empty state", () => {
     expect(status.toLowerCase()).toMatch(/year/);
   });
 
-  test("pending state shows the 'searching' copy", () => {
+  test("pending state renders the live-scrape progress bar instead of static copy", () => {
     render(
       <AuctionDIYColumn
         cars={[]}
         onPick={vi.fn()}
         onSelect={vi.fn()}
         userProfile={profile}
-        intakeFilters={{ make: "Toyota", model: "", year: "", mileageBucket: "", trim: "" }}
+        intakeFilters={{ make: "Toyota", model: "Camry", year: "2018", mileageBucket: "", trim: "" }}
         liveScrapeState="pending"
       />,
     );
-    expect(screen.getByTestId("auction-empty-status").textContent).toMatch(/Searching/i);
+    expect(screen.getByTestId("live-scrape-progress")).toBeTruthy();
+    expect(screen.queryByTestId("auction-empty-status")).toBeNull();
+    expect(screen.getByTestId("live-scrape-adapter").textContent).toBeTruthy();
+    expect(screen.getByTestId("live-scrape-elapsed").textContent).toBe("0s");
   });
 
   test("unavailable state shows offline copy and a retry button when filters are complete", () => {
