@@ -10,7 +10,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { IntakeState, ListingObject, PathKind, PathQuote, Term, User } from '@/contracts';
 import { makeFixtureIntakeState, makeFixtureListingObject } from '@/contracts';
 import { Car, PickedCar, GarageGroup, UserProfile, IntakeFilters } from '@/lib/search-demo/types';
-import { listingToCar } from '@/lib/search-demo/listing-to-car';
+import { isPicknbuildEligible, listingToCar } from '@/lib/search-demo/listing-to-car';
 import { applyIntakeFilters } from '@/lib/search-demo/intake-filters';
 import { quotePath } from '@/services/team-11-pricing';
 import { PICKNBUILD_MIN_MONTHLY_EQUIVALENT } from '@/lib/pricing/constants';
@@ -46,6 +46,8 @@ export function SearchPageClient(props: Props) {
   return <SearchPageInner {...props} />;
 }
 
+type LiveScrapeState = 'idle' | 'pending' | 'success' | 'unavailable' | 'error';
+
 function SearchPageInner(props: Props) {
   const {
     user,
@@ -54,6 +56,13 @@ function SearchPageInner(props: Props) {
     initialIndividualCars,
     initialPicknbuildCars,
   } = props;
+  // Mutable pools (initial values from server props, can grow via paste-link
+  // or live-scrape).
+  const [dealerPool, setDealerPool] = useState<Car[]>(initialDealerCars);
+  const [auctionPool, setAuctionPool] = useState<Car[]>(initialAuctionCars);
+  const [individualPool, setIndividualPool] = useState<Car[]>(initialIndividualCars);
+  const [picknbuildPool, setPicknbuildPool] = useState<Car[]>(initialPicknbuildCars);
+  const [liveScrapeState, setLiveScrapeState] = useState<LiveScrapeState>('idle');
   const [pickedCars, setPickedCars] = useState<PickedCar[]>([]);
   const [selectedCar, setSelectedCar] = useState<Car | null>(null);
   const [garageOpen, setGarageOpen] = useState(false);
@@ -145,18 +154,13 @@ function SearchPageInner(props: Props) {
     loadGarageAndProfile();
   }, []);
 
-  const totalListings =
-    initialDealerCars.length +
-    initialAuctionCars.length +
-    initialIndividualCars.length;
-
   const filterMatch = useCallback((car: Car) => {
     if (filteredCars.length === 0) return true;
     return filteredCars.some(f => f.id === car.id);
   }, [filteredCars]);
 
   const dealerCars = useMemo(() => {
-    let filtered = applyIntakeFilters(initialDealerCars.filter(filterMatch), intakeFilters);
+    let filtered = applyIntakeFilters(dealerPool.filter(filterMatch), intakeFilters);
 
     if (userProfile.matchModeEnabled) {
       filtered = filtered.filter(car => {
@@ -169,10 +173,10 @@ function SearchPageInner(props: Props) {
     }
 
     return filtered;
-  }, [initialDealerCars, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
+  }, [dealerPool, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
 
   const auctionCars = useMemo(() => {
-    let filtered = applyIntakeFilters(initialAuctionCars.filter(filterMatch), intakeFilters);
+    let filtered = applyIntakeFilters(auctionPool.filter(filterMatch), intakeFilters);
 
     if (userProfile.matchModeEnabled) {
       filtered = filtered.filter(car => {
@@ -186,10 +190,10 @@ function SearchPageInner(props: Props) {
     }
 
     return filtered;
-  }, [initialAuctionCars, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
+  }, [auctionPool, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
 
   const picknbuildCars = useMemo(() => {
-    let filtered = applyIntakeFilters(initialPicknbuildCars.filter(filterMatch), intakeFilters);
+    let filtered = applyIntakeFilters(picknbuildPool.filter(filterMatch), intakeFilters);
 
     if (userProfile.matchModeEnabled) {
       filtered = filtered.filter(car => {
@@ -202,10 +206,10 @@ function SearchPageInner(props: Props) {
     }
 
     return filtered;
-  }, [initialPicknbuildCars, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
+  }, [picknbuildPool, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
 
   const individualCars = useMemo(() => {
-    let filtered = applyIntakeFilters(initialIndividualCars.filter(filterMatch), intakeFilters);
+    let filtered = applyIntakeFilters(individualPool.filter(filterMatch), intakeFilters);
 
     if (userProfile.matchModeEnabled) {
       filtered = filtered.filter(car => {
@@ -222,7 +226,7 @@ function SearchPageInner(props: Props) {
     }
 
     return filtered;
-  }, [initialIndividualCars, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
+  }, [individualPool, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
 
   // Group picked cars by make/model
   const garageGroups = useMemo(() => {
@@ -244,6 +248,76 @@ function SearchPageInner(props: Props) {
       } as GarageGroup;
     });
   }, [pickedCars]);
+
+  // When a column's paste-link succeeds, drop the new Car into the right pool
+  // so it actually shows up in that column (instead of vanishing once the
+  // DetailPanel closes). The dedup-by-id keeps re-parses idempotent.
+  const handleCarParsed = useCallback((car: Car) => {
+    const upsert = (prev: Car[]): Car[] =>
+      prev.some((c) => c.id === car.id) ? prev : [car, ...prev];
+    if (car.path === 'dealer') setDealerPool(upsert);
+    else if (car.path === 'auction') setAuctionPool(upsert);
+    else if (car.path === 'individual') setIndividualPool(upsert);
+    else if (car.path === 'picknbuild') setPicknbuildPool(upsert);
+    setSelectedCar(car);
+  }, []);
+
+  // Auction-empty fallback: ask the orchestrator to fan out a live search
+  // (Copart + IAAI + Firecrawl-driven sites) for the user's intake. The
+  // scraper /search endpoint persists rows itself, so we just refetch the
+  // listings table afterwards and rebucket. Returns early on missing make/
+  // model so we don't trigger an unbounded scrape from an empty filter set.
+  const handleRequestLiveScrape = useCallback(async () => {
+    if (liveScrapeState === 'pending') return;
+    if (!intakeFilters.make.trim() && !intakeFilters.model.trim()) {
+      setLiveScrapeState('error');
+      return;
+    }
+    setLiveScrapeState('pending');
+    try {
+      const scrapeRes = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          make: intakeFilters.make.trim() || undefined,
+          model: intakeFilters.model.trim() || undefined,
+          year: intakeFilters.year.trim() || undefined,
+        }),
+      });
+      if (scrapeRes.status === 503 || scrapeRes.status === 502) {
+        setLiveScrapeState('unavailable');
+        return;
+      }
+      if (!scrapeRes.ok) {
+        setLiveScrapeState('error');
+        return;
+      }
+      const listRes = await fetch('/api/listings?status=active&limit=100');
+      if (!listRes.ok) {
+        setLiveScrapeState('error');
+        return;
+      }
+      const { listings } = (await listRes.json()) as { listings: ListingObject[] };
+      const nextDealer: Car[] = [];
+      const nextAuction: Car[] = [];
+      const nextIndividual: Car[] = [];
+      const nextPicknbuild: Car[] = [];
+      for (const listing of listings) {
+        const car = listingToCar(listing);
+        if (car.path === 'dealer') nextDealer.push(car);
+        else if (car.path === 'auction') nextAuction.push(car);
+        else if (car.path === 'individual') nextIndividual.push(car);
+        if (isPicknbuildEligible(listing)) nextPicknbuild.push(car);
+      }
+      setDealerPool(nextDealer);
+      setAuctionPool(nextAuction);
+      setIndividualPool(nextIndividual);
+      setPicknbuildPool(nextPicknbuild);
+      setLiveScrapeState('success');
+    } catch {
+      setLiveScrapeState('unavailable');
+    }
+  }, [liveScrapeState, intakeFilters]);
 
   const handlePickCar = useCallback(async (car: Car) => {
     if (!car.listingId) {
@@ -618,38 +692,22 @@ function SearchPageInner(props: Props) {
             />
           </div>
 
-          {totalListings === 0 ? (
-            <div style={{ padding: '24px' }}>
-              <div
-                style={{
-                  padding: '24px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  backgroundColor: 'var(--muted)',
-                  fontSize: '13px',
-                  color: 'var(--muted-foreground)',
-                  lineHeight: 1.5,
-                }}
-              >
-                <div style={{ fontWeight: 600, color: 'var(--foreground)', marginBottom: '6px' }}>
-                  No listings yet
-                </div>
-                The persisted listing pool is empty. Boot the scraper sidecar with{' '}
-                <code style={{ fontFamily: 'monospace' }}>npm run scraper:dev</code> in another terminal,
-                then trigger an ingest cycle:{' '}
-                <code style={{ fontFamily: 'monospace' }}>POST /api/scrape</code> or{' '}
-                <code style={{ fontFamily: 'monospace' }}>curl -X POST http://localhost:3099/ingest/run</code>.
-                Reload this page once it finishes.
-              </div>
+          <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', padding: '24px', overflowY: 'auto' }}>
+              <DealerColumn cars={dealerCars} onPick={handlePickCar} onSelect={setSelectedCar} onCarParsed={handleCarParsed} userProfile={userProfile} initialCount={dealerPool.length} />
+              <AuctionDIYColumn
+                cars={auctionCars}
+                onPick={handlePickCar}
+                onSelect={setSelectedCar}
+                onCarParsed={handleCarParsed}
+                onRequestLiveScrape={handleRequestLiveScrape}
+                liveScrapeState={liveScrapeState}
+                intakeFilters={intakeFilters}
+                userProfile={userProfile}
+                initialCount={auctionPool.length}
+              />
+              <PickNBuildColumn cars={picknbuildCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} onReferralClick={() => setShowReferralModal(true)} initialCount={picknbuildPool.length} />
+              <IndividualColumn cars={individualCars} onPick={handlePickCar} onSelect={setSelectedCar} onCarParsed={handleCarParsed} userProfile={userProfile} initialCount={individualPool.length} />
             </div>
-          ) : (
-            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', padding: '24px', overflowY: 'auto' }}>
-              <DealerColumn cars={dealerCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} initialCount={initialDealerCars.length} />
-              <AuctionDIYColumn cars={auctionCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} initialCount={initialAuctionCars.length} />
-              <PickNBuildColumn cars={picknbuildCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} onReferralClick={() => setShowReferralModal(true)} initialCount={initialPicknbuildCars.length} />
-              <IndividualColumn cars={individualCars} onPick={handlePickCar} onSelect={setSelectedCar} userProfile={userProfile} initialCount={initialIndividualCars.length} />
-            </div>
-          )}
         </main>
       </div>
 
