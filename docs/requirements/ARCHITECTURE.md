@@ -32,12 +32,11 @@ These apply globally. Every team honors them; they override anything in a legacy
 - **All-in pricing.** Every price surface shows the all-in number for the given path (base + tax + fees + applicable adjustments). No hidden fees at later steps.
 - **Supply is independent rows.** Every listing is a standalone `ListingObject`. **No cross-source dedup, no merge, no historical price tracking.** Supersedes `original-spec/03` and `original-spec/04.8`.
 - **Supply refresh strategy.**
-  1. Daily batch ingest from each source (scrapers black-boxed).
-  2. On-view refresh with cooldown — fires on detail view if `now - last_refreshed_at > cooldown`.
+  1. Daily batch ingest from each source — runs from the in-tree scraper sidecar's `/ingest/run` endpoint (cron-triggered) and writes directly to the shared `listings` table.
+  2. On-view refresh with cooldown — fires on detail view if `now - last_refreshed_at > cooldown`. Cooldowns are defined in `src/lib/listings/refresh.ts:REFRESH_COOLDOWN_MS`: auction 1h · craigslist 24h · firecrawl 1h · dealer-posted no auto-refresh · user/parsed-link no auto-refresh.
   3. Idle sweep marks dormant rows stale / removed.
-  Cooldowns: Auction 1h · Craigslist 24h · Dealer-posted: no scraper refresh (dealer owns edit path).
   No real-time polling, no websocket auction feed, no full hourly sweep.
-- **Scraper black box.** Scrapers are an input, not a concern. Every external source emits `ListingObject` rows; ingestion normalizes other sources into the same shape. No team here implements or inspects scraper internals. The only thing teams know is the contract in §3.
+- **Scraper is in-tree.** Lives at `scraper/` and runs on port 3099 alongside Next.js. Owns Copart (Playwright), IAAI (Playwright), and Firecrawl-driven adapters (Cars.com, BaT, dealer sites). It writes `ListingObject`-shaped rows to the shared Supabase database via service-role and exposes `POST /search`, `GET /preview`, `GET /vehicle/:source/:id`, `POST /refresh/:listingId`, `GET /curated`, and `POST /ingest/run`. The Next.js app consumes these through `/api/scrape`, `/api/orch-health`, `/api/curated`, `/api/listings/[id]/refresh`. New sources are added as adapters under `scraper/src/adapters/` and registered in `scraper/src/server.ts` — the frontend never fetches external sites directly. Schema/contract changes that involve a new `source` value must be coordinated across `supabase/migrations/` (DB constraint) AND `src/contracts/listing-object.ts` (`ListingSource` union); see `KNOWN_ISSUES.md#1` for the firecrawl drift incident.
 - **Dealer model.** Dealers onboard and post their own listings. **No dealer scraping. No claim flow against scraped dealer inventory.** Dealer-posted listings have `source: "dealer"` and are owned by a dealer user.
 - **Location model.** ZIP captured once at onboarding, stored on the user record, never auto-updated from the header. Distance is haversine over stored ZIP centroids, cached per `(user, listing)`. No shipping estimate, no location-aware pricing.
 - **Title filter behavior.** When the buyer sets "clean only" or "rebuilt only", listings whose parsed title is neither (unknown / unparsable) are hidden. When "both" (default), every listing renders regardless of parsed title. Overrides the "prioritize, don't hide" variant in `chud/01`.
@@ -301,7 +300,7 @@ flowchart LR
   end
 
   subgraph Supply[Supply / Data Plane]
-    SCR[(Scrapers — black box)]
+    SCR[(Scraper sidecar @ scraper/ — port 3099)]
     ING[3 Ingestion + Listing Store + Link Parser + VIN]
   end
 
@@ -363,7 +362,7 @@ flowchart LR
 |---|------|----------------------|
 | 1 | **Foundations** | Auth (phone-verified signup), onboarding wizard, `User` record, global shell (header + mobile nav + responsive framework), legal-disclaimer copy library. Unblocks every other team by publishing the `User` contract and the app shell. |
 | 2 | **Profiles** | Buyer / Dealer / Individual-Seller profile views plus the Dealer Page Edit Panel (where dealers post / edit / remove listings). Owns none of the listing data (that's Team 3); owns the view surfaces and the dealer's authoring UI. |
-| 3 | **Supply / Data Plane** | Ingestion writer that normalizes scraper output into `ListingObject`, the listing store, the on-view refresh service with cooldowns, the idle-sweep job, the Link Parser service (URL → ListingObject), the VIN lookup service, the user-generated listing upload. **Scrapers are upstream black boxes.** |
+| 3 | **Supply / Data Plane** | Ingestion writer that normalizes scraper output into `ListingObject`, the listing store, the on-view refresh service with cooldowns, the idle-sweep job, the Link Parser service (URL → ListingObject), the VIN lookup service, the user-generated listing upload. **The scraper sidecar at `scraper/` (port 3099) writes rows here directly via service-role; this team owns the proxy + normalize boundary, the scraper team owns adapter internals.** |
 | 4 | **Search Intake** | Top Controls bar, credit input + No-Credit toggle, clean/rebuilt toggle + tooltip, filter persistence, Match Mode UI, "Already Found a Car?" input with manual fallback. Owns the `IntakeState` client contract. |
 | 5 | **Four-Path Comparison** | The four path cards (Dealer, Auction, picknbuild, Private Seller), the path comparison row, title badge, risk badge, best-fit badge, and the per-path sponsor boards. Renders `PathQuote` responses from Team 11. |
 | 6 | **Decision & Gap** | Your Best Path Right Now card, See Where You Stand panel, path toggle + auto-cycle, Choose Your Term selector, per-path gap modules, Barrier-to-Entry line, Buying Power layer + visualization. |
@@ -404,7 +403,7 @@ Each charter names owned components (→ COMPONENTS.md rows), contracts publishe
 
 - **Owns:** Ingestion Normalizer · ListingObject Store · On-View Refresh Service · Idle Sweep Service · Link Parser Service · VIN Lookup Service · User-Generated Listing Upload · Dealer-Posted Listing Form (UI mounted in Team 2's Dealer Edit Panel; logic is ours).
 - **Publishes:** `ListingObject` contract (3.1); REST endpoints for list / get / refresh / parse-link / vin-lookup.
-- **Consumes:** Scraper outputs (black box — treated as already-shaped `ListingObject` where possible, normalized otherwise). `User.id` as `ownerUserId` (Team 1).
+- **Consumes:** Output from the in-tree scraper sidecar at `scraper/` (port 3099) — the orchestrator emits `Vehicle`-shaped scored rows that map to `ListingObject` via `scraper/src/core/orchestrator.ts:persistResults` writing into the shared `listings` table. Treat already-shaped rows as canonical; normalize anything that arrives via a different path (manual upload, link parser fallback). `User.id` as `ownerUserId` (Team 1).
 - **Parallel expectation:** Ship read-only fixtures first so Teams 4–8 can render. Writes (dealer-posted, user-posted, link parser) land later.
 
 ### Team 4 — Search Intake

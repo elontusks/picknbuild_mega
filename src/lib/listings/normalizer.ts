@@ -6,9 +6,11 @@ import type {
 import { nowIso } from "@/contracts";
 
 /**
- * Raw payload shape the normalizer accepts. Scrapers are black boxes, but every
- * emitter must present at minimum these fields. Unknown fields are ignored so
- * upstream teams can evolve their payloads without breaking ingestion.
+ * Raw payload shape the normalizer accepts. The in-tree scraper sidecar
+ * (scraper/, port 3099) is the dominant emitter, but every emitter — sidecar
+ * adapters, manual upload, link-parser fallback — must present at minimum
+ * these fields. Unknown fields are ignored so adapters can evolve their
+ * payloads without breaking ingestion.
  */
 export type RawListingPayload = {
   source: ListingSource;

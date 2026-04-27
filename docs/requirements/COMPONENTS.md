@@ -50,7 +50,7 @@ Source-doc prefixes: `os/NN` = `original-spec/NN-*.md`; `ch/NN` = `chud/NN-*.md`
 
 ## Team 3 — Supply / Data Plane
 
-**Ingestion Normalizer** · service · T3 · Inputs: raw scraper output (Copart, IAAI, Craigslist — black-box upstream) · Outputs: writes `ListingObject` rows into ListingObject Store · Talks to: ListingObject Store, Inventory Ingestion Health Monitor · Sources: os/03, os/04
+**Ingestion Normalizer** · service · T3 · Inputs: rows emitted by the in-tree scraper sidecar at `scraper/` (port 3099) — Copart + IAAI Playwright adapters, Firecrawl-driven adapters for cars.com / BaT / dealer sites · Outputs: writes `ListingObject` rows into ListingObject Store; the sidecar persists directly via service-role, the normalizer handles reshape for non-scraper paths (manual upload, link parser) · Talks to: ListingObject Store, Inventory Ingestion Health Monitor, scraper sidecar (`/api/scrape`, `/api/listings/[id]/refresh`) · Sources: os/03, os/04, scraper/README.md
 
 **ListingObject Store** · data model · T3 · Inputs: normalizer writes; dealer/user UI writes; on-view refresh writes · Outputs: `ListingObject` contract (§3.1); list / get / filter-by-owner endpoints · Talks to: Ingestion Normalizer, On-View Refresh Service, Idle Sweep Service, Link Parser Service, User-Generated Listing Upload, Dealer-Posted Listing Form, Dealer Page Edit Panel, Top Controls Bar, Dealer Path Card, Auction Path Card, picknbuild Path Card, Private Seller Path Card, Vehicle Detail View, Vehicle Card / Summary Card, Garage View / Container, Match Mode Matching Engine, Pricing Guidance Service, Recommendation Engine, Listings Inventory View, Feed Post Card · Sources: os/03, os/04, os/ARCHITECTURE Implementation Notes
 
