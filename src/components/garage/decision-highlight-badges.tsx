@@ -29,21 +29,21 @@ export function DecisionHighlightBadges({
     badges.push({
       key: "lowest-total",
       label: "Best total $",
-      tone: "bg-emerald-100 text-black dark:bg-emerald-900 dark:text-emerald-100",
+      tone: "bg-emerald-100 !text-black dark:bg-emerald-900 dark:!text-emerald-100",
     });
   }
   if (isLowestMonthlyInGarage) {
     badges.push({
       key: "lowest-monthly",
       label: "Best cadence",
-      tone: "bg-sky-100 text-black dark:bg-sky-900 dark:text-sky-100",
+      tone: "bg-sky-100 !text-black dark:bg-sky-900 dark:!text-sky-100",
     });
   }
   if (lowBarrier) {
     badges.push({
       key: "low-barrier",
       label: "Low barrier",
-      tone: "bg-amber-100 text-black dark:bg-amber-900 dark:text-amber-100",
+      tone: "bg-amber-100 !text-black dark:bg-amber-900 dark:!text-amber-100",
     });
   }
   if (stillDeciding) {
