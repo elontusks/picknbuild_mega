@@ -34,6 +34,7 @@ const PARTNER_BY_SOURCE: Record<ListingObject["source"], string> = {
   dealer: "Dealer-supplied condition report",
   user: "Remote Review Partner (photo+video)",
   "parsed-link": "Remote Review Partner (photo+video)",
+  firecrawl: "Dealer-supplied condition report",
 };
 
 export const routeInspection = (listing: ListingObject): InspectionResult => {

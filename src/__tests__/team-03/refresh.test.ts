@@ -41,10 +41,11 @@ describe("shouldRefresh — cooldown per source", () => {
     },
   );
 
-  test("REFRESH_COOLDOWN_MS matches ARCHITECTURE §2 (auction 1h, craigslist 24h)", () => {
+  test("REFRESH_COOLDOWN_MS matches ARCHITECTURE §2 (auction 1h, craigslist 24h, firecrawl 1h)", () => {
     expect(REFRESH_COOLDOWN_MS.copart).toBe(60 * 60 * 1000);
     expect(REFRESH_COOLDOWN_MS.iaai).toBe(60 * 60 * 1000);
     expect(REFRESH_COOLDOWN_MS.craigslist).toBe(24 * 60 * 60 * 1000);
     expect(REFRESH_COOLDOWN_MS.dealer).toBeNull();
+    expect(REFRESH_COOLDOWN_MS.firecrawl).toBe(60 * 60 * 1000);
   });
 });

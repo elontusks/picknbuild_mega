@@ -20,6 +20,7 @@ const SOURCE_LABEL: Record<ListingObject["source"], string> = {
   dealer: "Dealer",
   user: "Private seller",
   "parsed-link": "External link",
+  firecrawl: "Dealer site",
 };
 
 const TITLE_LABEL: Record<ListingObject["titleStatus"], string> = {

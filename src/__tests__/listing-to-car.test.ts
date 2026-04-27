@@ -108,6 +108,22 @@ describe("listingToCar", () => {
     const car = listingToCar(listing);
     expect(car.titleStatus).toBeUndefined();
   });
+
+  it("maps a firecrawl listing into the dealer column", () => {
+    // Firecrawl-driven adapters (Cars.com, BaT, dealer sites) feed the dealer
+    // column. Before this mapping existed, firecrawl rows were silently
+    // dropped because SOURCE_TO_PATH had no entry for them.
+    const listing = makeFixtureListingObject({
+      source: "firecrawl",
+      price: 18900,
+      titleStatus: "clean",
+    });
+    const car = listingToCar(listing);
+    expect(car.path).toBe("dealer");
+    expect(car.effort).toBe("low");
+    expect(car.risk).toBe("low");
+    expect(car.totalCost).toBe(18900);
+  });
 });
 
 describe("isPicknbuildEligible", () => {
@@ -128,6 +144,14 @@ describe("isPicknbuildEligible", () => {
     expect(
       isPicknbuildEligible(
         makeFixtureListingObject({ source: "iaai", titleStatus: "clean" }),
+      ),
+    ).toBe(true);
+  });
+
+  it("includes clean-title firecrawl listings (Cars.com et al.)", () => {
+    expect(
+      isPicknbuildEligible(
+        makeFixtureListingObject({ source: "firecrawl", titleStatus: "clean" }),
       ),
     ).toBe(true);
   });
