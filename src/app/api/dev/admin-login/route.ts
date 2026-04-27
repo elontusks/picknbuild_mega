@@ -1,14 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+// TODO: Remove this file before shipping. Dev-only convenience backdoor.
+//
 // Dev-only convenience: sign in as the dummy admin seeded by
 // scripts/seed-dummy-admin.mjs. The seed script provisioned the user with
 // phone +16146207536, zip 43065, role admin, and the fixed dev password
 // below. Calling signInWithPassword via the @supabase/ssr server client
 // sets the auth cookie on localhost — which a Supabase-domain magic link
 // cannot do.
-//
-// WARNING: Remove the production check before shipping. This is a security hole.
 
 const EMAIL = "admin-dummy@picknbuild.local";
 const PASSWORD = "DummyAdmin!43065";
