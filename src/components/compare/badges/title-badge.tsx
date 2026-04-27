@@ -7,8 +7,8 @@ export const TITLE_LABEL: Record<TitleStatus, string> = {
 };
 
 const CHIP_CLASS: Record<TitleStatus, string> = {
-  clean: "bg-emerald-400 text-emerald-950",
-  rebuilt: "bg-amber-300 text-amber-900",
+  clean: "bg-emerald-400 text-black",
+  rebuilt: "bg-amber-300 text-black",
   unknown: "bg-muted text-muted-foreground",
 };
 
