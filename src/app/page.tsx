@@ -2,14 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { loadSession } from "@/services/team-01-auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
-  let session;
-  try {
-    session = await loadSession();
-  } catch (err) {
-    console.error("loadSession failed:", err);
-    throw err;
-  }
+  const session = await loadSession();
 
   if (session.state === "ready") redirect("/browse");
 
