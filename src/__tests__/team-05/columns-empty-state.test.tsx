@@ -29,7 +29,24 @@ const stubFetch = (impl: (url: string) => Response | Promise<Response>) => {
 };
 
 describe("AuctionDIYColumn empty state", () => {
-  test("auto-fires onRequestLiveScrape once when filters carry a make", async () => {
+  test("auto-fires onRequestLiveScrape once when make + model + year are all set", async () => {
+    const onRequestLiveScrape = vi.fn();
+    render(
+      <AuctionDIYColumn
+        cars={[]}
+        onPick={vi.fn()}
+        onSelect={vi.fn()}
+        userProfile={profile}
+        intakeFilters={{ make: "Honda", model: "Civic", year: "2018", mileageBucket: "", trim: "" }}
+        liveScrapeState="idle"
+        onRequestLiveScrape={onRequestLiveScrape}
+      />,
+    );
+    await waitFor(() => expect(onRequestLiveScrape).toHaveBeenCalledTimes(1));
+    expect(screen.getByTestId("auction-empty")).toBeTruthy();
+  });
+
+  test("does not auto-fire when only one of make/model/year is set", async () => {
     const onRequestLiveScrape = vi.fn();
     render(
       <AuctionDIYColumn
@@ -42,11 +59,15 @@ describe("AuctionDIYColumn empty state", () => {
         onRequestLiveScrape={onRequestLiveScrape}
       />,
     );
-    await waitFor(() => expect(onRequestLiveScrape).toHaveBeenCalledTimes(1));
-    expect(screen.getByTestId("auction-empty")).toBeTruthy();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(onRequestLiveScrape).not.toHaveBeenCalled();
+    // Status copy should name the missing fields.
+    const status = screen.getByTestId("auction-empty-status").textContent ?? "";
+    expect(status.toLowerCase()).toMatch(/model/);
+    expect(status.toLowerCase()).toMatch(/year/);
   });
 
-  test("does not auto-fire when neither make nor model is set", async () => {
+  test("does not auto-fire when only two of make/model/year are set", async () => {
     const onRequestLiveScrape = vi.fn();
     render(
       <AuctionDIYColumn
@@ -54,16 +75,15 @@ describe("AuctionDIYColumn empty state", () => {
         onPick={vi.fn()}
         onSelect={vi.fn()}
         userProfile={profile}
-        intakeFilters={{ make: "", model: "", year: "", mileageBucket: "", trim: "" }}
+        intakeFilters={{ make: "Honda", model: "Civic", year: "", mileageBucket: "", trim: "" }}
         liveScrapeState="idle"
         onRequestLiveScrape={onRequestLiveScrape}
       />,
     );
-    // give the effect a tick
     await new Promise((r) => setTimeout(r, 0));
     expect(onRequestLiveScrape).not.toHaveBeenCalled();
-    // Status copy should hint that adding a make/model unlocks live scrape.
-    expect(screen.getByTestId("auction-empty-status").textContent).toMatch(/make.+model/i);
+    const status = screen.getByTestId("auction-empty-status").textContent ?? "";
+    expect(status.toLowerCase()).toMatch(/year/);
   });
 
   test("pending state shows the 'searching' copy", () => {
@@ -80,7 +100,7 @@ describe("AuctionDIYColumn empty state", () => {
     expect(screen.getByTestId("auction-empty-status").textContent).toMatch(/Searching/i);
   });
 
-  test("unavailable state shows offline copy and a retry button", () => {
+  test("unavailable state shows offline copy and a retry button when filters are complete", () => {
     const onRequestLiveScrape = vi.fn();
     render(
       <AuctionDIYColumn
@@ -88,7 +108,7 @@ describe("AuctionDIYColumn empty state", () => {
         onPick={vi.fn()}
         onSelect={vi.fn()}
         userProfile={profile}
-        intakeFilters={{ make: "Toyota", model: "", year: "", mileageBucket: "", trim: "" }}
+        intakeFilters={{ make: "Toyota", model: "Camry", year: "2017", mileageBucket: "", trim: "" }}
         liveScrapeState="unavailable"
         onRequestLiveScrape={onRequestLiveScrape}
       />,
