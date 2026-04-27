@@ -3,7 +3,13 @@ import { redirect } from "next/navigation";
 import { loadSession } from "@/services/team-01-auth";
 
 export default async function Home() {
-  const session = await loadSession();
+  let session;
+  try {
+    session = await loadSession();
+  } catch (err) {
+    console.error("loadSession failed:", err);
+    throw err;
+  }
 
   if (session.state === "ready") redirect("/browse");
 
