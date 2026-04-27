@@ -35,8 +35,16 @@ import { setOrchestrator } from "./core/refresh.js";
 
 const PORT = parseInt(process.env.ORCH_PORT ?? "3099", 10);
 
+// HEADLESS=false launches a visible Chromium window. Useful when Copart's
+// Incapsula challenge stops accepting headless sessions — a real window with
+// real input handling clears the challenge more reliably.
+const headless = process.env.HEADLESS === "false" ? false : true;
+const maxRetries = parseInt(process.env.ADAPTER_MAX_RETRIES ?? "3", 10);
+log("info", `Adapter config: headless=${headless} maxRetries=${maxRetries}`);
+
 const orchestrator = new Orchestrator({
-  headless: true,
+  headless,
+  maxRetries,
   maxPages: 3,
   pageSize: 20,
   delayBetweenRequests: 1500,

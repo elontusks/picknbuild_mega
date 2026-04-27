@@ -93,6 +93,13 @@ class CopartSession {
       Object.defineProperty(navigator, "webdriver", { get: () => undefined });
     });
 
+    // tsx/esbuild emits __name() wrappers; polyfill in the page so DOM-extraction
+    // lambdas inside page.evaluate() don't throw ReferenceError.
+    await this.context.addInitScript(() => {
+      const g = globalThis as unknown as { __name?: (t: unknown) => unknown };
+      if (typeof g.__name === "undefined") g.__name = (t) => t;
+    });
+
     this.page = await this.context.newPage();
 
     // Block heavy resources
