@@ -50,7 +50,7 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
       style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card)' }}
     >
       {/* Image with Gallery Navigation */}
-      <div className="relative h-48 overflow-hidden" style={{ backgroundColor: 'var(--muted)' }}>
+      <div className="relative h-40 overflow-hidden" style={{ backgroundColor: 'var(--muted)' }}>
         <img
           src={currentPhoto}
           alt={`${car.year} ${car.make} ${car.model}`}
@@ -91,12 +91,32 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
         </div>
       </div>
 
+      {/* Controls - Right after image */}
+      <div className="border-t p-2 flex gap-2" style={{ borderColor: 'var(--border)' }}>
+        <button
+          onClick={onPass}
+          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded border hover:opacity-75 transition-opacity text-xs font-medium"
+          style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
+        >
+          <ThumbsDown size={12} />
+          Pass
+        </button>
+        <button
+          onClick={() => onPick(car)}
+          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded hover:opacity-90 transition-opacity text-xs font-medium"
+          style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
+        >
+          <ThumbsUp size={12} />
+          Pick
+        </button>
+      </div>
+
       {/* Price Indicator - Under Photo */}
       {totalPrice !== undefined && affordability && (
         <div style={{ padding: '8px 12px' }}>
-          <PriceAffordabilityIndicator 
-            totalPrice={totalPrice} 
-            affordability={affordability} 
+          <PriceAffordabilityIndicator
+            totalPrice={totalPrice}
+            affordability={affordability}
             label={priceLabel}
             showLabel={true}
             downPayment={downPayment}
@@ -247,25 +267,6 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="border-t p-3 flex gap-2" style={{ borderColor: 'var(--border)' }}>
-        <button
-          onClick={onPass}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded border hover:opacity-75 transition-opacity text-sm font-medium"
-          style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-        >
-          <ThumbsDown size={14} />
-          Pass
-        </button>
-        <button
-          onClick={() => onPick(car)}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded hover:opacity-90 transition-opacity text-sm font-medium"
-          style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
-        >
-          <ThumbsUp size={14} />
-          Pick
-        </button>
-      </div>
     </div>
   );
 }
