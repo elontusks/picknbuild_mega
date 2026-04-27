@@ -216,6 +216,15 @@ class IaaiSession {
       Object.defineProperty(navigator, "webdriver", { get: () => undefined });
     });
 
+    // tsx/esbuild emits __name() wrappers around named callbacks for .name
+    // preservation. When the function body is shipped to the browser via
+    // page.evaluate(), __name is undefined in the page context. Polyfill it
+    // so DOM-extraction lambdas (forEach, map, etc.) don't throw ReferenceError.
+    await this.context.addInitScript(() => {
+      const g = globalThis as unknown as { __name?: (t: unknown) => unknown };
+      if (typeof g.__name === "undefined") g.__name = (t) => t;
+    });
+
     this.page = await this.context.newPage();
 
     // Block heavy assets (keep scripts — PX needs them to resolve).

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run the Next.js app and the scraper orchestrator side-by-side.
-# Both processes inherit env from picknbuild_mega/.env.local.
+# Both processes inherit env from picknbuild_mega/.env.local (or .env).
 #
 # Usage:  ./start-all.sh
 # Stops:  Ctrl-C kills both children via the trap below.
@@ -9,8 +9,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-if [[ ! -f .env.local ]]; then
-  echo "✗ .env.local missing — copy from .env.example and fill in keys" >&2
+if [[ ! -f .env.local && ! -f .env ]]; then
+  echo "✗ .env or .env.local missing — copy from .env.example and fill in keys" >&2
   exit 1
 fi
 
