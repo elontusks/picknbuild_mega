@@ -50,7 +50,7 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
       style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card)' }}
     >
       {/* Image with Gallery Navigation */}
-      <div className="relative h-40 overflow-hidden" style={{ backgroundColor: 'var(--muted)' }}>
+      <div className="relative h-32 overflow-hidden" style={{ backgroundColor: 'var(--muted)' }}>
         <img
           src={currentPhoto}
           alt={`${car.year} ${car.make} ${car.model}`}
@@ -92,10 +92,10 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
       </div>
 
       {/* Controls - Right after image */}
-      <div className="border-t p-2 flex gap-2" style={{ borderColor: 'var(--border)' }}>
+      <div className="flex gap-1.5 p-1.5" style={{ borderColor: 'var(--border)' }}>
         <button
           onClick={onPass}
-          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded border hover:opacity-75 transition-opacity text-xs font-medium"
+          className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded border hover:opacity-75 transition-opacity text-xs font-medium"
           style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
         >
           <ThumbsDown size={12} />
@@ -103,7 +103,7 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
         </button>
         <button
           onClick={() => onPick(car)}
-          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded hover:opacity-90 transition-opacity text-xs font-medium"
+          className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded hover:opacity-90 transition-opacity text-xs font-medium"
           style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
         >
           <ThumbsUp size={12} />
