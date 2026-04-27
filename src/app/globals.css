@@ -64,3 +64,40 @@
     @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium;
   }
 }
+
+/* Indeterminate progress bar used by the auction live-scrape pending state.
+   The orchestrator's /search is fire-and-wait with no progress events, so
+   the bar deliberately doesn't fake a percentage — it just signals that
+   work is happening. */
+@keyframes scrape-progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+.scrape-progress-track {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background-color: var(--muted);
+  overflow: hidden;
+}
+
+.scrape-progress-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent) 50%,
+    transparent 100%
+  );
+  animation: scrape-progress-slide 1.6s linear infinite;
+}
