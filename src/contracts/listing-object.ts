@@ -6,7 +6,8 @@ export type ListingSource =
   | "craigslist"
   | "dealer"
   | "user"
-  | "parsed-link";
+  | "parsed-link"
+  | "firecrawl";
 
 export type TitleStatus = "clean" | "rebuilt" | "unknown";
 

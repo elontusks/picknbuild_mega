@@ -8,6 +8,10 @@ const SOURCE_TO_PATH: Record<ListingSource, CarPath> = {
   craigslist: "individual",
   user: "individual",
   "parsed-link": "individual",
+  // Firecrawl-driven adapters (Cars.com today, plus dealer sites / BaT) surface
+  // dealer-listed used inventory. Bucket as "dealer" so those rows actually
+  // show up instead of being dropped on unrecognized-path.
+  firecrawl: "dealer",
 };
 
 const SOURCE_TO_EFFORT: Record<ListingSource, Effort> = {
@@ -17,6 +21,7 @@ const SOURCE_TO_EFFORT: Record<ListingSource, Effort> = {
   craigslist: "medium",
   user: "medium",
   "parsed-link": "medium",
+  firecrawl: "low",
 };
 
 const SOURCE_TO_RISK: Record<ListingSource, Risk> = {
@@ -26,6 +31,7 @@ const SOURCE_TO_RISK: Record<ListingSource, Risk> = {
   craigslist: "medium",
   user: "medium",
   "parsed-link": "medium",
+  firecrawl: "low",
 };
 
 function deriveCondition(listing: ListingObject): Condition {
@@ -72,6 +78,8 @@ function buildExplanation(listing: ListingObject, price: number): string {
       return `Private seller listing at ${priceLabel}.`;
     case "parsed-link":
       return `Pasted listing at ${priceLabel} — verify with seller.`;
+    case "firecrawl":
+      return `Dealer-site listing at ${priceLabel}.`;
   }
 }
 
@@ -118,8 +126,14 @@ export function listingToCar(listing: ListingObject): Car {
 /**
  * The picknbuild column shows the dealer + auction pool restricted to
  * clean-title vehicles. Listings without a clean title are excluded.
+ * Firecrawl-driven dealer-side rows (Cars.com et al.) are eligible too.
  */
 export function isPicknbuildEligible(listing: ListingObject): boolean {
   if (listing.titleStatus !== "clean") return false;
-  return listing.source === "dealer" || listing.source === "copart" || listing.source === "iaai";
+  return (
+    listing.source === "dealer" ||
+    listing.source === "copart" ||
+    listing.source === "iaai" ||
+    listing.source === "firecrawl"
+  );
 }
