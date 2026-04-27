@@ -918,7 +918,7 @@ function SearchPageInner(props: Props) {
                   style={{
                     padding: '8px 12px',
                     backgroundColor: selectedCondition === 'clean' ? 'var(--accent)' : 'var(--muted)',
-                    color: selectedCondition === 'clean' ? 'white' : 'var(--foreground)',
+                    color: 'var(--foreground)',
                     border: 'none',
                     borderRadius: '6px',
                     fontSize: '12px',
@@ -934,7 +934,7 @@ function SearchPageInner(props: Props) {
                   style={{
                     padding: '8px 12px',
                     backgroundColor: selectedCondition === 'rebuilt' ? 'var(--accent)' : 'var(--muted)',
-                    color: selectedCondition === 'rebuilt' ? 'white' : 'var(--foreground)',
+                    color: 'var(--foreground)',
                     border: 'none',
                     borderRadius: '6px',
                     fontSize: '12px',
