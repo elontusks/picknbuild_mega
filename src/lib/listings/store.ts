@@ -12,7 +12,7 @@ import { rowToListing, type ListingInsert, type ListingRow } from "./mappers";
 import { classifyIdleSweep } from "./idle-sweep";
 
 const LISTING_COLUMNS =
-  "id, source, source_url, source_external_id, vin, year, make, model, trim, mileage, title_status, price, current_bid, bin_price, estimated_market_value, fees, photos, location_zip, source_updated_at, last_refreshed_at, status, owner_user_id";
+  "id, source, source_url, source_external_id, vin, year, make, model, trim, mileage, title_status, price, current_bid, bin_price, estimated_market_value, fees, photos, image_url, location_zip, source_updated_at, last_refreshed_at, status, owner_user_id";
 
 export type ListingFilter = {
   source?: ListingSource;

@@ -6,8 +6,9 @@ import { Car, UserProfile } from '@/lib/search-demo/types';
 import ColumnContainer from '../ColumnContainer';
 import CarCard from '../CarCard';
 import SponsorArea from '../SponsorArea';
-import { calculateDealerWithTermByScore, formatCurrency, getDealerAPRByScore, getDealerApprovalStatus, getCreditTier, estimateTradeInValue } from '@/lib/search-demo/pricingCalculations';
+import { calculateDealerWithTermByScore, formatCurrency, getDealerAPRByScore, getDealerApprovalStatus, getCreditTier } from '@/lib/search-demo/pricingCalculations';
 import { parseLinkAndConvert } from '@/lib/search-demo/parse-link-client';
+import type { VinDecoded } from '@/lib/search-demo/vin-lookup';
 
 interface ColumnProps {
   cars: Car[];
@@ -30,6 +31,8 @@ export default function DealerColumn({ cars, onPick, onSelect, userProfile, init
   const [tradeInVin, setTradeInVin] = useState('');
   const [tradeInTitleType, setTradeInTitleType] = useState<'clean' | 'rebuilt'>('clean');
   const [tradeInValue, setTradeInValue] = useState(0);
+  const [tradeInDecoded, setTradeInDecoded] = useState<VinDecoded | null>(null);
+  const [tradeInStatus, setTradeInStatus] = useState<'idle' | 'pending' | 'ok' | 'error'>('idle');
   const [pastedUrl, setPastedUrl] = useState('');
   const [parseError, setParseError] = useState('');
   const [parsing, setParsing] = useState(false);
@@ -55,29 +58,64 @@ export default function DealerColumn({ cars, onPick, onSelect, userProfile, init
 
   const currentCar = cars && cars.length > 0 ? cars[currentIndex] : null;
   const remaining = cars && cars.length > 0 ? cars.length - currentIndex - 1 : 0;
-  const basePrice = currentCar?.acv || 25000;
+  // basePrice prefers the current car's ACV. When that's missing/zero we fall
+  // back to the mean ACV across the visible dealer pool (a stable signal that
+  // doesn't depend on a specific listing). If the pool also has no ACVs we
+  // surface 0 so downstream pricing math zeros out gracefully instead of
+  // anchoring on a magic $25k default.
+  const basePrice = (() => {
+    if (currentCar?.acv && currentCar.acv > 0) return currentCar.acv;
+    const acvs = cars.map((c) => c.acv ?? 0).filter((v) => v > 0);
+    if (acvs.length === 0) return 0;
+    return Math.round(acvs.reduce((sum, v) => sum + v, 0) / acvs.length);
+  })();
 
-  // Calculate trade-in value when VIN is provided
-  const calculatedTradeIn = useMemo(() => {
-    if (tradeInVin && tradeInVin.length >= 10) {
-      return estimateTradeInValue(tradeInVin, tradeInTitleType, basePrice);
-    }
-    return 0;
-  }, [tradeInVin, tradeInTitleType, basePrice]);
-
-  // Update displayed trade-in value
+  // Decode VIN via /api/vin (NHTSA passthrough) once it reaches 17 chars.
+  // Debounced 350ms to avoid hammering the API on every keystroke.
   useEffect(() => {
-    if (calculatedTradeIn !== tradeInValue) {
-      setTradeInValue(calculatedTradeIn);
+    if (tradeInVin.length !== 17) {
+      setTradeInStatus('idle');
+      setTradeInDecoded(null);
+      setTradeInValue(0);
+      return;
     }
-  }, [calculatedTradeIn]);
+    const ctrl = new AbortController();
+    const handle = setTimeout(async () => {
+      setTradeInStatus('pending');
+      try {
+        const params = new URLSearchParams({ vin: tradeInVin, titleType: tradeInTitleType });
+        const res = await fetch(`/api/vin?${params.toString()}`, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data?.decoded) {
+          setTradeInStatus('error');
+          setTradeInDecoded(null);
+          setTradeInValue(0);
+        } else {
+          setTradeInDecoded(data.decoded);
+          setTradeInValue(typeof data.estimatedValue === 'number' ? data.estimatedValue : 0);
+          setTradeInStatus('ok');
+        }
+      } catch (err) {
+        if ((err as { name?: string })?.name === 'AbortError') return;
+        setTradeInStatus('error');
+        setTradeInDecoded(null);
+        setTradeInValue(0);
+      }
+    }, 350);
+    return () => {
+      ctrl.abort();
+      clearTimeout(handle);
+    };
+  }, [tradeInVin, tradeInTitleType]);
   
   // If hasNoCredit is true, treat as not approved by using score of 0
   const effectiveCreditScore = userProfile.hasNoCredit ? 0 : userProfile.creditScore;
   
-  const pricing = useMemo(() => 
-    calculateDealerWithTermByScore(basePrice, userProfile.titleType, effectiveCreditScore, selectedTerm),
-    [basePrice, userProfile.titleType, effectiveCreditScore, selectedTerm]
+  const effectiveTitleType = userProfile.titleType ?? 'clean';
+  const pricing = useMemo(() =>
+    calculateDealerWithTermByScore(basePrice, effectiveTitleType, effectiveCreditScore, selectedTerm),
+    [basePrice, effectiveTitleType, effectiveCreditScore, selectedTerm]
   );
   
   const rebuiltDisplay = userProfile.titleType === 'rebuilt' ? ' ↓' : '';
@@ -209,9 +247,29 @@ export default function DealerColumn({ cars, onPick, onSelect, userProfile, init
                     fontFamily: 'inherit',
                   }}
                 />
-                {tradeInValue > 0 && (
-                  <div style={{ fontSize: '12px', fontWeight: '600', padding: '6px 12px', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderRadius: '4px', textAlign: 'center' }}>
-                    Est. Trade-In: {formatCurrency(tradeInValue)}
+                {tradeInStatus === 'pending' && (
+                  <div style={{ fontSize: '11px', color: 'var(--muted-foreground)', textAlign: 'center', padding: '4px 8px' }}>
+                    Decoding…
+                  </div>
+                )}
+                {tradeInStatus === 'ok' && tradeInDecoded && (
+                  <div style={{ fontSize: '11px', color: 'var(--muted-foreground)', marginBottom: '6px', textAlign: 'center' }}>
+                    {[tradeInDecoded.year, tradeInDecoded.make, tradeInDecoded.model, tradeInDecoded.trim].filter(Boolean).join(' ')}
+                  </div>
+                )}
+                {tradeInStatus === 'ok' && tradeInValue > 0 && (
+                  <>
+                    <div style={{ fontSize: '12px', fontWeight: '600', padding: '6px 12px', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderRadius: '4px', textAlign: 'center' }}>
+                      Est. Trade-In: {formatCurrency(tradeInValue)}
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'var(--muted-foreground)', marginTop: '4px', textAlign: 'center', lineHeight: '1.3' }}>
+                      Estimate based on year, mileage, and title — full appraisal at trade-in.
+                    </div>
+                  </>
+                )}
+                {tradeInStatus === 'error' && (
+                  <div style={{ fontSize: '11px', color: '#dc2626', padding: '6px 8px', backgroundColor: 'rgba(220, 38, 38, 0.1)', borderRadius: '4px', textAlign: 'center' }}>
+                    Couldn’t decode that VIN — check it
                   </div>
                 )}
               </div>

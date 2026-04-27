@@ -624,6 +624,7 @@ export type Database = {
           phone_verified_at: string | null
           preferences: Json
           roles: string[]
+          title_preference: string | null
           updated_at: string
           zip: string | null
         }
@@ -643,6 +644,7 @@ export type Database = {
           phone_verified_at?: string | null
           preferences?: Json
           roles?: string[]
+          title_preference?: string | null
           updated_at?: string
           zip?: string | null
         }
@@ -662,6 +664,7 @@ export type Database = {
           phone_verified_at?: string | null
           preferences?: Json
           roles?: string[]
+          title_preference?: string | null
           updated_at?: string
           zip?: string | null
         }

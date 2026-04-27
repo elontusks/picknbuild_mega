@@ -7,9 +7,13 @@
 const BUILD_VERSION = 'v12-all-elements-final';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import type { User } from '@/contracts';
-import { Car, PickedCar, GarageGroup, UserProfile } from '@/lib/search-demo/types';
+import type { IntakeState, ListingObject, PathKind, PathQuote, Term, User } from '@/contracts';
+import { makeFixtureIntakeState, makeFixtureListingObject } from '@/contracts';
+import { Car, PickedCar, GarageGroup, UserProfile, IntakeFilters } from '@/lib/search-demo/types';
 import { listingToCar } from '@/lib/search-demo/listing-to-car';
+import { applyIntakeFilters } from '@/lib/search-demo/intake-filters';
+import { quotePath } from '@/services/team-11-pricing';
+import { PICKNBUILD_MIN_MONTHLY_EQUIVALENT } from '@/lib/pricing/constants';
 import {
   calculateDealerAffordability,
   calculateAuctionAffordability,
@@ -65,7 +69,12 @@ function SearchPageInner(props: Props) {
   const [selectedCondition, setSelectedCondition] = useState<'clean' | 'rebuilt'>('clean');
   const [filteredCars] = useState<Car[]>([]);
   const [currentUser, setCurrentUser] = useState<{ email: string; name?: string } | null>(null);
-  const [referralStats, setReferralStats] = useState({
+  const [referralStats, setReferralStats] = useState<{
+    invitesSent: number;
+    completedReferrals: number;
+    earnedCredits: number;
+    inviteCode?: string;
+  }>({
     invitesSent: 0,
     completedReferrals: 0,
     earnedCredits: 0,
@@ -73,8 +82,14 @@ function SearchPageInner(props: Props) {
   const [userProfile, setUserProfile] = useState<UserProfile>({
     availableCash: 8000,
     creditScore: 650,
-    titleType: 'clean',
     matchModeEnabled: false,
+  });
+  const [intakeFilters, setIntakeFilters] = useState<IntakeFilters>({
+    make: '',
+    model: '',
+    year: '',
+    mileageBucket: '',
+    trim: '',
   });
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -103,12 +118,28 @@ function SearchPageInner(props: Props) {
           setUserProfile({
             availableCash: profile.availableCash || 8000,
             creditScore: profile.creditScore || 650,
-            titleType: profile.titleType || 'clean',
+            titleType: profile.titleType ?? undefined,
             matchModeEnabled: false,
           });
         }
       } catch (err) {
         console.error("Failed to load user profile:", err);
+      }
+
+      // Load referral stats from API
+      try {
+        const referralRes = await fetch("/api/referrals");
+        if (referralRes.ok) {
+          const stats = await referralRes.json();
+          setReferralStats({
+            invitesSent: stats.invitesSent ?? 0,
+            completedReferrals: stats.completedReferrals ?? 0,
+            earnedCredits: stats.earnedCredits ?? 0,
+            inviteCode: stats.inviteCode,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load referral stats:", err);
       }
     };
     loadGarageAndProfile();
@@ -125,7 +156,7 @@ function SearchPageInner(props: Props) {
   }, [filteredCars]);
 
   const dealerCars = useMemo(() => {
-    let filtered = initialDealerCars.filter(filterMatch);
+    let filtered = applyIntakeFilters(initialDealerCars.filter(filterMatch), intakeFilters);
 
     if (userProfile.matchModeEnabled) {
       filtered = filtered.filter(car => {
@@ -138,10 +169,10 @@ function SearchPageInner(props: Props) {
     }
 
     return filtered;
-  }, [initialDealerCars, filterMatch, userProfile.matchModeEnabled, userProfile]);
+  }, [initialDealerCars, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
 
   const auctionCars = useMemo(() => {
-    let filtered = initialAuctionCars.filter(filterMatch);
+    let filtered = applyIntakeFilters(initialAuctionCars.filter(filterMatch), intakeFilters);
 
     if (userProfile.matchModeEnabled) {
       filtered = filtered.filter(car => {
@@ -155,10 +186,10 @@ function SearchPageInner(props: Props) {
     }
 
     return filtered;
-  }, [initialAuctionCars, filterMatch, userProfile.matchModeEnabled, userProfile]);
+  }, [initialAuctionCars, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
 
   const picknbuildCars = useMemo(() => {
-    let filtered = initialPicknbuildCars.filter(filterMatch);
+    let filtered = applyIntakeFilters(initialPicknbuildCars.filter(filterMatch), intakeFilters);
 
     if (userProfile.matchModeEnabled) {
       filtered = filtered.filter(car => {
@@ -171,23 +202,27 @@ function SearchPageInner(props: Props) {
     }
 
     return filtered;
-  }, [initialPicknbuildCars, filterMatch, userProfile.matchModeEnabled, userProfile]);
+  }, [initialPicknbuildCars, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
 
   const individualCars = useMemo(() => {
-    let filtered = initialIndividualCars.filter(filterMatch);
+    let filtered = applyIntakeFilters(initialIndividualCars.filter(filterMatch), intakeFilters);
 
     if (userProfile.matchModeEnabled) {
       filtered = filtered.filter(car => {
+        // Skip the affordability gate when totalCost is missing rather than
+        // anchoring on a magic default — letting unknown-price listings
+        // through is preferable to filtering them by an arbitrary fallback.
+        if (!car.totalCost) return true;
         const affordability = calculateIndividualAffordability(
           userProfile,
-          car.totalCost || 25000
+          car.totalCost
         );
         return affordability.canAfford;
       });
     }
 
     return filtered;
-  }, [initialIndividualCars, filterMatch, userProfile.matchModeEnabled, userProfile]);
+  }, [initialIndividualCars, filterMatch, intakeFilters, userProfile.matchModeEnabled, userProfile]);
 
   // Group picked cars by make/model
   const garageGroups = useMemo(() => {
@@ -241,9 +276,30 @@ function SearchPageInner(props: Props) {
     }
   }, []);
 
-  const handleRemovePickedCar = useCallback((carId: string) => {
-    setPickedCars((prev) => prev.filter(car => car.id !== carId));
-  }, []);
+  const handleRemovePickedCar = useCallback(async (carId: string) => {
+    const target = pickedCars.find((car) => car.id === carId);
+    const listingId = target?.listingId ?? target?.id;
+    if (!listingId) {
+      setToast({ message: "Cannot remove this car—no listing ID", type: "error" });
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/garage/${listingId}`, { method: "DELETE" });
+      if (!res.ok) {
+        setToast({ message: "Failed to remove from garage", type: "error" });
+        setTimeout(() => setToast(null), 3000);
+        return;
+      }
+      setPickedCars((prev) => prev.filter((car) => car.id !== carId));
+      setToast({ message: "Removed from garage", type: "success" });
+      setTimeout(() => setToast(null), 3000);
+    } catch {
+      setToast({ message: "Error removing from garage", type: "error" });
+      setTimeout(() => setToast(null), 3000);
+    }
+  }, [pickedCars]);
 
   const handleSignIn = useCallback(async (email: string, _password: string) => {
     const user = { email, name: email.split('@')[0] };
@@ -266,100 +322,215 @@ function SearchPageInner(props: Props) {
     setIsAutoCycling(true);
   }, []);
 
+  // Resolve the basePrice that drives the gap modal: prefer the currently
+  // selected car's ACV, else the median ACV of the dealer pool (median is
+  // more robust to outliers than mean), else 0 which gracefully zeros the
+  // gap math while we wait for inventory.
+  const gapBasePrice = useMemo<number>(() => {
+    if (selectedCar?.acv && selectedCar.acv > 0) return selectedCar.acv;
+    const acvs = dealerCars
+      .map((c) => c.acv ?? 0)
+      .filter((v) => v > 0)
+      .sort((a, b) => a - b);
+    if (acvs.length === 0) return 0;
+    const mid = Math.floor(acvs.length / 2);
+    return acvs.length % 2 === 0
+      ? Math.round(((acvs[mid - 1] ?? 0) + (acvs[mid] ?? 0)) / 2)
+      : acvs[mid] ?? 0;
+  }, [selectedCar, dealerCars]);
+
+  // Map the modal's term-string vocabulary ("cash" | "1".."6") to the Term
+  // contract ("cash" | "1y".."5y"). Contract caps at 5y, so 6 is clamped.
+  const toContractTerm = useCallback((termStr: string): Term => {
+    if (termStr === 'cash') return 'cash';
+    const n = parseInt(termStr, 10);
+    if (!Number.isFinite(n)) return 'cash';
+    const clamped = Math.max(1, Math.min(5, n));
+    return `${clamped}y` as Term;
+  }, []);
+
+  // (path|term|condition) -> PathQuote cache, populated by useEffect below.
+  const [quoteCache, setQuoteCache] = useState<Record<string, PathQuote>>({});
+
+  // The (path, term, condition) combinations the modal needs: the active
+  // selection plus every financed picknbuild term (1y..5y) so the year
+  // buttons can be greyed out when a term fails the $500/mo floor.
+  const quoteRequests = useMemo(() => {
+    const reqs: Array<{ key: string; path: PathKind; term: Term; condition: 'clean' | 'rebuilt' }> = [];
+    const condition = selectedCondition;
+    const pushReq = (path: PathKind, term: Term) => {
+      reqs.push({ key: `${path}|${term}|${condition}`, path, term, condition });
+    };
+    pushReq(activePath as PathKind, toContractTerm(selectedTerm));
+    (['1y', '2y', '3y', '4y', '5y'] as const).forEach((t) => pushReq('picknbuild', t));
+    return reqs;
+  }, [activePath, selectedTerm, selectedCondition, toContractTerm]);
+
+  useEffect(() => {
+    if (gapBasePrice <= 0) return;
+
+    let cancelled = false;
+    const run = async () => {
+      const next: Record<string, PathQuote> = {};
+      await Promise.all(
+        quoteRequests.map(async ({ key, path, term, condition }) => {
+          const listing: ListingObject = makeFixtureListingObject({
+            price: gapBasePrice,
+            currentBid: gapBasePrice,
+            binPrice: gapBasePrice,
+            estimatedMarketValue: gapBasePrice,
+            titleStatus: condition,
+          });
+          const intake: IntakeState = makeFixtureIntakeState({
+            cash: userProfile.availableCash,
+            creditScore: userProfile.creditScore,
+            noCredit: !!userProfile.hasNoCredit,
+            titlePreference: condition,
+            selectedTerm: term,
+          });
+          next[key] = await quotePath(path, listing, intake);
+        }),
+      );
+      if (!cancelled) setQuoteCache((prev) => ({ ...prev, ...next }));
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    quoteRequests,
+    gapBasePrice,
+    userProfile.availableCash,
+    userProfile.creditScore,
+    userProfile.hasNoCredit,
+  ]);
+
   const getPathCosts = (path: string, term: string = 'cash', condition: 'clean' | 'rebuilt' = 'clean') => {
-    let basePrice = 25000;
-    const interestRate = 0.065;
-    const marketAverage = 27500;
+    const contractTerm = toContractTerm(term);
+    const cacheKey = `${path}|${contractTerm}|${condition}`;
+    const quote = quoteCache[cacheKey];
+    const cash = userProfile.availableCash;
+    const safeGap = (n: number) => Math.max(0, n - cash);
+
+    // Until quotePath resolves (or if no basePrice is available), surface
+    // placeholder zeros so the modal remains structurally valid.
+    if (!quote) {
+      switch (path) {
+        case 'dealer':
+          return term === 'cash'
+            ? { type: 'dealer' as const, totalCost: 0, totalCostGap: 0, isCashTerm: true }
+            : {
+                type: 'dealer' as const,
+                downPayment: 0,
+                totalCost: 0,
+                monthlyPayment: 0,
+                downPaymentGap: 0,
+                totalCostGap: 0,
+                isCashTerm: false,
+              };
+        case 'auction':
+          return {
+            type: 'auction' as const,
+            currentBid: 0,
+            estimatedTotalCost: 0,
+            bidGap: 0,
+            totalCostGap: 0,
+          };
+        case 'picknbuild':
+          return term === 'cash'
+            ? { type: 'picknbuild' as const, totalCost: 0, totalCostGap: 0, hasCashTerm: true }
+            : {
+                type: 'picknbuild' as const,
+                downPayment: 0,
+                totalCost: 0,
+                biweeklyPayment: 0,
+                monthlyEquivalent: 0,
+                meetsMinimum: true,
+                downPaymentGap: 0,
+                totalCostGap: 0,
+                hasCashTerm: false,
+              };
+        case 'private':
+          return { type: 'private' as const, priceRequired: 0, cashGap: 0 };
+        default:
+          return { type: 'default' as const, totalCost: 0, gap: 0 };
+      }
+    }
 
     switch (path) {
       case 'dealer': {
-        const dealerPrice = basePrice;
-
         if (term === 'cash') {
           return {
             type: 'dealer' as const,
-            totalCost: dealerPrice,
-            totalCostGap: Math.max(0, dealerPrice - userProfile.availableCash),
+            totalCost: quote.total,
+            totalCostGap: safeGap(quote.total),
             isCashTerm: true,
           };
-        } else {
-          const termYears = parseInt(term);
-          const downPaymentPercent = 0.2 - termYears * 0.01;
-          const downPayment = dealerPrice * Math.max(0.1, downPaymentPercent);
-          const financed = dealerPrice - downPayment;
-          const totalInterest = financed * interestRate * termYears;
-          const totalCostAllIn = downPayment + financed + totalInterest;
-          const monthlyPayment = financed / (termYears * 12);
-
-          return {
-            type: 'dealer' as const,
-            downPayment,
-            totalCost: totalCostAllIn,
-            monthlyPayment,
-            downPaymentGap: Math.max(0, downPayment - userProfile.availableCash),
-            totalCostGap: Math.max(0, totalCostAllIn - userProfile.availableCash),
-            isCashTerm: false,
-          };
         }
+        const downPayment = quote.down ?? 0;
+        const monthlyPayment = quote.monthly ?? 0;
+        const months = parseInt(contractTerm, 10) * 12;
+        const totalCostAllIn = downPayment + monthlyPayment * months;
+        return {
+          type: 'dealer' as const,
+          downPayment,
+          totalCost: totalCostAllIn,
+          monthlyPayment,
+          downPaymentGap: safeGap(downPayment),
+          totalCostGap: safeGap(totalCostAllIn),
+          isCashTerm: false,
+        };
       }
       case 'auction': {
-        const currentBid = basePrice;
-        const estimatedTotalCost = basePrice + 500 + basePrice * 0.15;
+        // Auction quote rolls bid + buyer fee + transport + repair into total;
+        // surface gapBasePrice as the bid and the quote's total as all-in.
+        const currentBid = gapBasePrice;
+        const estimatedTotalCost = quote.total;
         return {
           type: 'auction' as const,
           currentBid,
           estimatedTotalCost,
-          bidGap: Math.max(0, currentBid - userProfile.availableCash),
-          totalCostGap: Math.max(0, estimatedTotalCost - userProfile.availableCash),
+          bidGap: safeGap(currentBid),
+          totalCostGap: safeGap(estimatedTotalCost),
         };
       }
       case 'picknbuild': {
-        const conditionDiscount = condition === 'clean' ? 0.02 : 0.15;
-        const picknbuildPrice = marketAverage * (1 - conditionDiscount);
-
         if (term === 'cash') {
           return {
             type: 'picknbuild' as const,
-            totalCost: picknbuildPrice,
-            totalCostGap: Math.max(0, picknbuildPrice - userProfile.availableCash),
+            totalCost: quote.total,
+            totalCostGap: safeGap(quote.total),
             hasCashTerm: true,
           };
-        } else {
-          const termYears = parseInt(term);
-          const financed = picknbuildPrice;
-          const totalInterest = financed * interestRate * termYears;
-          const totalCostAllIn = picknbuildPrice + totalInterest;
-          const downPayment = totalCostAllIn * 0.35;
-          const biweeklyPayment = (totalCostAllIn - downPayment) / (termYears * 26);
-          const monthlyEquivalent = (biweeklyPayment * 26) / 12;
-          const meetsMinimum = monthlyEquivalent >= 500;
-
-          return {
-            type: 'picknbuild' as const,
-            downPayment,
-            totalCost: totalCostAllIn,
-            biweeklyPayment,
-            monthlyEquivalent,
-            meetsMinimum,
-            downPaymentGap: Math.max(0, downPayment - userProfile.availableCash),
-            totalCostGap: Math.max(0, totalCostAllIn - userProfile.availableCash),
-            hasCashTerm: false,
-          };
         }
+        const downPayment = quote.down ?? 0;
+        const biweeklyPayment = quote.biweekly ?? 0;
+        const monthlyEquivalent = (biweeklyPayment * 26) / 12;
+        const meetsMinimum = monthlyEquivalent >= PICKNBUILD_MIN_MONTHLY_EQUIVALENT;
+        return {
+          type: 'picknbuild' as const,
+          downPayment,
+          totalCost: quote.total,
+          biweeklyPayment,
+          monthlyEquivalent,
+          meetsMinimum,
+          downPaymentGap: safeGap(downPayment),
+          totalCostGap: safeGap(quote.total),
+          hasCashTerm: false,
+        };
       }
       case 'private': {
-        const priceRequired = basePrice + basePrice * 0.08;
         return {
           type: 'private' as const,
-          priceRequired,
-          cashGap: Math.max(0, priceRequired - userProfile.availableCash),
+          priceRequired: quote.total,
+          cashGap: safeGap(quote.total),
         };
       }
       default: {
         return {
           type: 'default' as const,
-          totalCost: basePrice + 800,
-          gap: Math.max(0, basePrice + 800 - userProfile.availableCash),
+          totalCost: quote.total,
+          gap: safeGap(quote.total),
         };
       }
     }
@@ -420,6 +591,8 @@ function SearchPageInner(props: Props) {
       <MatchModeBar
         userProfile={userProfile}
         userZip={user.zip}
+        intakeFilters={intakeFilters}
+        onIntakeFiltersChange={setIntakeFilters}
         onMatchModeChange={(enabled) => setUserProfile({ ...userProfile, matchModeEnabled: enabled })}
         onUserProfileChange={setUserProfile}
       />
@@ -492,6 +665,24 @@ function SearchPageInner(props: Props) {
         isOpen={showReferralModal}
         onClose={() => setShowReferralModal(false)}
         referralStats={referralStats}
+        onSendInvite={async (email) => {
+          const res = await fetch("/api/referrals", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+          if (!res.ok) {
+            const { error } = await res.json().catch(() => ({ error: "Failed to send invite" }));
+            throw new Error(error || "Failed to send invite");
+          }
+          const stats = await res.json();
+          setReferralStats({
+            invitesSent: stats.invitesSent ?? 0,
+            completedReferrals: stats.completedReferrals ?? 0,
+            earnedCredits: stats.earnedCredits ?? 0,
+            inviteCode: stats.inviteCode,
+          });
+        }}
       />
 
       <SellYourCarModal

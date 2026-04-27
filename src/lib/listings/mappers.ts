@@ -23,6 +23,9 @@ export type ListingRow = {
   estimated_market_value: number | string | null;
   fees: number | string | null;
   photos: string[] | null;
+  // Scraper-populated primary thumbnail (Copart/IAAI/Firecrawl). Lives in a
+  // separate column from `photos` so we merge it in here when present.
+  image_url?: string | null;
   location_zip: string | null;
   source_updated_at: string;
   last_refreshed_at: string;
@@ -38,6 +41,18 @@ const numeric = (v: number | string | null | undefined): number | undefined => {
 
 const undefIfNull = <T,>(v: T | null | undefined): T | undefined =>
   v === null || v === undefined ? undefined : v;
+
+const mergePhotos = (
+  photos: string[] | null | undefined,
+  imageUrl: string | null | undefined,
+): string[] => {
+  const list = photos ?? [];
+  if (!imageUrl) return list;
+  if (list.includes(imageUrl)) return list;
+  // Scraper image_url is the primary/thumbnail — front-load it so the card
+  // shows it first.
+  return [imageUrl, ...list];
+};
 
 export const rowToListing = (row: ListingRow): ListingObject => ({
   id: row.id,
@@ -55,7 +70,7 @@ export const rowToListing = (row: ListingRow): ListingObject => ({
   binPrice: numeric(row.bin_price),
   estimatedMarketValue: numeric(row.estimated_market_value),
   fees: numeric(row.fees),
-  photos: row.photos ?? [],
+  photos: mergePhotos(row.photos, row.image_url),
   locationZip: undefIfNull(row.location_zip),
   sourceUpdatedAt: row.source_updated_at,
   lastRefreshedAt: row.last_refreshed_at,

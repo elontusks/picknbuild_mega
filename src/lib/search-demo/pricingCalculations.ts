@@ -110,6 +110,12 @@ function getDealerDownPaymentByTerm(termMonths: number): number {
   return 0.10;                         // 10% for 6 years (lowest down payment)
 }
 
+/**
+ * @deprecated Use the GET /api/vin endpoint (which calls the NHTSA vPIC
+ * decoder + the depreciation curve in `src/lib/search-demo/vin-lookup.ts`)
+ * instead. Kept as an export so older tests still resolve; do not call from
+ * new code.
+ */
 // NEW: Estimate trade-in value based on VIN (simplified calculation)
 // In production, this would call a real VIN decoder API
 export function estimateTradeInValue(vin: string, titleType: TitleType, basePrice?: number): number {

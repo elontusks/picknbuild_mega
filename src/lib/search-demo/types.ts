@@ -55,9 +55,27 @@ export interface ContextChip {
 export interface UserProfile {
   availableCash: number;
   creditScore: number;
-  titleType: TitleType;
+  /**
+   * Title preference is optional. Undefined means "no preference" — the user
+   * will see both clean and rebuilt listings and pricing math falls back to
+   * the clean-title baseline.
+   */
+  titleType?: TitleType;
   matchModeEnabled: boolean;
   hasNoCredit?: boolean;
+}
+
+/**
+ * Intake-bar filter state for the /browse page. UI-level state — not a frozen
+ * cross-team contract. Empty string on a field means "no filter" for that
+ * dimension.
+ */
+export interface IntakeFilters {
+  make: string;          // exact match (case-insensitive); '' = no filter
+  model: string;         // exact match (case-insensitive); '' = no filter
+  year: string;          // exact match against String(car.year); '' = no filter
+  mileageBucket: '' | '50k' | '100k' | '150k' | '150k+';
+  trim: string;          // case-insensitive substring; '' = no filter
 }
 
 export interface AffordabilityState {
