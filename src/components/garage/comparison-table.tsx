@@ -128,7 +128,7 @@ export function GarageComparisonTable({ rows, winners }: Props) {
                     data-winner={isTotalWinner ? "true" : "false"}
                     className={`px-3 py-1.5 text-right ${
                       isTotalWinner
-                        ? "bg-emerald-100 font-semibold text-emerald-900-900/30 dark:text-emerald-100"
+                        ? "bg-emerald-100 font-semibold !text-black dark:bg-emerald-900 dark:!text-emerald-100"
                         : ""
                     }`}
                   >
@@ -144,7 +144,7 @@ export function GarageComparisonTable({ rows, winners }: Props) {
                     data-winner={isMonthlyWinner ? "true" : "false"}
                     className={`px-3 py-1.5 text-right ${
                       isMonthlyWinner
-                        ? "bg-sky-100 font-semibold text-sky-900-900/30 dark:text-sky-100"
+                        ? "bg-sky-100 font-semibold !text-black dark:bg-sky-900 dark:!text-sky-100"
                         : ""
                     }`}
                   >
