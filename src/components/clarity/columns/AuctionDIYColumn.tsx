@@ -63,10 +63,15 @@ export default function AuctionDIYColumn({
   };
 
   // Auto-trigger live-scrape exactly once per (filters, mount) when the
-  // auction pool is empty AND the user has typed enough of a search to make
-  // the scrape meaningful. Without make/model the upstream orchestrator
-  // would do a wide-open crawl, which is wasted work — so we gate on those.
-  const hasSearch = Boolean(intakeFilters?.make?.trim() || intakeFilters?.model?.trim());
+  // auction pool is empty AND the user has filled every required filter.
+  // Necessary set: make + model + year. Without all three the upstream
+  // orchestrator's search would either fan out too wide (no model/make) or
+  // miss the user's intended year, so we gate strictly.
+  const hasSearch = Boolean(
+    intakeFilters?.make?.trim() &&
+      intakeFilters?.model?.trim() &&
+      intakeFilters?.year?.trim(),
+  );
   const autoTriggeredRef = useRef(false);
   useEffect(() => {
     if (cars.length > 0) return;
@@ -83,20 +88,31 @@ export default function AuctionDIYColumn({
     : "Lowest Price";
 
   if (cars.length === 0) {
+    const missing: string[] = [];
+    if (!intakeFilters?.make?.trim()) missing.push('make');
+    if (!intakeFilters?.model?.trim()) missing.push('model');
+    if (!intakeFilters?.year?.trim()) missing.push('year');
+    const missingPrompt =
+      missing.length === 0
+        ? ''
+        : missing.length === 1
+        ? `Pick a ${missing[0]} to run a live auction search.`
+        : `Pick ${missing.slice(0, -1).join(', ')} and ${missing[missing.length - 1]} to run a live auction search.`;
+
     const scrapeStatusMessage =
       liveScrapeState === 'pending'
         ? 'Searching Copart, IAAI, and other sources for matching cars…'
         : liveScrapeState === 'unavailable'
         ? 'Live search is offline right now. You can still paste an auction link below.'
         : liveScrapeState === 'error' && !hasSearch
-        ? 'Add a make or model to your search and we&apos;ll run a live scrape for matching auctions.'
+        ? `${missingPrompt} Or paste an auction link below.`
         : liveScrapeState === 'error'
-        ? 'Couldn&apos;t reach the live search. Try paste-a-link below.'
+        ? 'Couldn’t reach the live search. Try paste-a-link below.'
         : liveScrapeState === 'success'
         ? 'No auction matches yet — try widening your filters, or paste an auction link below.'
         : hasSearch
         ? 'No auction matches yet for this search.'
-        : 'No auction options available. Add a make or model, or paste an auction link below.';
+        : `${missingPrompt} Or paste an auction link below.`;
 
     return (
       <ColumnContainer
