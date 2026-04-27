@@ -50,14 +50,14 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
       style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card)' }}
     >
       {/* Image with Gallery Navigation */}
-      <div className="relative h-32 overflow-hidden" style={{ backgroundColor: 'var(--muted)' }}>
+      <div className="relative h-40 overflow-hidden" style={{ backgroundColor: 'var(--muted)' }}>
         <img
           src={currentPhoto}
           alt={`${car.year} ${car.make} ${car.model}`}
           className="w-full h-full object-cover cursor-pointer"
           onError={handleImageError}
         />
-        
+
         {/* Photo Navigation - Show only if multiple photos */}
         {photos.length > 1 && (
           <>
@@ -75,40 +75,40 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
             >
               <ChevronRight size={20} />
             </button>
-            
+
             {/* Photo Counter */}
             <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-semibold">
               {photoIndex + 1} / {photos.length}
             </div>
           </>
         )}
-        
+
         <div className="absolute top-2 left-2 text-white px-2 py-1 rounded text-xs font-semibold">
           {car.path === 'dealer' && 'DEALER'}
           {car.path === 'auction' && 'AUCTION'}
           {car.path === 'picknbuild' && <PicknbuildBrand fontSize="12px" fontWeight="700" />}
           {car.path === 'individual' && 'INDIVIDUAL'}
         </div>
-      </div>
 
-      {/* Controls - Right after image */}
-      <div className="flex gap-1.5 p-1.5" style={{ borderColor: 'var(--border)' }}>
-        <button
-          onClick={onPass}
-          className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded border hover:opacity-75 transition-opacity text-xs font-medium"
-          style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-        >
-          <ThumbsDown size={12} />
-          Pass
-        </button>
-        <button
-          onClick={() => onPick(car)}
-          className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded hover:opacity-90 transition-opacity text-xs font-medium"
-          style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
-        >
-          <ThumbsUp size={12} />
-          Pick
-        </button>
+        {/* Controls - Overlaid on image at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 flex gap-1.5 p-1.5 bg-gradient-to-t from-black/40 to-transparent">
+          <button
+            onClick={onPass}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded border hover:opacity-75 transition-opacity text-xs font-medium bg-white"
+            style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
+          >
+            <ThumbsDown size={12} />
+            Pass
+          </button>
+          <button
+            onClick={() => onPick(car)}
+            className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded hover:opacity-90 transition-opacity text-xs font-medium"
+            style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
+          >
+            <ThumbsUp size={12} />
+            Pick
+          </button>
+        </div>
       </div>
 
       {/* Price Indicator - Under Photo */}
