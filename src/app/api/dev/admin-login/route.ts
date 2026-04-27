@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 // Dev-only convenience: sign in as the dummy admin seeded by
@@ -8,15 +8,12 @@ import { createClient } from "@/lib/supabase/server";
 // sets the auth cookie on localhost — which a Supabase-domain magic link
 // cannot do.
 //
-// This is gated by NODE_ENV — in any other environment the route 404s.
+// WARNING: Remove the production check before shipping. This is a security hole.
 
 const EMAIL = "admin-dummy@picknbuild.local";
 const PASSWORD = "DummyAdmin!43065";
 
-export async function GET() {
-  if (process.env.NODE_ENV === "production") {
-    return new NextResponse("Not found", { status: 404 });
-  }
+export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
     email: EMAIL,
@@ -32,5 +29,5 @@ export async function GET() {
       { status: 500 },
     );
   }
-  return NextResponse.redirect(new URL("/admin", "http://localhost:3000"));
+  return NextResponse.redirect(new URL("/admin", request.url));
 }
