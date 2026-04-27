@@ -62,7 +62,8 @@ Run from the parent checkout once the PR has merged.
 
 ## Follow-ups
 
-- **Pending migration:** `supabase/migrations/20260426000000_profiles_title_preference.sql` adds `title_preference` to `profiles` for the /browse title-type persistence fix. Coordinate before running `supabase db push` (DB is shared across worktrees).
+- **Applied migration (2026-04-27):** `20260426000000_profiles_title_preference.sql` was applied to the shared remote DB via `supabase db push --include-all` after PR #22 merged. Adds `profiles.title_preference text` (nullable, check ∈ {clean, rebuilt}).
+- **Renamed dormant migration:** `20260426000000_fix_listing_urls.sql.skip` → `20260427120000_fix_listing_urls.sql.skip`. The previous filename collided on timestamp prefix with the title-preference migration above; since `20260426000000` is now recorded remotely with different SQL, the dormant URL-fix would silently no-op if re-enabled. Renaming gives it a fresh timestamp so re-enabling (drop the `.skip`) applies cleanly.
 
 _None. All Team 13 index/race follow-ups closed:_
 - `threads_by_user` and `notifications_by_user` switched to Team 15's atomic `appendToList`.
