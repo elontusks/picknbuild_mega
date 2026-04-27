@@ -1,0 +1,14 @@
+-- Fix listing URLs: change pickandbuild.example.com to picknbuild.example.com
+--
+-- NOTE: Renamed from 20260426000000_fix_listing_urls.sql.skip to
+-- 20260427120000_*.sql.skip to avoid a timestamp collision with
+-- 20260426000000_profiles_title_preference.sql, which has been applied to
+-- the shared remote DB. The original file was already marked .skip
+-- (dormant); this rename only changes the prefix so that if the file is
+-- ever re-enabled (extension dropped to .sql), Supabase will treat it as
+-- a fresh migration with its own row in supabase_migrations.schema_migrations
+-- instead of silently no-op'ing because the old timestamp is already
+-- recorded with different SQL.
+UPDATE listings
+SET source_url = REPLACE(source_url, 'pickandbuild.example.com', 'picknbuild.example.com')
+WHERE source_url LIKE '%pickandbuild.example.com%';
