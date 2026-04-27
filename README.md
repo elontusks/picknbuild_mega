@@ -85,7 +85,7 @@ Full protocol + port table + troubleshooting: [`docs/BUILD_PLAN.md`](./docs/BUIL
 ## Guardrails
 
 - **Contracts are frozen.** Don't edit `src/contracts/` unilaterally. If a shape is wrong, stop and coordinate a single-PR contract change that lands before any consumer imports it.
-- **Don't implement scrapers.** Every external source (Copart / IAAI / Craigslist / dealer / user) emits `ListingObject` rows upstream. Consume them.
+- **The scraper is in-tree, not a black box.** It lives at [`scraper/`](./scraper/) and runs on port 3099 alongside Next.js (`./start-all.sh` boots both). Add new sources as adapters under `scraper/src/adapters/`; call existing ones through `/api/scrape`, `/api/orch-health`, `/api/curated`, `/api/listings/[id]/refresh`. Don't fetch external sites directly from `src/` — go through the sidecar so the persistence + dedup + scoring pipeline is honored.
 - **Honor the dropped-items list** in [`ARCHITECTURE.md` §7](./docs/requirements/ARCHITECTURE.md). If a task seems to require a dropped item, stop and flag it.
 - **Never `git push --force` or `reset --hard`** without the other human's sign-off.
 - **Next.js 16 has breaking changes.** Read `node_modules/next/dist/docs/` rather than relying on training data.

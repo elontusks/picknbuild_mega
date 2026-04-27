@@ -34,9 +34,29 @@ Dev servers run on port `3000 + N` inside each worktree (3001 for Team 1, 3007 f
 
 When you're running as an agent, your CWD is the team worktree — not the parent. Full claim/retire protocol: `TEAMS.md` and `docs/BUILD_PLAN.md` §5–§6.
 
-## Scrapers are black boxes
+## Scrapers are in-tree — integrate, don't reinvent
 
-Auction scrapers (Copart/IAAI), Craigslist scrapers, and any other external source are assumed to exist upstream. **Do not implement or wire up a scraper.** Everything consumes `ListingObject` rows emitted by ingestion — that shape is in `src/contracts/listing-object.ts`. If you find yourself writing scraper code, stop.
+The earlier "scrapers are black boxes" rule no longer applies. The scraper sidecar lives at **`scraper/`** in this repo and runs on **port 3099** alongside the Next.js app (`./start-all.sh` boots both). It owns Copart (Playwright), IAAI (Playwright), and Firecrawl-driven adapters (Cars.com, BaT, dealer sites), persists results to the same Supabase Postgres the Next.js app reads from via a service-role client, and exposes:
+
+- `GET /health` — adapter readiness
+- `POST /search` — multi-source search (also persists rows)
+- `GET /preview` — quick search via querystring
+- `GET /vehicle/:source/:id` — single vehicle detail
+- `POST /refresh/:listingId` — re-scrape + diff for an existing row
+- `GET /curated` — hottest-auctions feed
+- `POST /ingest/run` — manually trigger the daily-ingest job
+
+The Next.js side proxies these through `/api/scrape`, `/api/orch-health`, `/api/curated`, `/api/listings/[id]/refresh`, and `/api/scrape-sites`. Use those proxy routes from app code — they handle auth and error wrapping. `src/lib/scraper/client.ts` is the typed HTTP boundary; `ScraperUnavailableError` is what to catch when the sidecar is down.
+
+Rules for agents going forward:
+
+- **Need data from a new source?** Add an adapter under `scraper/src/adapters/` and register it in `scraper/src/server.ts`. Don't add a one-off fetch in app code.
+- **Need a new scraper capability (progress events, URL-targeted scrape, etc.)?** Land the endpoint in the scraper, expose it through a proxy under `src/app/api/`, and only then consume from React.
+- **Schema change?** The scraper writes `listings` directly with the same constraints app code reads. Coordinate any column add/widen in `supabase/migrations/` AND keep `ListingSource` in `src/contracts/listing-object.ts` in sync. The `firecrawl` source drift in `KNOWN_ISSUES.md#1` is the cautionary tale.
+- **Still don't roll your own scraping logic in `src/`.** That's separate from "extend the in-tree scraper" — app code talks to `localhost:3099`, not Playwright/Firecrawl directly.
+- **Test plans must include the round-trip.** A change that touches scrape → DB → UI isn't done until you've confirmed a real scrape lands rows that surface in the right column.
+
+If something seems to need scraper logic but the existing endpoints don't fit, stop and propose the shape of a new endpoint before writing it — the orchestrator's response contract is consumed in several places.
 
 ## Strip before production
 
@@ -145,7 +165,7 @@ Rules:
 - If your team owns a service file in src/services/, replace the stub with a real implementation as part of your work.
 - Do NOT modify src/contracts/ or another team's service signatures. If something is wrong, stop and flag.
 - Honor ARCHITECTURE §7 Dropped items. Stop and flag if a task seems to require one.
-- Scrapers are black boxes. Consume ListingObject; do not implement scrapers.
+- The scraper sidecar at `scraper/` (port 3099) is part of this workspace. Call it via `/api/scrape`, `/api/orch-health`, `/api/curated`, `/api/listings/[id]/refresh` — don't reimplement scraping in `src/`. To add a source, add an adapter under `scraper/src/adapters/` and register it.
 - Update TEAMS.md (claim → in progress → merged).
 
 Deliverable: every component in your COMPONENTS.md section implemented against real contracts, with tests where applicable, and the service stubs your team owns replaced with real implementations. PR against main when done.

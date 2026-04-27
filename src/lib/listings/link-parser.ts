@@ -44,10 +44,12 @@ export const parseLinkUrl = (url: string): LinkParseResult => {
   const detected = classifyUrl(trimmed);
   if (detected === null) return { ok: false, reason: "Not a valid URL" };
 
-  // We can't hit the actual source — scrapers are black boxes and this fires
-  // client-side. Emit a skeleton listing so the rest of the UI still renders;
-  // the idle-sweep / scraper pipeline will backfill details if it picks this
-  // URL up.
+  // The scraper sidecar at scraper/ (port 3099) owns adapter execution, but
+  // we don't block the parse-link call on a full re-scrape today. Emit a
+  // skeleton so the rest of the UI still renders; the idle-sweep + on-view
+  // refresh pipeline backfills real fields when the scraper picks the URL
+  // up. Follow-up: synchronous /scrape-url endpoint on the sidecar — see
+  // KNOWN_ISSUES.md (paste-listing UX section).
   const listing: Omit<ListingObject, "id"> = {
     source: "parsed-link",
     sourceUrl: trimmed,

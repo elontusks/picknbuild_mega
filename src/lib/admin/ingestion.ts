@@ -3,11 +3,13 @@ import "server-only";
 import { nowIso } from "@/contracts";
 import * as Storage from "@/services/team-15-storage";
 
-// Ingestion health: Team 3's scrapers are a black box, but Team 15 still
-// needs to render a heartbeat. Nothing writes this today; any future
-// ingestion runner can call recordIngestionHeartbeat() and the Admin
-// Dashboard will surface the most-recent row. Missing bucket → "no runs
-// yet" copy.
+// Ingestion health: the scraper sidecar at scraper/ (port 3099) writes its
+// own scrape_runs table for per-attempt audit, but the Admin Dashboard
+// surface here is a wider heartbeat that any ingestion runner (scraper
+// daily-ingest cron, dealer onboarding feed, manual reupload) can append to.
+// Nothing writes this today; any future runner calls recordIngestionHeartbeat()
+// and the Admin Dashboard surfaces the most-recent row. Missing bucket →
+// "no runs yet" copy.
 
 export const INGESTION_RUNS_BUCKET = "ingestion_runs";
 

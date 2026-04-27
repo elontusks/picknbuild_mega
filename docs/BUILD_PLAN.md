@@ -225,7 +225,7 @@ Rules:
   stubs return fixtures — don't work around them).
 - Do NOT modify src/contracts/ or another team's service signatures.
 - Honor ARCHITECTURE §7 Dropped items. Stop and flag if required.
-- Scrapers are black boxes.
+- The scraper sidecar at `scraper/` (port 3099) is part of the workspace. Integrate via `/api/scrape`, `/api/orch-health`, `/api/curated`, `/api/listings/[id]/refresh`. Add new sources as adapters under `scraper/src/adapters/` — don't reimplement scraping in `src/`.
 - Build in §6 order: Team 1 → 3 → 11 → 4 → 5 → 6 → 7 → 16.
 - Update TEAMS.md (claim → in progress → merged) as you go.
 
@@ -303,7 +303,7 @@ If a batch slips, the slip compounds — the next batch can't start until its de
 ## 11. Troubleshooting
 
 - **Agent wants to edit `src/contracts/`:** stop the agent. The contract is frozen. If the field is actually missing, coordinate with the other human, land the contract change as a single PR, then resume.
-- **Agent wants to implement a scraper:** stop. Scrapers are black boxes. Agent should consume `ListingObject` from `@/services/team-03-supply`.
+- **Agent wants to implement a scraper inside `src/`:** stop. The scraper is in-tree at `scraper/` (port 3099) and integrates via the Next proxy routes (`/api/scrape`, `/api/orch-health`, `/api/curated`, `/api/listings/[id]/refresh`). New sources go in `scraper/src/adapters/`. The frontend consumes `ListingObject` rows the sidecar persists; it never fetches external sites directly.
 - **Agent reintroduces a dropped item (reality check engine, What Matters Most, Katzkin, paid Auction Service, etc.):** stop. List is in ARCHITECTURE §7 and `docs/requirements/chud/DROPPED.md`.
 - **Tests pass locally but fail in PR review:** both of you are on the same Next version (see AGENTS.md) — if CI diverges, it's usually a missing migration or env var, not a code problem.
 - **Typecheck breaks after a merge:** re-run `./node_modules/.bin/tsc --noEmit`. If a contract type narrowed, the consumer needs to handle the narrower case. Don't widen the contract to fix the consumer.
