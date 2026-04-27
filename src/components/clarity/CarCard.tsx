@@ -22,10 +22,18 @@ interface CarCardProps {
   matchModeEnabled?: boolean;
 }
 
+const PLACEHOLDER_IMAGE = '/placeholder-car.svg';
+
 export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, totalPrice, downPayment, monthlyPayment, riskPercentage, affordability, customMessage, financing, matchModeEnabled }: CarCardProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [failedPhotos, setFailedPhotos] = useState<Record<number, boolean>>({});
   const photos = car.gallery && car.gallery.length > 0 ? car.gallery : [car.image];
-  const currentPhoto = photos[photoIndex];
+  const rawPhoto = photos[photoIndex];
+  const currentPhoto = failedPhotos[photoIndex] || !rawPhoto ? PLACEHOLDER_IMAGE : rawPhoto;
+
+  const handleImageError = () => {
+    setFailedPhotos((prev) => ({ ...prev, [photoIndex]: true }));
+  };
 
   const handlePrevPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -47,6 +55,7 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
           src={currentPhoto}
           alt={`${car.year} ${car.make} ${car.model}`}
           className="w-full h-full object-cover cursor-pointer"
+          onError={handleImageError}
         />
         
         {/* Photo Navigation - Show only if multiple photos */}

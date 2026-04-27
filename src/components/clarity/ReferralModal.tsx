@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 
 interface ReferralModalProps {
@@ -10,19 +10,66 @@ interface ReferralModalProps {
     invitesSent: number;
     completedReferrals: number;
     earnedCredits: number;
+    inviteCode?: string;
   };
+  onSendInvite?: (email: string) => Promise<void>;
 }
 
-export default function ReferralModal({ isOpen, onClose, referralStats }: ReferralModalProps) {
+export default function ReferralModal({
+  isOpen,
+  onClose,
+  referralStats,
+  onSendInvite,
+}: ReferralModalProps) {
   const [copied, setCopied] = useState(false);
-  
-  // Generate a simple referral link (in a real app, this would be unique per user)
-  const referralLink = `https://picknbuild.app/?ref=${Math.random().toString(36).substr(2, 9)}`;
-  
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(referralLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const [toast, setToast] = useState<{ message: string; tone: 'success' | 'error' } | null>(null);
+
+  // Use the server-issued invite code when present so the link is stable per
+  // user. Fall back to a static placeholder before the GET resolves.
+  const referralLink = useMemo(() => {
+    const code = referralStats?.inviteCode ?? 'PNBINVITE';
+    return `https://picknbuild.app/?ref=${code}`;
+  }, [referralStats?.inviteCode]);
+
+  const flashToast = (message: string, tone: 'success' | 'error') => {
+    setToast({ message, tone });
+    setTimeout(() => setToast(null), 2400);
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      flashToast('Link copied to clipboard', 'success');
+    } catch {
+      flashToast('Could not access clipboard', 'error');
+    }
+  };
+
+  const handleSendInvite = async () => {
+    const email = inviteEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      flashToast('Enter a valid email address', 'error');
+      return;
+    }
+    if (!onSendInvite) {
+      flashToast('Invites are not enabled in this view', 'error');
+      return;
+    }
+    setSending(true);
+    try {
+      await onSendInvite(email);
+      setInviteEmail('');
+      flashToast(`Invite sent to ${email}`, 'success');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to send invite';
+      flashToast(message, 'error');
+    } finally {
+      setSending(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -30,7 +77,7 @@ export default function ReferralModal({ isOpen, onClose, referralStats }: Referr
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         onClick={onClose}
         style={{
           position: 'fixed',
@@ -39,7 +86,7 @@ export default function ReferralModal({ isOpen, onClose, referralStats }: Referr
           zIndex: 40,
         }}
       />
-      
+
       {/* Modal */}
       <div style={{
         position: 'fixed',
@@ -93,8 +140,30 @@ export default function ReferralModal({ isOpen, onClose, referralStats }: Referr
 
         {/* Content */}
         <div style={{ paddingLeft: '32px', paddingRight: '32px', paddingTop: '24px', paddingBottom: '32px' }}>
+          {/* Invite Code Section */}
+          {referralStats?.inviteCode && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
+                Your Invite Code
+              </label>
+              <div style={{
+                display: 'inline-block',
+                padding: '8px 14px',
+                borderRadius: '6px',
+                backgroundColor: 'var(--muted)',
+                color: 'var(--foreground)',
+                fontFamily: 'monospace',
+                fontSize: '16px',
+                fontWeight: '700',
+                letterSpacing: '2px',
+              }}>
+                {referralStats.inviteCode}
+              </div>
+            </div>
+          )}
+
           {/* Referral Link Section */}
-          <div style={{ marginBottom: '28px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
               Your Referral Link
             </label>
@@ -133,6 +202,58 @@ export default function ReferralModal({ isOpen, onClose, referralStats }: Referr
                 }}
               >
                 {copied ? '✓ Copied' : 'Copy'}
+              </button>
+            </div>
+          </div>
+
+          {/* Email Invite Section */}
+          <div style={{ marginBottom: '28px' }}>
+            <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
+              Send an Email Invite
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="email"
+                placeholder="friend@example.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !sending) {
+                    handleSendInvite();
+                  }
+                }}
+                disabled={sending}
+                style={{
+                  flex: 1,
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--foreground)',
+                  fontSize: '13px',
+                }}
+              />
+              <button
+                onClick={handleSendInvite}
+                disabled={sending || !inviteEmail.trim()}
+                style={{
+                  paddingLeft: '16px',
+                  paddingRight: '16px',
+                  paddingTop: '10px',
+                  paddingBottom: '10px',
+                  borderRadius: '6px',
+                  backgroundColor: 'var(--accent)',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: '600',
+                  fontSize: '13px',
+                  cursor: sending || !inviteEmail.trim() ? 'not-allowed' : 'pointer',
+                  opacity: sending || !inviteEmail.trim() ? 0.6 : 1,
+                  transition: 'all 200ms',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {sending ? 'Sending…' : 'Send Invite'}
               </button>
             </div>
           </div>
@@ -230,6 +351,26 @@ export default function ReferralModal({ isOpen, onClose, referralStats }: Referr
           </button>
         </div>
       </div>
+
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            padding: '12px 16px',
+            borderRadius: '6px',
+            backgroundColor: toast.tone === 'success' ? '#10b981' : '#ef4444',
+            color: 'white',
+            fontSize: '13px',
+            fontWeight: '500',
+            zIndex: 60,
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          }}
+        >
+          {toast.message}
+        </div>
+      )}
     </>
   );
 }

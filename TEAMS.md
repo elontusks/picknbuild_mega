@@ -62,6 +62,8 @@ Run from the parent checkout once the PR has merged.
 
 ## Follow-ups
 
+- **Pending migration:** `supabase/migrations/20260426000000_profiles_title_preference.sql` adds `title_preference` to `profiles` for the /browse title-type persistence fix. Coordinate before running `supabase db push` (DB is shared across worktrees).
+
 _None. All Team 13 index/race follow-ups closed:_
 - `threads_by_user` and `notifications_by_user` switched to Team 15's atomic `appendToList`.
 - `thread_reads` shape changed from `{userId → lastReadAt}` keyed by threadId to one row per `(threadId, userId)` keyed by `${threadId}:${userId}`, so `markThreadRead` is a single `putRecord` with no merge. Concurrent writes from different participants can't clobber each other.

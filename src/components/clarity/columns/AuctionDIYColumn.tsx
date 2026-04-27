@@ -76,7 +76,7 @@ export default function AuctionDIYColumn({ cars, onPick, onSelect, userProfile, 
   const auctionEstimate = estimateAuctionBid(
     marketValue,
     currentBid,
-    userProfile.titleType,
+    userProfile.titleType ?? 'clean',
     currentCar.mileage,
     currentCar.explanation
   );

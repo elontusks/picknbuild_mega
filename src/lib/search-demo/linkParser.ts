@@ -63,7 +63,7 @@ export function createCarFromParsedListing(
     model: parsed.model || 'Make',
     year: parsed.year || new Date().getFullYear(),
     trim: '',
-    image: parsed.images?.[0] || '/placeholder-car.jpg',
+    image: parsed.images?.[0] || '/placeholder-car.svg',
     mileage: parsed.mileage || 0,
     condition: 'good' as const,
     location: 'Pasted Listing',

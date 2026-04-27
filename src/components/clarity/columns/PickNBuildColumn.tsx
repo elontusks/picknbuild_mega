@@ -16,8 +16,8 @@ import {
   getCreditTier,
   getCreditTierColor,
   getCreditTierLabel,
-  estimateTradeInValue,
 } from '@/lib/search-demo/pricingCalculations';
+import type { VinDecoded } from '@/lib/search-demo/vin-lookup';
 
 interface ColumnProps {
   cars: Car[];
@@ -43,6 +43,8 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
   const [tradeInVin, setTradeInVin] = useState('');
   const [tradeInTitleType, setTradeInTitleType] = useState<'clean' | 'rebuilt'>('clean');
   const [tradeInValue, setTradeInValue] = useState(0);
+  const [tradeInDecoded, setTradeInDecoded] = useState<VinDecoded | null>(null);
+  const [tradeInStatus, setTradeInStatus] = useState<'idle' | 'pending' | 'ok' | 'error'>('idle');
   const [buildAttachments, setBuildAttachments] = useState<BuildAttachment[]>([]);
   
   // Customization add-ons (completely separate from financing)
@@ -73,20 +75,44 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
     }, 0);
   }, [selectedAddOns]);
 
-  // Calculate trade-in value when VIN is provided
-  const calculatedTradeIn = useMemo(() => {
-    if (tradeInVin && tradeInVin.length >= 10) {
-      return estimateTradeInValue(tradeInVin, tradeInTitleType, userProfile.titleType === 'rebuilt' ? undefined : undefined);
-    }
-    return 0;
-  }, [tradeInVin, tradeInTitleType]);
-
-  // Update displayed trade-in value
+  // Decode VIN via /api/vin (NHTSA passthrough) once it reaches 17 chars.
+  // Debounced 350ms so we don't refetch on every keystroke.
   useEffect(() => {
-    if (calculatedTradeIn !== tradeInValue) {
-      setTradeInValue(calculatedTradeIn);
+    if (tradeInVin.length !== 17) {
+      setTradeInStatus('idle');
+      setTradeInDecoded(null);
+      setTradeInValue(0);
+      return;
     }
-  }, [calculatedTradeIn]);
+    const ctrl = new AbortController();
+    const handle = setTimeout(async () => {
+      setTradeInStatus('pending');
+      try {
+        const params = new URLSearchParams({ vin: tradeInVin, titleType: tradeInTitleType });
+        const res = await fetch(`/api/vin?${params.toString()}`, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data?.decoded) {
+          setTradeInStatus('error');
+          setTradeInDecoded(null);
+          setTradeInValue(0);
+        } else {
+          setTradeInDecoded(data.decoded);
+          setTradeInValue(typeof data.estimatedValue === 'number' ? data.estimatedValue : 0);
+          setTradeInStatus('ok');
+        }
+      } catch (err) {
+        if ((err as { name?: string })?.name === 'AbortError') return;
+        setTradeInStatus('error');
+        setTradeInDecoded(null);
+        setTradeInValue(0);
+      }
+    }, 350);
+    return () => {
+      ctrl.abort();
+      clearTimeout(handle);
+    };
+  }, [tradeInVin, tradeInTitleType]);
 
   const subtitle = userProfile.matchModeEnabled && initialCount && cars.length < initialCount
     ? `Showing ${cars.length} affordable`
@@ -99,24 +125,25 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
   // Use continuous risk: pass null for credit score if no credit, otherwise pass the actual score
   const effectiveCreditScore = userProfile.hasNoCredit ? null : userProfile.creditScore;
   
-  const availableTerms = useMemo(() => 
-    getAvailablePickAndBuildTermsWithContinuousRisk(basePrice, userProfile.titleType, effectiveCreditScore),
-    [basePrice, userProfile.titleType, effectiveCreditScore]
+  const effectiveTitleType = userProfile.titleType ?? 'clean';
+  const availableTerms = useMemo(() =>
+    getAvailablePickAndBuildTermsWithContinuousRisk(basePrice, effectiveTitleType, effectiveCreditScore),
+    [basePrice, effectiveTitleType, effectiveCreditScore]
   );
-  
+
   const effectiveTerm = availableTerms.includes(selectedTerm) ? selectedTerm : availableTerms[0];
-  
+
   const pricing = useMemo(() =>
     calculatePickAndBuildWithContinuousRisk(
       basePrice,
-      userProfile.titleType,
+      effectiveTitleType,
       effectiveCreditScore,
       effectiveTerm,
       addOnsTotal,
       includeShipping ? SHIPPING_COST : 0,
       isCashPrice
     ),
-    [basePrice, userProfile.titleType, effectiveCreditScore, effectiveTerm, addOnsTotal, includeShipping, isCashPrice]
+    [basePrice, effectiveTitleType, effectiveCreditScore, effectiveTerm, addOnsTotal, includeShipping, isCashPrice]
   );
   
   const rebuiltDisplay = userProfile.titleType === 'rebuilt' ? ' ↓' : '';
@@ -267,9 +294,29 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
                 fontFamily: 'inherit',
               }}
             />
-            {tradeInValue > 0 && (
-              <div style={{ fontSize: '12px', fontWeight: '600', padding: '6px 12px', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderRadius: '4px', textAlign: 'center', marginBottom: '6px' }}>
-                Est. Trade-In: {formatCurrency(tradeInValue)}
+            {tradeInStatus === 'pending' && (
+              <div style={{ fontSize: '11px', color: 'var(--muted-foreground)', textAlign: 'center', padding: '4px 8px' }}>
+                Decoding…
+              </div>
+            )}
+            {tradeInStatus === 'ok' && tradeInDecoded && (
+              <div style={{ fontSize: '11px', color: 'var(--muted-foreground)', marginBottom: '6px', textAlign: 'center' }}>
+                {[tradeInDecoded.year, tradeInDecoded.make, tradeInDecoded.model, tradeInDecoded.trim].filter(Boolean).join(' ')}
+              </div>
+            )}
+            {tradeInStatus === 'ok' && tradeInValue > 0 && (
+              <>
+                <div style={{ fontSize: '12px', fontWeight: '600', padding: '6px 12px', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderRadius: '4px', textAlign: 'center', marginBottom: '6px' }}>
+                  Est. Trade-In: {formatCurrency(tradeInValue)}
+                </div>
+                <div style={{ fontSize: '10px', color: 'var(--muted-foreground)', marginBottom: '6px', textAlign: 'center', lineHeight: '1.3' }}>
+                  Estimate based on year, mileage, and title — full appraisal at trade-in.
+                </div>
+              </>
+            )}
+            {tradeInStatus === 'error' && (
+              <div style={{ fontSize: '11px', color: '#dc2626', padding: '6px 8px', backgroundColor: 'rgba(220, 38, 38, 0.1)', borderRadius: '4px', textAlign: 'center', marginBottom: '6px' }}>
+                Couldn’t decode that VIN — check it
               </div>
             )}
           </div>

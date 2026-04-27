@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" role="img" aria-label="No photo available">
+  <rect width="400" height="240" fill="#e5e7eb"/>
+  <g fill="#9ca3af">
+    <!-- Stylized side-profile car silhouette -->
+    <path d="M68 152 Q72 128 96 122 L140 116 Q152 96 176 92 L236 92 Q260 96 272 116 L316 122 Q336 128 340 152 L340 168 Q340 176 332 176 L312 176 Q308 192 292 192 Q276 192 272 176 L136 176 Q132 192 116 192 Q100 192 96 176 L76 176 Q68 176 68 168 Z"/>
+    <circle cx="116" cy="180" r="14" fill="#6b7280"/>
+    <circle cx="292" cy="180" r="14" fill="#6b7280"/>
+    <circle cx="116" cy="180" r="6" fill="#e5e7eb"/>
+    <circle cx="292" cy="180" r="6" fill="#e5e7eb"/>
+    <!-- Window -->
+    <path d="M156 116 L184 100 L232 100 L256 116 Z" fill="#cbd5e1"/>
+  </g>
+  <text x="200" y="220" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif" font-size="13" fill="#6b7280" font-weight="600">No photo available</text>
+</svg>

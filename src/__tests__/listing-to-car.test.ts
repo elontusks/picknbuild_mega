@@ -99,7 +99,7 @@ describe("listingToCar", () => {
   it("uses placeholder image when listing has no photos", () => {
     const listing = makeFixtureListingObject({ photos: [] });
     const car = listingToCar(listing);
-    expect(car.image).toBe("/placeholder-car.jpg");
+    expect(car.image).toBe("/placeholder-car.svg");
     expect(car.gallery).toBeUndefined();
   });
 

@@ -85,7 +85,7 @@ export function listingToCar(listing: ListingObject): Car {
   const price = pickPrice(listing);
   const path = SOURCE_TO_PATH[listing.source];
   const condition = deriveCondition(listing);
-  const photo = listing.photos[0] ?? "/placeholder-car.jpg";
+  const photo = listing.photos[0] ?? "/placeholder-car.svg";
   const carTitleStatus = listing.titleStatus === "unknown" ? undefined : listing.titleStatus;
 
   return {
