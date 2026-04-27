@@ -15,11 +15,12 @@ interface ColumnProps {
   cars: Car[];
   onPick: (car: Car) => void;
   onSelect: (car: Car) => void;
+  onCarParsed?: (car: Car) => void;
   userProfile: UserProfile;
   initialCount?: number;
 }
 
-export default function IndividualColumn({ cars, onPick, onSelect, userProfile, initialCount }: ColumnProps) {
+export default function IndividualColumn({ cars, onPick, onSelect, onCarParsed, userProfile, initialCount }: ColumnProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [pastedUrl, setPastedUrl] = useState('');
   const [parsedCar, setParsedCar] = useState<Car | null>(null);
@@ -39,7 +40,8 @@ export default function IndividualColumn({ cars, onPick, onSelect, userProfile, 
 
     if (result.ok) {
       setParsedCar(result.car);
-      onSelect(result.car);
+      if (onCarParsed) onCarParsed(result.car);
+      else onSelect(result.car);
       setPastedUrl('');
     } else {
       setParseError(result.reason);
@@ -57,8 +59,54 @@ export default function IndividualColumn({ cars, onPick, onSelect, userProfile, 
         subtitle={subtitle}
         description="Buy directly from the seller. Inspect and negotiate yourself."
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '14px', color: 'var(--muted-foreground)' }}>
-          No individual listings available
+        <div data-testid="individual-empty" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '4px 0' }}>
+          <div style={{ fontSize: '12px', color: 'var(--muted-foreground)', lineHeight: 1.5 }}>
+            No private-seller matches yet. Saw one on Craigslist or Facebook? Paste the link and we&apos;ll pull it in.
+          </div>
+          <div style={{ padding: '12px', backgroundColor: 'var(--muted)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--muted-foreground)', marginBottom: '8px', textTransform: 'uppercase' }}>Paste a private-seller listing</div>
+            <input
+              type="text"
+              placeholder="Paste private seller link"
+              value={pastedUrl}
+              onChange={(e) => setPastedUrl(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handlePasteUrl()}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                fontSize: '12px',
+                borderRadius: '4px',
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--background)',
+                color: 'var(--foreground)',
+                marginBottom: '6px',
+                fontFamily: 'inherit',
+              }}
+            />
+            <button
+              onClick={handlePasteUrl}
+              disabled={parsing}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                fontSize: '12px',
+                fontWeight: '600',
+                borderRadius: '4px',
+                border: 'none',
+                backgroundColor: 'var(--accent)',
+                color: 'var(--accent-foreground)',
+                cursor: parsing ? 'not-allowed' : 'pointer',
+                opacity: parsing ? 0.6 : 1,
+              }}
+            >
+              {parsing ? 'Parsing…' : 'Parse Listing'}
+            </button>
+            {parseError && (
+              <div role="alert" style={{ fontSize: '11px', color: '#dc2626', marginTop: '6px', padding: '6px 8px', backgroundColor: 'rgba(220, 38, 38, 0.1)', borderRadius: '4px' }}>
+                {parseError}
+              </div>
+            )}
+          </div>
         </div>
       </ColumnContainer>
     );
