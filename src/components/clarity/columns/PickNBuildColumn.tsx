@@ -1,4 +1,4 @@
-// @ts-nocheck — demo lift; strict TS errors to fix when wiring real services
+// @ts-nocheck - demo lift; strict TS errors to fix when wiring real services
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -173,7 +173,27 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
       highlighted
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
-        <div style={{ padding: '16px', backgroundColor: 'var(--muted)', borderRadius: '8px', border: '1px solid var(--border)', position: 'relative', paddingTop: '50px' }}>
+        {/* Car Card - At the top */}
+        <CarCard
+          car={currentCar}
+          onPick={onPick}
+          onPass={() => setCurrentIndex(Math.min(currentIndex + 1, cars.length - 1))}
+          onSelect={onSelect}
+          priceLabel="Pick & Build"
+          totalPrice={pricing.totalPrice}
+          affordability={undefined}
+          matchModeEnabled={userProfile.matchModeEnabled}
+        />
+
+        {remaining > 0 && (
+          <div style={{ fontSize: '12px', textAlign: 'center', color: 'var(--muted-foreground)' }}>
+            +{remaining} more option{remaining === 1 ? '' : 's'}
+          </div>
+        )}
+
+        {/* Controls and pricing info below */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ padding: '16px', backgroundColor: 'var(--muted)', borderRadius: '8px', border: '1px solid var(--border)', position: 'relative', paddingTop: '50px' }}>
           {/* Build it your way Badge - PROMINENT */}
           <div style={{
             position: 'absolute',
@@ -310,13 +330,13 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
                   Est. Trade-In: {formatCurrency(tradeInValue)}
                 </div>
                 <div style={{ fontSize: '10px', color: 'var(--muted-foreground)', marginBottom: '6px', textAlign: 'center', lineHeight: '1.3' }}>
-                  Estimate based on year, mileage, and title — full appraisal at trade-in.
+                  Estimate based on year, mileage, and title - full appraisal at trade-in.
                 </div>
               </>
             )}
             {tradeInStatus === 'error' && (
               <div style={{ fontSize: '11px', color: '#dc2626', padding: '6px 8px', backgroundColor: 'rgba(220, 38, 38, 0.1)', borderRadius: '4px', textAlign: 'center', marginBottom: '6px' }}>
-                Couldn’t decode that VIN — check it
+                Couldn't decode that VIN - check it
               </div>
             )}
           </div>
@@ -468,64 +488,46 @@ export default function PickNBuildColumn({ cars, onPick, onSelect, userProfile, 
           🚀 Start Building
         </button>
 
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <CarCard
-            car={currentCar}
-            onPick={onPick}
-            onPass={() => setCurrentIndex(Math.min(currentIndex + 1, cars.length - 1))}
-            onSelect={onSelect}
-            priceLabel="Pick & Build"
-            totalPrice={pricing.totalPrice}
-            affordability={undefined}
-            matchModeEnabled={userProfile.matchModeEnabled}
-          />
-        </div>
-
-        {onReferralClick && (
-          <div style={{
-            padding: '12px 16px',
-            borderRadius: '6px',
-            backgroundColor: 'var(--accent)',
-            color: 'var(--accent-foreground)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px'
-          }}>
-            <div style={{ fontSize: '12px', fontWeight: '500', lineHeight: '1.4' }}>
-              Need help getting over the line?<br/>
-              <span style={{ opacity: 0.9 }}>Invite a friend and earn $500.</span>
+          {onReferralClick && (
+            <div style={{
+              padding: '12px 16px',
+              borderRadius: '6px',
+              backgroundColor: 'var(--accent)',
+              color: 'var(--accent-foreground)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '500', lineHeight: '1.4' }}>
+                Need help getting over the line?<br/>
+                <span style={{ opacity: 0.9 }}>Invite a friend and earn $500.</span>
+              </div>
+              <button
+                onClick={onReferralClick}
+                style={{
+                  paddingLeft: '12px',
+                  paddingRight: '12px',
+                  paddingTop: '6px',
+                  paddingBottom: '6px',
+                  borderRadius: '4px',
+                  backgroundColor: 'var(--accent-foreground)',
+                  color: 'var(--accent)',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 200ms'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+              >
+                Invite
+              </button>
             </div>
-            <button
-              onClick={onReferralClick}
-              style={{
-                paddingLeft: '12px',
-                paddingRight: '12px',
-                paddingTop: '6px',
-                paddingBottom: '6px',
-                borderRadius: '4px',
-                backgroundColor: 'var(--accent-foreground)',
-                color: 'var(--accent)',
-                border: 'none',
-                fontSize: '11px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 200ms'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            >
-              Invite
-            </button>
-          </div>
-        )}
-
-        {remaining > 0 && (
-          <div style={{ fontSize: '12px', textAlign: 'center', color: 'var(--muted-foreground)' }}>
-            +{remaining} more option{remaining === 1 ? '' : 's'}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </ColumnContainer>
   );

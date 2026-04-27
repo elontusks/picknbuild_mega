@@ -1,4 +1,4 @@
-// @ts-nocheck — demo lift; strict TS errors to fix when wiring real services
+// @ts-nocheck - demo lift; strict TS errors to fix when wiring real services
 'use client';
 
 import { useState } from 'react';
@@ -124,9 +124,28 @@ export default function IndividualColumn({ cars, onPick, onSelect, onCarParsed, 
       subtitle={subtitle}
       description="Buy directly from the seller. Inspect and negotiate yourself."
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
-        {/* Found a Better Deal - Link Parser */}
-        <div style={{ padding: '12px', backgroundColor: 'var(--muted)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Car Card - At the top */}
+        <CarCard
+          car={currentCar}
+          onPick={onPick}
+          onPass={() => setCurrentIndex(Math.min(currentIndex + 1, cars.length - 1))}
+          onSelect={onSelect}
+          priceLabel="Asking Price"
+          totalPrice={sellerPrice}
+          affordability={affordability}
+        />
+
+        {remaining > 0 && (
+          <div style={{ fontSize: '12px', textAlign: 'center', color: 'var(--muted-foreground)' }}>
+            +{remaining} more listing{remaining === 1 ? '' : 's'}
+          </div>
+        )}
+
+        {/* Controls and pricing info below */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Found a Better Deal - Link Parser */}
+          <div style={{ padding: '12px', backgroundColor: 'var(--muted)', borderRadius: '8px', border: '1px solid var(--border)' }}>
           <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--muted-foreground)', marginBottom: '8px', textTransform: 'uppercase' }}>Already found a car? Compare it here.</div>
           <input
             type="text"
@@ -224,30 +243,13 @@ export default function IndividualColumn({ cars, onPick, onSelect, onCarParsed, 
           </div>
         )}
 
-        {/* Private seller-specific sponsor area */}
-        <SponsorArea
-          title="Private Sale Protection"
-          description="Inspection, payment protection, and title services"
-          variant="individual"
-        />
-
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <CarCard
-            car={currentCar}
-            onPick={onPick}
-            onPass={() => setCurrentIndex(Math.min(currentIndex + 1, cars.length - 1))}
-            onSelect={onSelect}
-            priceLabel="Asking Price"
-            totalPrice={sellerPrice}
-            affordability={affordability}
+          {/* Private seller-specific sponsor area */}
+          <SponsorArea
+            title="Private Sale Protection"
+            description="Inspection, payment protection, and title services"
+            variant="individual"
           />
         </div>
-
-        {remaining > 0 && (
-          <div style={{ fontSize: '12px', textAlign: 'center', color: 'var(--muted-foreground)' }}>
-            +{remaining} more listing{remaining === 1 ? '' : 's'}
-          </div>
-        )}
       </div>
     </ColumnContainer>
   );

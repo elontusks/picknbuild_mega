@@ -89,26 +89,26 @@ export default function CarCard({ car, onPick, onPass, onSelect, priceLabel, tot
           {car.path === 'picknbuild' && <PicknbuildBrand fontSize="12px" fontWeight="700" />}
           {car.path === 'individual' && 'INDIVIDUAL'}
         </div>
+      </div>
 
-        {/* Controls - Overlaid on image at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 flex gap-1.5 p-1.5 bg-gradient-to-t from-black/40 to-transparent">
-          <button
-            onClick={onPass}
-            className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded border hover:opacity-75 transition-opacity text-xs font-medium bg-white"
-            style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-          >
-            <ThumbsDown size={12} />
-            Pass
-          </button>
-          <button
-            onClick={() => onPick(car)}
-            className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded hover:opacity-90 transition-opacity text-xs font-medium"
-            style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
-          >
-            <ThumbsUp size={12} />
-            Pick
-          </button>
-        </div>
+      {/* Controls - Below image */}
+      <div className="flex gap-2 p-2 border-b" style={{ borderColor: 'var(--border)' }}>
+        <button
+          onClick={onPass}
+          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded border hover:opacity-75 transition-opacity text-xs font-medium"
+          style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
+        >
+          <ThumbsDown size={12} />
+          Pass
+        </button>
+        <button
+          onClick={() => onPick(car)}
+          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded hover:opacity-90 transition-opacity text-xs font-medium"
+          style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
+        >
+          <ThumbsUp size={12} />
+          Pick
+        </button>
       </div>
 
       {/* Price Indicator - Under Photo */}
